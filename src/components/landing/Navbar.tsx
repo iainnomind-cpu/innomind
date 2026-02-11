@@ -10,8 +10,10 @@ import {
   Star, TrendingUp, Calculator,
   HelpCircle, MessageCircle, Phone
 } from 'lucide-react';
+import { useModal } from '../../context/ModalContext';
 
 export default function Navbar() {
+  const { openFreeTrial } = useModal();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -86,7 +88,7 @@ export default function Navbar() {
                   />
                 </div>
                 <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg">
-                  <a href="/prueba-gratis" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-4 rounded-lg shadow transition-all hover:scale-105">Comenzar Prueba Gratuita</a>
+                  <button onClick={openFreeTrial} className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-4 rounded-lg shadow transition-all hover:scale-105">Comenzar Prueba Gratuita</button>
                   <a href="/demo" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1">
                     Ver Demo <ChevronRight size={14} />
                   </a>
@@ -237,9 +239,9 @@ export default function Navbar() {
             <a href="/login" className="text-sm font-bold text-slate-700 dark:text-white hover:text-blue-600 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-blue-600 transition-all">
               Login
             </a>
-            <a href="/prueba-gratis" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2.5 px-5 rounded-lg shadow-lg shadow-blue-600/20 transition-all hover:scale-105">
+            <button onClick={openFreeTrial} className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2.5 px-5 rounded-lg shadow-lg shadow-blue-600/20 transition-all hover:scale-105">
               Comenzar Prueba Gratuita
-            </a>
+            </button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -316,9 +318,9 @@ export default function Navbar() {
               <a href="/login" className="block w-full text-center py-3 px-4 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-white font-bold">
                 Login
               </a>
-              <a href="/prueba-gratis" className="block w-full text-center py-3 px-4 bg-blue-600 text-white rounded-lg font-bold">
+              <button onClick={openFreeTrial} className="block w-full text-center py-3 px-4 bg-blue-600 text-white rounded-lg font-bold">
                 Comenzar Prueba Gratuita
-              </a>
+              </button>
             </div>
           </div>
         </div>
