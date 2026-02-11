@@ -1,8 +1,10 @@
 
 import React from 'react';
 import { Play, ArrowRight, CheckCircle2, TrendingUp, Activity, Brain, DollarSign, Users } from 'lucide-react';
+import { useModal } from '../../context/ModalContext';
 
 export default function Hero() {
+    const { openFreeTrial } = useModal();
     return (
         <div className="relative w-full min-h-[calc(100vh-80px)] flex items-center overflow-hidden mesh-gradient-bg pt-20">
             {/* Background Effects */}
@@ -48,7 +50,7 @@ export default function Hero() {
 
                         {/* CTAs */}
                         <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
-                            <button className="h-14 px-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold shadow-lg shadow-blue-600/20 transition-all hover:scale-105 flex items-center justify-center gap-2">
+                            <button onClick={openFreeTrial} className="h-14 px-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold shadow-lg shadow-blue-600/20 transition-all hover:scale-105 flex items-center justify-center gap-2">
                                 Comenzar Prueba Gratuita <ArrowRight size={20} />
                             </button>
                             <button className="h-14 px-8 rounded-lg glass-panel hover:bg-white/10 text-white text-lg font-bold border border-white/20 transition-all flex items-center justify-center gap-2 group">

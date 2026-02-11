@@ -1,8 +1,10 @@
 
 import React from 'react';
 import { Rocket, Settings, Check, ArrowRight } from 'lucide-react';
+import { useModal } from '../../context/ModalContext';
 
 export default function ComparisonSection() {
+    const { openFreeTrial } = useModal();
     return (
         <section className="py-24 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -40,7 +42,7 @@ export default function ComparisonSection() {
                         </ul>
 
                         <div className="mt-auto pt-6 border-t border-slate-100 dark:border-slate-700 relative z-10">
-                            <button className="w-full mb-3 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-lg shadow-blue-600/20">
+                            <button onClick={openFreeTrial} className="w-full mb-3 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-lg shadow-blue-600/20">
                                 Comenzar Prueba Gratuita
                             </button>
                             <a href="/planes" className="block text-center text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center justify-center gap-1">
