@@ -101,10 +101,10 @@ export default function FreeTrialModal() {
             ></div>
 
             {/* Modal Container */}
-            <div className={`relative w-full bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh] transition-all duration-300 ${step === 3 ? 'max-w-4xl' : 'max-w-2xl'}`}>
+            <div className={`relative w-full bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col h-[90vh] transition-all duration-300 ${step === 3 ? 'max-w-4xl' : 'max-w-2xl'}`}>
 
                 {/* Header & Progress */}
-                <div className="px-6 pt-6 pb-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                <div className="px-6 pt-3 pb-2 border-b border-slate-100 dark:border-slate-800 shrink-0">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-2">
                             {/* Logo Icon Mini */}
@@ -144,7 +144,7 @@ export default function FreeTrialModal() {
                 </div>
 
                 {/* Body */}
-                <div className="p-6 md:p-8 overflow-y-auto flex-grow">
+                <div className="px-6 py-3 md:px-8 md:py-4 overflow-y-auto flex-grow">
                     {step === 1 && (
                         <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                             <div className="text-center mb-6">
@@ -434,7 +434,7 @@ export default function FreeTrialModal() {
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 shrink-0">
+                <div className="px-6 py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 shrink-0">
                     <div className="flex flex-col gap-4">
                         <div className="flex gap-3">
                             {step > 1 && (
