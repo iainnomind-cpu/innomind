@@ -3,6 +3,7 @@ import { X, ArrowRight, Check, ShieldCheck, Lock, Star } from 'lucide-react';
 import { useModal } from '../../context/ModalContext';
 import { SmartSuggestion } from './SmartSuggestion';
 import { SmartTriggerToast } from './SmartTriggerToast';
+import { AIRecommendationWizard } from './AIRecommendationWizard';
 
 export default function FreeTrialModal() {
     const { isFreeTrialOpen, closeFreeTrial } = useModal();
@@ -26,6 +27,7 @@ export default function FreeTrialModal() {
 
     // Step 1 Validation Logic
     const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
     const step1Errors = useMemo(() => {
         const errors: { fullName?: string, email?: string, companyName?: string } = {};
@@ -306,6 +308,28 @@ export default function FreeTrialModal() {
                                 </div>
                             )}
 
+                            {/* AI Recommendation Wizard */}
+                            {/* AI Recommendation Wizard */}
+                            {selectedMainModule === 'crm-erp' && (
+                                <AIRecommendationWizard
+                                    onApplyRecommendation={(recommendedModules) => {
+                                        setSelectedMainModule('crm-erp');
+                                        const combined = Array.from(new Set([...selectedSubModules, ...recommendedModules]));
+                                        setSelectedSubModules(combined);
+
+                                        // Success Feedback & Scroll
+                                        setSuccessMessage("Paquete aplicado correctamente");
+                                        setTimeout(() => setSuccessMessage(null), 3000); // Auto hide after 3s
+
+                                        // Smooth scroll to bottom actions
+                                        setTimeout(() => {
+                                            document.getElementById('step-actions')?.scrollIntoView({ behavior: 'smooth' });
+                                        }, 100);
+                                    }}
+                                    onCancel={() => { }}
+                                />
+                            )}
+
                             {/* Smart Suggestion */}
                             <SmartSuggestion
                                 selectedModules={selectedSubModules}
@@ -434,7 +458,13 @@ export default function FreeTrialModal() {
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 shrink-0">
+                <div id="step-actions" className="px-6 py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 shrink-0 relative">
+                    {successMessage && (
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 bg-green-600 text-white text-sm font-bold py-2 px-4 rounded-full shadow-lg flex items-center gap-2 animate-in slide-in-from-bottom-2 fade-in zoom-in-95">
+                            <Check size={16} strokeWidth={3} />
+                            {successMessage}
+                        </div>
+                    )}
                     <div className="flex flex-col gap-4">
                         <div className="flex gap-3">
                             {step > 1 && (
@@ -447,8 +477,8 @@ export default function FreeTrialModal() {
                             )}
                             <button
                                 className={`flex-1 bg-blue-600 text-white font-bold py-3.5 px-6 rounded-lg transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 ${(step === 1 && !isStep1Valid) || (step === 3 && !isStep3Valid)
-                                        ? 'opacity-50 cursor-not-allowed'
-                                        : 'hover:bg-blue-700 hover:scale-[1.02]'
+                                    ? 'opacity-50 cursor-not-allowed'
+                                    : 'hover:bg-blue-700 hover:scale-[1.02]'
                                     }`}
                                 onClick={() => {
                                     if (step === 1) {
@@ -488,8 +518,8 @@ function InputGroup({ label, placeholder, type = 'text', value, onChange, error,
                 onChange={onChange}
                 onBlur={onBlur}
                 className={`w-full px-4 py-3 rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 outline-none transition-all ${error
-                        ? 'border-red-500 focus:ring-2 focus:ring-red-200'
-                        : 'border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                    ? 'border-red-500 focus:ring-2 focus:ring-red-200'
+                    : 'border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
                     }`}
             />
             {error && <p className="text-xs text-red-500 font-medium animate-in slide-in-from-top-1">{error}</p>}
