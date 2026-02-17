@@ -4,9 +4,14 @@ import { useModal } from '../../context/ModalContext';
 import { SmartSuggestion } from './SmartSuggestion';
 import { SmartTriggerToast } from './SmartTriggerToast';
 import { AIRecommendationWizard } from './AIRecommendationWizard';
+import { useNavigate } from 'react-router-dom';
+import { useCRM } from '@/context/CRMContext';
+import { Prospect } from '@/types';
 
 export default function FreeTrialModal() {
     const { isFreeTrialOpen, closeFreeTrial } = useModal();
+    const navigate = useNavigate();
+    const { addProspect } = useCRM();
     const [step, setStep] = useState(1);
 
     const [selectedMainModule, setSelectedMainModule] = useState<'crm-erp' | 'project-tracker' | null>(null);
@@ -486,7 +491,37 @@ export default function FreeTrialModal() {
                                         else setTouched({ fullName: true, email: true, companyName: true });
                                     }
                                     else if (step < 3) setStep(step + 1);
-                                    else if (isStep3Valid) closeFreeTrial();
+                                    else if (isStep3Valid) {
+                                        // Crear prospecto y redirigir
+                                        const newProspect: Prospect = {
+                                            id: Math.random().toString(36).substr(2, 9),
+                                            nombre: fullName,
+                                            empresa: companyName,
+                                            correo: email,
+                                            telefono: phone,
+                                            origen: 'Sitio Web',
+                                            servicioInteres: 'CRM-ERP', // Default
+                                            estado: 'Nuevo',
+                                            plataforma: 'WhatsApp',
+                                            responsable: '1', // Default ID
+                                            fechaContacto: new Date(),
+                                            tamanoEmpresa: companySize,
+                                            cargo: 'N/A',
+                                            seguimientos: [],
+                                            cotizaciones: [],
+                                            tareas: []
+                                        };
+                                        addProspect(newProspect);
+                                        closeFreeTrial();
+
+                                        // Redirigir al Login con credenciales
+                                        navigate('/crm/login', {
+                                            state: {
+                                                username: workspaceName,
+                                                password: password
+                                            }
+                                        });
+                                    }
                                 }}
                             >
                                 {step === 3 ? 'Activar mi Transformación Digital' : 'Continuar al Siguiente Paso'}
