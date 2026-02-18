@@ -11,9 +11,11 @@ import {
   HelpCircle, MessageCircle, Phone
 } from 'lucide-react';
 import { useModal } from '../../context/ModalContext';
+import { useAuth } from '@/context/AuthContext';
 
 export default function Navbar() {
   const { openFreeTrial } = useModal();
+  const { session } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -236,9 +238,15 @@ export default function Navbar() {
 
           {/* Buttons */}
           <div className="hidden lg:flex items-center gap-4">
-            <a href="/login" className="text-sm font-bold text-slate-700 dark:text-white hover:text-blue-600 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-blue-600 transition-all">
-              Login
-            </a>
+            {session ? (
+              <a href="/crm/dashboard" className="text-sm font-bold text-slate-700 dark:text-white hover:text-blue-600 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-blue-600 transition-all">
+                Ir al CRM
+              </a>
+            ) : (
+              <a href="/crm/login" className="text-sm font-bold text-slate-700 dark:text-white hover:text-blue-600 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-blue-600 transition-all">
+                Login
+              </a>
+            )}
             <button onClick={openFreeTrial} className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2.5 px-5 rounded-lg shadow-lg shadow-blue-600/20 transition-all hover:scale-105">
               Comenzar Prueba Gratuita
             </button>
@@ -315,9 +323,15 @@ export default function Navbar() {
             </a>
 
             <div className="pt-4 space-y-3">
-              <a href="/login" className="block w-full text-center py-3 px-4 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-white font-bold">
-                Login
-              </a>
+              {session ? (
+                <a href="/crm/dashboard" className="block w-full text-center py-3 px-4 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-white font-bold">
+                  Ir al CRM
+                </a>
+              ) : (
+                <a href="/crm/login" className="block w-full text-center py-3 px-4 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-white font-bold">
+                  Login
+                </a>
+              )}
               <button onClick={openFreeTrial} className="block w-full text-center py-3 px-4 bg-blue-600 text-white rounded-lg font-bold">
                 Comenzar Prueba Gratuita
               </button>

@@ -1,11 +1,13 @@
-import { Users, LayoutDashboard, Menu, Search, Building2, Trello } from 'lucide-react';
+import { Users, LayoutDashboard, Menu, Search, Building2, Trello, LogOut } from 'lucide-react';
 import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, signOut } = useAuth();
 
   const menuItems = [
     { id: 'dashboard', label: 'Panel de Control', icon: LayoutDashboard },
@@ -54,12 +56,19 @@ export default function Layout() {
         <div className="p-4 border-t border-gray-100">
           <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
             <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
-              U
+              {user?.email?.charAt(0).toUpperCase() || 'U'}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-gray-900">Usuario</p>
-              <p className="text-xs text-gray-500 truncate">usuario@crm.com</p>
+              <p className="text-xs text-gray-500 truncate">{user?.email}</p>
             </div>
+            <button
+              onClick={() => signOut()}
+              className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
+              title="Cerrar Sessión"
+            >
+              <LogOut size={18} />
+            </button>
           </div>
         </div>
       </aside>
