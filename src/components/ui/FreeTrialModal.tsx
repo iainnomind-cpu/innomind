@@ -4,6 +4,7 @@ import { useModal } from '../../context/ModalContext';
 import { SmartSuggestion } from './SmartSuggestion';
 import { SmartTriggerToast } from './SmartTriggerToast';
 import { AIRecommendationWizard } from './AIRecommendationWizard';
+import { supabase } from '@/lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { useCRM } from '@/context/CRMContext';
 import { Prospect } from '@/types';
@@ -13,6 +14,8 @@ export default function FreeTrialModal() {
     const navigate = useNavigate();
     const { addProspect } = useCRM();
     const [step, setStep] = useState(1);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [apiError, setApiError] = useState<string | null>(null);
 
     const [selectedMainModule, setSelectedMainModule] = useState<'crm-erp' | 'project-tracker' | null>(null);
     const [selectedSubModules, setSelectedSubModules] = useState<string[]>([]);
@@ -27,6 +30,7 @@ export default function FreeTrialModal() {
     // Step 3 State
     const [workspaceName, setWorkspaceName] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [termsAccepted, setTermsAccepted] = useState(false);
     const [testimonialIndex, setTestimonialIndex] = useState(0);
 
@@ -85,9 +89,20 @@ export default function FreeTrialModal() {
     }, [companySize]);
 
     // Logic: Validation
+    const passwordRequirements = useMemo(() => {
+        return {
+            length: password.length >= 8,
+            number: /\d/.test(password),
+            special: /[!@#$%^&*]/.test(password),
+        };
+    }, [password]);
+
+    const isPasswordValid = Object.values(passwordRequirements).every(Boolean);
+    const doPasswordsMatch = password === confirmPassword;
+
     const isStep3Valid = useMemo(() => {
-        return sanitizedWorkspace.length > 3 && password.length >= 6 && termsAccepted;
-    }, [sanitizedWorkspace, password, termsAccepted]);
+        return sanitizedWorkspace.length > 3 && isPasswordValid && doPasswordsMatch && termsAccepted;
+    }, [sanitizedWorkspace, isPasswordValid, doPasswordsMatch, termsAccepted]);
 
     const toggleSubModule = (module: string) => {
         if (selectedSubModules.includes(module)) {
@@ -385,13 +400,50 @@ export default function FreeTrialModal() {
                                         </p>
                                     </div>
 
-                                    <InputGroup
-                                        label="Crear contraseña"
-                                        placeholder="••••••••"
-                                        type="password"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                    />
+                                    <div className="space-y-2">
+                                        <div className="relative">
+                                            <InputGroup
+                                                label="Crear contraseña"
+                                                placeholder="••••••••"
+                                                type="password"
+                                                value={password}
+                                                onChange={(e) => setPassword(e.target.value)}
+                                                onBlur={() => handleBlur('password')}
+                                                error={undefined} // Custom error display below
+                                            />
+                                            {(touched.password || password.length > 0) && (
+                                                <div className="mt-2 space-y-1">
+                                                    <p className={`text-xs flex items-center gap-1 ${passwordRequirements.length ? 'text-green-600' : 'text-slate-500'}`}>
+                                                        {passwordRequirements.length ? <Check size={12} strokeWidth={3} /> : <span className="w-3 h-3 rounded-full border border-slate-300" />}
+                                                        Mínimo 8 caracteres
+                                                    </p>
+                                                    <p className={`text-xs flex items-center gap-1 ${passwordRequirements.number ? 'text-green-600' : 'text-slate-500'}`}>
+                                                        {passwordRequirements.number ? <Check size={12} strokeWidth={3} /> : <span className="w-3 h-3 rounded-full border border-slate-300" />}
+                                                        Al menos 1 número
+                                                    </p>
+                                                    <p className={`text-xs flex items-center gap-1 ${passwordRequirements.special ? 'text-green-600' : 'text-slate-500'}`}>
+                                                        {passwordRequirements.special ? <Check size={12} strokeWidth={3} /> : <span className="w-3 h-3 rounded-full border border-slate-300" />}
+                                                        Al menos 1 carácter especial (!@#$%^&*)
+                                                    </p>
+                                                    {touched.password && !isPasswordValid && (
+                                                        <p className="text-xs text-red-500 font-medium mt-1 animate-in slide-in-from-top-1">
+                                                            La contraseña no cumple con los requisitos de seguridad.
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <InputGroup
+                                            label="Confirmar contraseña"
+                                            placeholder="••••••••"
+                                            type="password"
+                                            value={confirmPassword}
+                                            onChange={(e) => setConfirmPassword(e.target.value)}
+                                            onBlur={() => handleBlur('confirmPassword')}
+                                            error={touched.confirmPassword && !doPasswordsMatch ? "Las contraseñas no coinciden." : undefined}
+                                        />
+                                    </div>
 
                                     <div className="pt-2">
                                         <label className="flex items-center gap-3 cursor-pointer group">
@@ -481,53 +533,105 @@ export default function FreeTrialModal() {
                                 </button>
                             )}
                             <button
-                                className={`flex-1 bg-blue-600 text-white font-bold py-3.5 px-6 rounded-lg transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 ${(step === 1 && !isStep1Valid) || (step === 3 && !isStep3Valid)
+                                className={`flex-1 bg-blue-600 text-white font-bold py-3.5 px-6 rounded-lg transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 ${(step === 1 && !isStep1Valid) || (step === 3 && !isStep3Valid) || isSubmitting
                                     ? 'opacity-50 cursor-not-allowed'
                                     : 'hover:bg-blue-700 hover:scale-[1.02]'
                                     }`}
-                                onClick={() => {
+                                disabled={isSubmitting}
+                                onClick={async () => {
                                     if (step === 1) {
                                         if (isStep1Valid) setStep(2);
                                         else setTouched({ fullName: true, email: true, companyName: true });
                                     }
                                     else if (step < 3) setStep(step + 1);
                                     else if (isStep3Valid) {
-                                        // Crear prospecto y redirigir
-                                        const newProspect: Prospect = {
-                                            id: Math.random().toString(36).substr(2, 9),
-                                            nombre: fullName,
-                                            empresa: companyName,
-                                            correo: email,
-                                            telefono: phone,
-                                            origen: 'Sitio Web',
-                                            servicioInteres: 'CRM-ERP', // Default
-                                            estado: 'Nuevo',
-                                            plataforma: 'WhatsApp',
-                                            responsable: '1', // Default ID
-                                            fechaContacto: new Date(),
-                                            tamanoEmpresa: companySize,
-                                            cargo: 'N/A',
-                                            seguimientos: [],
-                                            cotizaciones: [],
-                                            tareas: []
-                                        };
-                                        addProspect(newProspect);
-                                        closeFreeTrial();
+                                        // Registro con Supabase
+                                        setIsSubmitting(true);
+                                        setApiError(null);
 
-                                        // Redirigir al Login con credenciales
-                                        navigate('/crm/login', {
-                                            state: {
-                                                username: workspaceName,
-                                                password: password
+                                        try {
+                                            const { data: authData, error: authError } = await supabase.auth.signUp({
+                                                email,
+                                                password,
+                                                options: {
+                                                    data: {
+                                                        full_name: fullName,
+                                                        company_name: companyName,
+                                                        phone: phone,
+                                                        workspace_name: workspaceName
+                                                    }
+                                                }
+                                            });
+
+                                            if (authError) throw authError;
+
+                                            if (authData.user) {
+                                                // Crear registro en tabla public.users
+                                                const { error: profileError } = await supabase
+                                                    .from('users')
+                                                    .upsert({
+                                                        id: authData.user.id,
+                                                        email: email,
+                                                        workspace: workspaceName, // Asumiendo que la columna es 'workspace' o 'workspace_name' según schema anterior. Usaré 'workspace' para ser seguro o verificar schema. El usuario dijo "workspace text".
+                                                        created_at: new Date().toISOString(),
+                                                        last_sign_in_at: new Date().toISOString()
+                                                    });
+
+                                                if (profileError) console.error("Error creating profile", profileError);
+
+                                                // Crear prospecto (Lógica CRM existente)
+                                                const newProspect: Prospect = {
+                                                    id: Math.random().toString(36).substr(2, 9),
+                                                    nombre: fullName,
+                                                    empresa: companyName,
+                                                    correo: email,
+                                                    telefono: phone,
+                                                    origen: 'Sitio Web',
+                                                    servicioInteres: 'CRM-ERP',
+                                                    estado: 'Nuevo',
+                                                    plataforma: 'WhatsApp',
+                                                    responsable: '1',
+                                                    fechaContacto: new Date(),
+                                                    tamanoEmpresa: companySize,
+                                                    cargo: 'N/A',
+                                                    seguimientos: [],
+                                                    cotizaciones: [],
+                                                    tareas: []
+                                                };
+                                                addProspect(newProspect);
+                                                closeFreeTrial();
+
+                                                // Redirección inteligente
+                                                if (authData.session) {
+                                                    navigate('/crm/dashboard');
+                                                } else {
+                                                    // Caso: Confirmación de correo requerida
+                                                    navigate('/crm/login', {
+                                                        state: {
+                                                            username: email,
+                                                            message: "Por favor confirma tu correo electrónico."
+                                                        }
+                                                    });
+                                                }
                                             }
-                                        });
+                                        } catch (error: any) {
+                                            console.error("Registration error:", error);
+                                            setApiError(error.message || "Error al registrar usuario.");
+                                        } finally {
+                                            setIsSubmitting(false);
+                                        }
                                     }
                                 }}
                             >
-                                {step === 3 ? 'Activar mi Transformación Digital' : 'Continuar al Siguiente Paso'}
+                                {isSubmitting ? 'Registrando...' : (step === 3 ? 'Activar mi Transformación Digital' : 'Continuar al Siguiente Paso')}
                                 <ArrowRight size={18} />
                             </button>
                         </div>
+                        {apiError && (
+                            <p className="text-center text-xs font-bold text-red-500 mt-2">
+                                {apiError}
+                            </p>
+                        )}
 
                         <p className="text-center text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center justify-center gap-1.5">
                             <Check size={12} className="text-green-500" strokeWidth={3} />
@@ -536,7 +640,7 @@ export default function FreeTrialModal() {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
 

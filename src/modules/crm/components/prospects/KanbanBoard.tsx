@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ProspectStatus, Prospect } from '@/types';
 import { useCRM } from '@/context/CRMContext';
 import { format } from 'date-fns';
-import { Phone, Mail, Building2, Calendar, User } from 'lucide-react';
+import { Phone, Mail, Building2, Calendar, User, Eye, MessageCircle } from 'lucide-react';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -126,7 +126,7 @@ export default function KanbanBoard({ hideHeader = false }: KanbanBoardProps) {
                                         draggable
                                         onDragStart={(e) => handleDragStart(e, prospect)}
                                         onDragEnd={handleDragEnd}
-                                        className={`bg-white rounded-xl p-4 shadow-sm border border-gray-100 cursor-move hover:shadow-md transition-all duration-200 group ${draggedProspect?.id === prospect.id ? 'opacity-50 scale-95' : ''
+                                        className={`bg-white rounded-xl p-4 shadow-sm border border-gray-100 cursor-move hover:shadow-md transition-all duration-200 group w-full overflow-hidden ${draggedProspect?.id === prospect.id ? 'opacity-50 scale-95' : ''
                                             }`}
                                     >
                                         {/* Card Header: Name & Platform */}
@@ -188,24 +188,28 @@ export default function KanbanBoard({ hideHeader = false }: KanbanBoardProps) {
                                         </div>
 
                                         {/* Action Buttons */}
-                                        <div className="grid grid-cols-2 gap-2 mt-auto">
+                                        <div className="mt-4 flex flex-col w-full gap-2">
                                             <button
                                                 onClick={() => {
                                                     selectProspect(prospect);
                                                     navigate('/crm/prospectos/detalle');
                                                 }}
-                                                className="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 text-xs font-medium rounded-lg transition-colors border border-gray-200"
+                                                className="w-full flex items-center justify-center gap-2 h-9 px-2 rounded-lg border border-slate-200 hover:border-blue-400 hover:bg-blue-50 text-slate-600 hover:text-blue-600 text-sm font-medium transition-all duration-200 group"
+                                                title="Ver detalles"
                                             >
-                                                Ver detalles
+                                                <Eye size={16} className="text-slate-400 group-hover:text-blue-500 transition-colors shrink-0" />
+                                                <span className="truncate">Ver detalles</span>
                                             </button>
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     openWhatsApp(prospect.telefono);
                                                 }}
-                                                className="px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 text-xs font-medium rounded-lg transition-colors border border-green-200 flex items-center justify-center"
+                                                className="w-full flex items-center justify-center gap-2 h-9 px-2 rounded-lg bg-green-500 hover:bg-green-600 text-white text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                                                title="WhatsApp"
                                             >
-                                                WhatsApp
+                                                <MessageCircle size={16} className="shrink-0" />
+                                                <span className="truncate">WhatsApp</span>
                                             </button>
                                         </div>
                                     </div>

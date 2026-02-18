@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Lock, Mail, ArrowRight, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 export default function Login() {
     const location = useLocation();
@@ -15,25 +16,18 @@ export default function Login() {
     const [autoFilled, setAutoFilled] = useState(false);
 
     useEffect(() => {
-        // Check for auto-fill data from FreeTrialModal
-        if (location.state?.username && location.state?.password) {
-            // Assuming username is used as email or display name. 
-            // For this implementation, we'll map username to email if it looks like one, 
-            // or just set it as a "workspace" identifier if your auth supports it.
-            // SInce the form asks for email, and the previous step asked for email, maybe we should've passed email?
-            // The user request said: "Usuario → Nombre del espacio de trabajo".
-            // But typically login requires Email.
-            // Let's assume for this "Magic" login, the "Usuario" field can take the workspace name 
-            // OR we just pre-fill it.
-
-            // However, looking at FreeTrialModal, we have 'email' in state. 
-            // But the USER REQUEST specifically said: "Usuario → Nombre del espacio de trabajo (Paso 3)".
-            // I will follow the user request strictly, but usually Login forms need Email.
-            // I'll make the input label "Usuario o Email" to be safe.
-
+        if (location.state?.username) {
             setEmail(location.state.username);
-            setPassword(location.state.password);
-            setAutoFilled(true);
+            if (location.state?.password) {
+                setPassword(location.state.password);
+                setAutoFilled(true);
+            }
+            if (location.state?.message) {
+                // If we have a message (like "Confirm your email"), we can show it as an error or a specific alert
+                // For now, let's set it as autoFilled true but maybe use a different UI or just let the user see the form filled.
+                // Or better, let's treat it as a success message if it comes from registration
+                setAutoFilled(true); // Re-using the "Account created successfully" UI logic for now
+            }
         }
     }, [location.state]);
 
@@ -43,21 +37,34 @@ export default function Login() {
         setIsLoading(true);
 
         try {
-            // Simulate login or call actual login function
-            // For now, we'll just redirect to dashboard as this is a demo flow
-            // In a real app, validation against Supabase/Auth provider would happen here.
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password
+            });
 
-            // If we have a login function in context, use it.
-            // const success = await login(email, password);
-            // if (success) navigate('/crm/dashboard');
+            if (error) throw error;
 
-            // Mock success for the "Magic" flow
-            setTimeout(() => {
+            if (data.user) {
+                // Upsert user profile
+                // We use 'upsert' to create if not exists, or update last login.
+                // In a real scenario, you might want to only insert on signup.
+                // But request says: "Crear o actualizar registro del usuario... s no existe"
+                const { error: profileError } = await supabase
+                    .from('users')
+                    .upsert({
+                        id: data.user.id,
+                        email: data.user.email,
+                        last_sign_in_at: new Date().toISOString(),
+                        // username/workspace logic would go here if we had it from signup
+                    }, { onConflict: 'id' });
+
+                if (profileError) console.error('Error updating profile:', profileError);
+
                 navigate('/crm/dashboard');
-            }, 1000);
-
-        } catch (err) {
-            setError('Credenciales inválidas. Por favor intenta de nuevo.');
+            }
+        } catch (err: any) {
+            console.error(err);
+            setError('Correo o contraseña incorrectos.');
         } finally {
             setIsLoading(false);
         }
@@ -83,8 +90,12 @@ export default function Login() {
                         <div className="bg-green-50 border border-green-100 rounded-lg p-3 flex items-start gap-3 animate-in slide-in-from-top-2">
                             <CheckCircle2 className="text-green-600 shrink-0 mt-0.5" size={18} />
                             <div>
-                                <p className="text-sm font-bold text-green-800">¡Cuenta creada con éxito!</p>
-                                <p className="text-xs text-green-700">Tus credenciales se han autocompletado.</p>
+                                <p className="text-sm font-bold text-green-800">
+                                    {location.state?.message ? '¡Casi listo!' : '¡Cuenta creada con éxito!'}
+                                </p>
+                                <p className="text-xs text-green-700">
+                                    {location.state?.message || 'Tus credenciales se han autocompletado.'}
+                                </p>
                             </div>
                         </div>
                     )}
