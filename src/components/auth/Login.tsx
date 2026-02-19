@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Lock, Mail, ArrowRight, Eye, EyeOff, CheckCircle2, LayoutGrid, Brain, Activity, Shield } from 'lucide-react';
+import { Lock, Mail, ArrowRight, Eye, EyeOff, CheckCircle2, Brain, Activity, Shield } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 export default function Login() {
@@ -70,11 +70,10 @@ export default function Login() {
 
             <div className="relative z-10 w-full max-w-lg">
                 {/* Logo / Brand */}
-                <div className="flex items-center justify-center gap-3 mb-8">
-                    <div className="size-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-600/30">
-                        <LayoutGrid size={28} />
-                    </div>
-                    <span className="text-2xl font-bold tracking-tight text-white font-display">Innomind</span>
+                <div className="flex flex-col items-center mb-8">
+                    <img src="/logo-innomind.png" alt="Innomind" className="h-32 w-auto mb-3" />
+                    <span className="text-3xl font-bold tracking-[0.3em] text-white font-display uppercase">Innomind</span>
+                    <span className="text-xs tracking-[0.35em] text-slate-400 mt-1 uppercase">Make it better with AI</span>
                 </div>
 
                 {/* Main Card */}
