@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { LayoutGrid, Linkedin, Twitter } from 'lucide-react';
+import { Linkedin, Twitter } from 'lucide-react';
 
 export default function Footer() {
     return (
@@ -8,11 +8,10 @@ export default function Footer() {
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-12">
                     <div className="col-span-2 lg:col-span-2 pr-8">
-                        <div className="flex items-center gap-2 mb-4">
-                            <div className="flex size-6 items-center justify-center rounded bg-gradient-to-br from-blue-600 to-purple-600 text-white">
-                                <LayoutGrid size={16} />
-                            </div>
-                            <span className="text-lg font-bold text-slate-900 dark:text-white">Innomind</span>
+                        <div className="flex flex-col items-start mb-4">
+                            <img src="/logo-innomind.png" alt="Innomind" className="h-20 w-auto mb-1" />
+                            <span className="text-lg font-bold tracking-[0.25em] text-slate-900 dark:text-white uppercase">Innomind</span>
+                            <span className="text-[10px] tracking-[0.3em] text-slate-500 uppercase">Make it better with AI</span>
                         </div>
                         <p className="text-sm text-slate-500 leading-relaxed mb-6">
                             Innomind es la plataforma líder en integración de ERP y CRM potenciada por IA.

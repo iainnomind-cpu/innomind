@@ -44,12 +44,19 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div className="size-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center text-white shadow-lg">
-              <LayoutGrid size={24} />
-            </div>
-            <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Innomind</span>
-          </div>
+          <a
+            href="/"
+            onClick={(e) => {
+              if (window.location.pathname === '/') {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }}
+            className="flex items-center cursor-pointer"
+          >
+            <img src="/logo-innomind.png" alt="Innomind" className="h-20 w-auto" />
+            <span className="-ml-3 text-xl font-bold tracking-[0.25em] text-slate-900 dark:text-white uppercase">Innomind</span>
+          </a>
 
           {/* Desktop Menu */}
           <div className="hidden lg:flex items-center gap-1">
