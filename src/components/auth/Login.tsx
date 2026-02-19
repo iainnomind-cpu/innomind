@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Lock, Mail, ArrowRight, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
+import { Lock, Mail, ArrowRight, Eye, EyeOff, CheckCircle2, LayoutGrid, Brain, Activity, Shield } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 export default function Login() {
     const location = useLocation();
     const navigate = useNavigate();
-    // const { users } = useUsers();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -23,10 +22,7 @@ export default function Login() {
                 setAutoFilled(true);
             }
             if (location.state?.message) {
-                // If we have a message (like "Confirm your email"), we can show it as an error or a specific alert
-                // For now, let's set it as autoFilled true but maybe use a different UI or just let the user see the form filled.
-                // Or better, let's treat it as a success message if it comes from registration
-                setAutoFilled(true); // Re-using the "Account created successfully" UI logic for now
+                setAutoFilled(true);
             }
         }
     }, [location.state]);
@@ -45,17 +41,12 @@ export default function Login() {
             if (error) throw error;
 
             if (data.user) {
-                // Upsert user profile
-                // We use 'upsert' to create if not exists, or update last login.
-                // In a real scenario, you might want to only insert on signup.
-                // But request says: "Crear o actualizar registro del usuario... s no existe"
                 const { error: profileError } = await supabase
                     .from('users')
                     .upsert({
                         id: data.user.id,
                         email: data.user.email,
                         last_sign_in_at: new Date().toISOString(),
-                        // username/workspace logic would go here if we had it from signup
                     }, { onConflict: 'id' });
 
                 if (profileError) console.error('Error updating profile:', profileError);
@@ -71,97 +62,151 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
+        <div className="min-h-screen mesh-gradient-bg flex items-center justify-center p-4 relative overflow-hidden">
+            {/* Background Effects — matching Hero */}
+            <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] pointer-events-none"></div>
+            <div className="absolute bottom-[-10%] right-[-5%] w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_100%)] pointer-events-none"></div>
 
-                {/* Header */}
-                <div className="px-8 py-6 bg-blue-600 text-center">
-                    <div className="mx-auto w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-3 backdrop-blur-sm">
-                        <Lock className="text-white" size={24} />
+            <div className="relative z-10 w-full max-w-lg">
+                {/* Logo / Brand */}
+                <div className="flex items-center justify-center gap-3 mb-8">
+                    <div className="size-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-600/30">
+                        <LayoutGrid size={28} />
                     </div>
-                    <h1 className="text-2xl font-bold text-white">Bienvenido</h1>
-                    <p className="text-blue-100 text-sm mt-1">Ingresa a tu cuenta Innomind</p>
+                    <span className="text-2xl font-bold tracking-tight text-white font-display">Innomind</span>
                 </div>
 
-                {/* Content */}
-                <div className="p-8 space-y-6">
-
-                    {autoFilled && (
-                        <div className="bg-green-50 border border-green-100 rounded-lg p-3 flex items-start gap-3 animate-in slide-in-from-top-2">
-                            <CheckCircle2 className="text-green-600 shrink-0 mt-0.5" size={18} />
-                            <div>
-                                <p className="text-sm font-bold text-green-800">
-                                    {location.state?.message ? '¡Casi listo!' : '¡Cuenta creada con éxito!'}
-                                </p>
-                                <p className="text-xs text-green-700">
-                                    {location.state?.message || 'Tus credenciales se han autocompletado.'}
-                                </p>
+                {/* Main Card */}
+                <div className="glass-panel rounded-2xl overflow-hidden">
+                    {/* Header with gradient */}
+                    <div className="relative px-8 py-8 text-center overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20"></div>
+                        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white/[0.02]"></div>
+                        <div className="relative">
+                            <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center mb-4 border border-white/10">
+                                <Lock className="text-blue-400" size={28} />
                             </div>
+                            <h1 className="text-2xl font-bold text-white font-display">Bienvenido de nuevo</h1>
+                            <p className="text-slate-400 text-sm mt-2">Ingresa a tu cuenta para acceder al CRM</p>
                         </div>
-                    )}
+                    </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700 block">Usuario o Email</label>
-                            <div className="relative">
-                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                                    <Mail size={18} />
+                    {/* Content */}
+                    <div className="p-8 space-y-6">
+
+                        {autoFilled && (
+                            <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 flex items-start gap-3">
+                                <CheckCircle2 className="text-green-400 shrink-0 mt-0.5" size={18} />
+                                <div>
+                                    <p className="text-sm font-bold text-green-300">
+                                        {location.state?.message ? '¡Casi listo!' : '¡Cuenta creada con éxito!'}
+                                    </p>
+                                    <p className="text-xs text-green-400/80">
+                                        {location.state?.message || 'Tus credenciales se han autocompletado.'}
+                                    </p>
                                 </div>
-                                <input
-                                    type="text"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                                    placeholder="nombre@empresa.com"
-                                    required
-                                />
                             </div>
-                        </div>
+                        )}
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700 block">Contraseña</label>
-                            <div className="relative">
-                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                                    <Lock size={18} />
+                        <form onSubmit={handleSubmit} className="space-y-5">
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold text-slate-300 block">Usuario o Email</label>
+                                <div className="relative">
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
+                                        <Mail size={18} />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 outline-none transition-all hover:border-white/20"
+                                        placeholder="nombre@empresa.com"
+                                        required
+                                    />
                                 </div>
-                                <input
-                                    type={showPassword ? 'text' : 'password'}
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full pl-10 pr-10 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                                    placeholder="••••••••"
-                                    required
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                >
-                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                </button>
                             </div>
-                        </div>
 
-                        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+                            <div className="space-y-2">
+                                <label className="text-sm font-semibold text-slate-300 block">Contraseña</label>
+                                <div className="relative">
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
+                                        <Lock size={18} />
+                                    </div>
+                                    <input
+                                        type={showPassword ? 'text' : 'password'}
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="w-full pl-12 pr-12 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 outline-none transition-all hover:border-white/20"
+                                        placeholder="••••••••"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                                    >
+                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                            </div>
 
-                        <button
-                            type="submit"
-                            disabled={isLoading}
-                            className="w-full bg-blue-600 text-white font-bold py-3.5 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 disabled:opacity-70 disabled:cursor-not-allowed"
-                        >
-                            {isLoading ? (
-                                'Iniciando...'
-                            ) : (
-                                <>
-                                    Iniciar Sesión <ArrowRight size={18} />
-                                </>
+                            {/* Forgot password link */}
+                            <div className="flex justify-end">
+                                <a href="#" className="text-xs text-slate-400 hover:text-blue-400 transition-colors">
+                                    ¿Olvidaste tu contraseña?
+                                </a>
+                            </div>
+
+                            {error && (
+                                <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-center">
+                                    <p className="text-red-400 text-sm">{error}</p>
+                                </div>
                             )}
-                        </button>
-                    </form>
 
-                    <p className="text-center text-sm text-gray-500">
-                        ¿No tienes una cuenta? <a href="#" className="text-blue-600 font-semibold hover:underline">Regístrate</a>
-                    </p>
+                            <button
+                                type="submit"
+                                disabled={isLoading}
+                                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 disabled:opacity-70 disabled:cursor-not-allowed hover:shadow-blue-600/40 hover:scale-[1.02] active:scale-[0.98]"
+                            >
+                                {isLoading ? (
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                        Iniciando sesión...
+                                    </div>
+                                ) : (
+                                    <>
+                                        Iniciar Sesión <ArrowRight size={18} />
+                                    </>
+                                )}
+                            </button>
+                        </form>
+
+
+                    </div>
+                </div>
+
+                {/* Trust badges */}
+                <div className="mt-8 flex items-center justify-center gap-6 text-slate-500">
+                    <div className="flex items-center gap-2 text-xs">
+                        <Shield size={14} className="text-green-500" />
+                        <span>Datos encriptados</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs">
+                        <Activity size={14} className="text-blue-400" />
+                        <span>99.9% uptime</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs">
+                        <Brain size={14} className="text-purple-400" />
+                        <span>IA integrada</span>
+                    </div>
+                </div>
+
+                {/* Back to home */}
+                <div className="mt-6 text-center">
+                    <a href="/" className="text-sm text-slate-500 hover:text-white transition-colors">
+                        ← Volver al inicio
+                    </a>
                 </div>
             </div>
         </div>
