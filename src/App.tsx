@@ -10,8 +10,14 @@ import Embudo from '@/modules/crm/components/Embudo';
 import KanbanBoard from '@/modules/crm/components/prospects/KanbanBoard';
 import ProspectTable from '@/modules/crm/components/prospects/ProspectTable';
 import ProspectDetail from '@/modules/crm/components/prospects/ProspectDetail';
+import QuoteList from '@/modules/crm/components/quotes/QuoteList';
+import QuoteFormWrapper from '@/modules/crm/components/quotes/QuoteFormWrapper';
+import QuoteDetailWrapper from '@/modules/crm/components/quotes/QuoteDetailWrapper';
+import QuoteDetailView from '@/modules/crm/components/quotes/QuoteDetailView';
+import ProductCatalog from '@/modules/crm/components/quotes/ProductCatalog';
+import QuoteTemplates from '@/modules/crm/components/quotes/QuoteTemplates';
+import TemplateDetail from '@/modules/crm/components/quotes/TemplateDetail';
 import Login from './components/auth/Login';
-
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
@@ -35,6 +41,16 @@ function App() {
                   <Route path="prospectos" element={<ProspectTable />} />
                   <Route path="prospectos/kanban" element={<KanbanBoard />} />
                   <Route path="prospectos/detalle" element={<ProspectDetail />} />
+
+                  {/* Rutas de Cotizaciones */}
+                  <Route path="quotes" element={<QuoteDetailWrapper />}>
+                    <Route index element={<QuoteList />} />
+                    <Route path="catalogo" element={<ProductCatalog />} />
+                    <Route path="plantillas" element={<QuoteTemplates />} />
+                    <Route path="new" element={<QuoteFormWrapper />} />
+                    <Route path="templates/:id" element={<TemplateDetail />} />
+                    <Route path=":id" element={<QuoteDetailView />} />
+                  </Route>
                 </Route>
               </Route>
             </Routes>
