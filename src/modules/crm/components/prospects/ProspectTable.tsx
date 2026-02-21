@@ -196,11 +196,15 @@ export default function ProspectTable({ navigationParams }: ProspectTableProps) 
                                 filteredProspects.map((prospect) => (
                                     <tr
                                         key={prospect.id}
-                                        className={`hover:bg-gray-50 transition-colors ${highlightedProspectId === prospect.id ? 'bg-orange-50' : ''}`}
+                                        onClick={() => {
+                                            selectProspect(prospect);
+                                            navigate('/crm/prospectos/detalle');
+                                        }}
+                                        className={`hover:bg-gray-50 transition-colors cursor-pointer ${highlightedProspectId === prospect.id ? 'bg-orange-50' : ''}`}
                                     >
                                         <td className="px-6 py-4">
                                             <div>
-                                                <p className="font-semibold text-gray-900">{prospect.nombre}</p>
+                                                <p className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">{prospect.nombre}</p>
                                                 <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
                                                     <Building2 size={14} />
                                                     {prospect.servicioInteres}
@@ -249,10 +253,11 @@ export default function ProspectTable({ navigationParams }: ProspectTableProps) 
                                                 </p>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                                             <div className="flex items-center justify-end gap-2">
                                                 <button
-                                                    onClick={() => {
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
                                                         selectProspect(prospect);
                                                         navigate('/crm/prospectos/detalle');
                                                     }}
@@ -262,14 +267,20 @@ export default function ProspectTable({ navigationParams }: ProspectTableProps) 
                                                     <Eye size={18} />
                                                 </button>
                                                 <button
-                                                    onClick={() => openWhatsApp(prospect.telefono)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        openWhatsApp(prospect.telefono);
+                                                    }}
                                                     className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                                                     title="WhatsApp"
                                                 >
                                                     <MessageSquare size={18} />
                                                 </button>
                                                 <button
-                                                    onClick={() => deleteProspect(prospect.id)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        deleteProspect(prospect.id);
+                                                    }}
                                                     className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                                     title="Eliminar"
                                                 >

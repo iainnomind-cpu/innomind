@@ -10,23 +10,28 @@ import {
     Phone,
     Mail,
     Edit2,
-    CheckSquare
+    CheckSquare,
+    Zap,
+    Briefcase,
+    Activity
 } from 'lucide-react';
 import { useCRM } from '@/context/CRMContext';
 import { useUsers } from '@/context/UserContext';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { ProspectStatus } from '@/types';
+import { EventFormModal } from '../calendar/Calendar';
 
 import { useNavigate } from 'react-router-dom';
 
 export default function ProspectDetail() {
     const navigate = useNavigate();
-    const { selectedProspect, addFollowUp, updateProspect } = useCRM();
+    const { selectedProspect, addFollowUp, updateProspect, calendarEvents, quotes, addCalendarEvent } = useCRM();
     const { users, currentUser } = useUsers();
 
     const [newNote, setNewNote] = useState('');
     const [editingStatus, setEditingStatus] = useState(false);
+    const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
 
     // Task State
     const [newTaskTitle, setNewTaskTitle] = useState('');
@@ -91,6 +96,148 @@ export default function ProspectDetail() {
     const totalTasks = selectedProspect.tareas?.length || 0;
     const pendingTasks = selectedProspect.tareas?.filter(t => !t.completada).length || 0;
 
+    // --- ACTIVITY ENGINE LOGIC --- //
+    const prospectEvents = calendarEvents.filter(e => e.prospectId === selectedProspect.id);
+    const prospectQuotes = quotes.filter(q => q.prospectId === selectedProspect.id);
+
+    type TimelineItem = {
+        id: string;
+        type: 'note' | 'event' | 'quote';
+        date: Date;
+        title: string;
+        description: string;
+        user?: string;
+    };
+
+    const timeline: TimelineItem[] = [
+        ...(selectedProspect.seguimientos || []).map(s => ({
+            id: s.id,
+            type: 'note' as const,
+            date: new Date(s.fecha),
+            title: 'Nota de seguimiento',
+            description: s.nota,
+            user: s.usuario
+        })),
+        ...prospectEvents.map(e => ({
+            id: e.id,
+            type: 'event' as const,
+            date: new Date(e.startTime),
+            title: `📅 Evento: ${e.title}`,
+            description: e.description || e.type,
+        })),
+        ...prospectQuotes.map(q => ({
+            id: q.id,
+            type: 'quote' as const,
+            date: new Date(q.fecha),
+            title: `📄 Cotización ${q.numero} (${q.estado})`,
+            description: `Total: $${q.total.toLocaleString()}`,
+        }))
+    ].sort((a, b) => b.date.getTime() - a.date.getTime());
+
+    const handleLaunchSequence = async () => {
+        if (!window.confirm('¿Deseas lanzar la Secuencia de Seguimiento Inicial automáticamente? (Creará 3 eventos en tu calendario)')) return;
+
+        const now = new Date();
+
+        // Sequence Event 1: Today
+        const date1 = new Date(now);
+        date1.setHours(date1.getHours() + 1);
+        await addCalendarEvent({
+            title: 'Secuencia: Enviar correo de primer contacto',
+            description: 'Plantilla de saludo disponible. Revisar y enviar.',
+            type: 'recordatorio',
+            startTime: date1,
+            endTime: new Date(date1.getTime() + 30 * 60000),
+            prospectId: selectedProspect.id
+        });
+
+        // Sequence Event 2: In 3 Days
+        const date2 = new Date(now);
+        date2.setDate(date2.getDate() + 3);
+        date2.setHours(10, 0, 0, 0);
+        await addCalendarEvent({
+            title: 'Secuencia: Llamada de seguimiento',
+            description: 'Preguntar si recibieron la información inicial y resolver dudas.',
+            type: 'llamada',
+            startTime: date2,
+            endTime: new Date(date2.getTime() + 30 * 60000),
+            prospectId: selectedProspect.id
+        });
+
+        // Sequence Event 3: In 7 Days
+        const date3 = new Date(now);
+        date3.setDate(date3.getDate() + 7);
+        date3.setHours(11, 0, 0, 0);
+        await addCalendarEvent({
+            title: 'Secuencia: Correo de cierre / Oferta final',
+            description: 'Mandar propuesta atractiva de cierre antes de marcar como perdido.',
+            type: 'recordatorio',
+            startTime: date3,
+            endTime: new Date(date3.getTime() + 30 * 60000),
+            prospectId: selectedProspect.id
+        });
+
+        alert('¡Secuencia lanzada con éxito! Revisa tu calendario.');
+    };
+
+    const getSmartSuggestion = () => {
+        if (selectedProspect.estado === 'Nuevo' && prospectEvents.length === 0) {
+            return {
+                title: 'Primer Contacto Pendiente',
+                description: 'Aún no te has comunicado con este prospecto. Sugerimos agendar una llamada inicial para calificar sus necesidades.',
+                actionText: 'Agendar Llamada',
+                onAction: () => setIsCalendarModalOpen(true),
+                icon: Phone,
+                colorClass: 'bg-blue-50 text-blue-700 border-blue-200',
+                btnClass: 'bg-blue-600 hover:bg-blue-700 text-white'
+            };
+        }
+
+        if (selectedProspect.estado === 'Cotizado' && prospectQuotes.length > 0) {
+            const latestQuote = [...prospectQuotes].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())[0];
+            const daysSinceQuote = Math.floor((new Date().getTime() - new Date(latestQuote.fecha).getTime()) / (1000 * 3600 * 24));
+
+            if (daysSinceQuote >= 3) {
+                return {
+                    title: 'Seguimiento de Propuesta',
+                    description: `Han pasado ${daysSinceQuote} días desde que enviaste la cotización ${latestQuote.numero}. Es un buen momento para contactar al cliente.`,
+                    actionText: 'Registrar Seguimiento',
+                    onAction: () => document.getElementById('new-note-input')?.focus(),
+                    icon: FileText,
+                    colorClass: 'bg-orange-50 text-orange-800 border-orange-200',
+                    btnClass: 'bg-orange-500 hover:bg-orange-600 text-white'
+                };
+            }
+        }
+
+        const upcomingEvents = prospectEvents.filter(e => new Date(e.startTime) > new Date()).sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+        if (upcomingEvents.length > 0) {
+            const nextEvent = upcomingEvents[0];
+            return {
+                title: 'Próxima Acción Programada',
+                description: `Tienes un evento "${nextEvent.title}" para este prospecto el ${format(new Date(nextEvent.startTime), 'dd MMM yyyy', { locale: es })}.`,
+                actionText: 'Ver evento',
+                onAction: () => navigate('/crm/calendar'),
+                icon: Calendar,
+                colorClass: 'bg-green-50 text-green-800 border-green-200',
+                btnClass: 'bg-green-600 hover:bg-green-700 text-white'
+            };
+        }
+
+        return {
+            title: 'Mantén la constancia',
+            description: 'Un buen seguimiento es la clave del cierre. Considera automatizar tus toques de contacto.',
+            actionText: 'Lanzar Secuencia Mágica ✨',
+            onAction: handleLaunchSequence,
+            icon: Zap,
+            colorClass: 'bg-indigo-50 text-indigo-800 border-indigo-200',
+            btnClass: 'bg-indigo-600 hover:bg-indigo-700 text-white'
+        };
+    };
+
+    const suggestion = getSmartSuggestion();
+    const SuggestionIcon = suggestion.icon;
+
     return (
         <div className="space-y-6 max-w-7xl mx-auto pb-8">
             <button
@@ -104,6 +251,27 @@ export default function ProspectDetail() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Main Column */}
                 <div className="lg:col-span-2 space-y-6">
+
+                    {/* --- SMART SUGGESTION BANNER --- */}
+                    <div className={`rounded-xl border p-5 flex items-start gap-4 shadow-sm ${suggestion.colorClass}`}>
+                        <div className="p-3 bg-white/60 backdrop-blur-sm rounded-lg shrink-0">
+                            <SuggestionIcon size={24} className="opacity-80" />
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="font-bold text-lg mb-1 flex items-center gap-2">
+                                <Activity size={18} className="animate-pulse" />
+                                {suggestion.title}
+                            </h3>
+                            <p className="text-sm opacity-90 mb-4">{suggestion.description}</p>
+                            <button
+                                onClick={suggestion.onAction}
+                                className={`px-4 py-2 rounded-lg font-medium text-sm transition-all shadow-sm ${suggestion.btnClass}`}
+                            >
+                                {suggestion.actionText}
+                            </button>
+                        </div>
+                    </div>
+
                     {/* Main Info Card */}
                     <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
                         <div className="flex justify-between items-start mb-6">
@@ -261,6 +429,7 @@ export default function ProspectDetail() {
                         <form onSubmit={handleAddFollowUp} className="mb-8">
                             <div className="flex gap-3">
                                 <input
+                                    id="new-note-input"
                                     type="text"
                                     value={newNote}
                                     onChange={(e) => setNewNote(e.target.value)}
@@ -274,35 +443,45 @@ export default function ProspectDetail() {
                                 >
                                     Agregar
                                 </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsCalendarModalOpen(true)}
+                                    className="flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-4 py-2 rounded-lg font-medium transition-colors border border-indigo-200"
+                                >
+                                    <Calendar size={18} />
+                                    Agendar
+                                </button>
                             </div>
                         </form>
 
                         <div className="space-y-6 relative before:absolute before:inset-y-0 before:left-[19px] before:w-0.5 before:bg-gray-200">
-                            {(!selectedProspect.seguimientos || selectedProspect.seguimientos.length === 0) ? (
+                            {timeline.length === 0 ? (
                                 <div className="text-center py-8 text-gray-500">
-                                    No hay seguimientos registrados
+                                    No hay actividad registrada
                                 </div>
                             ) : (
-                                selectedProspect.seguimientos
-                                    .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
-                                    .map((seguimiento) => (
-                                        <div key={seguimiento.id} className="relative pl-12">
-                                            <div className="absolute left-0 top-1.5 w-10 h-10 bg-white border-2 border-blue-500 rounded-full flex items-center justify-center z-10">
-                                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                            </div>
-                                            <div className="bg-gray-50 rounded-lg p-4">
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <span className="font-semibold text-gray-900 text-sm">
-                                                        {getUserName(seguimiento.usuario)}
-                                                    </span>
-                                                    <span className="text-xs text-gray-500">
-                                                        {format(new Date(seguimiento.fecha), 'd MMM yyyy, HH:mm', { locale: es })}
-                                                    </span>
-                                                </div>
-                                                <p className="text-gray-700 text-sm">{seguimiento.nota}</p>
-                                            </div>
+                                timeline.map((item) => (
+                                    <div key={item.id} className="relative pl-12">
+                                        <div className={`absolute left-0 top-1.5 w-10 h-10 bg-white border-2 rounded-full flex items-center justify-center z-10 
+                                            ${item.type === 'note' ? 'border-blue-500' : item.type === 'event' ? 'border-purple-500' : 'border-green-500'}`
+                                        }>
+                                            {item.type === 'note' && <MessageSquare size={16} className="text-blue-500" />}
+                                            {item.type === 'event' && <Calendar size={16} className="text-purple-500" />}
+                                            {item.type === 'quote' && <FileText size={16} className="text-green-500" />}
                                         </div>
-                                    ))
+                                        <div className="bg-gray-50 rounded-lg p-4 shadow-sm border border-gray-100">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <span className="font-semibold text-gray-900 text-sm">
+                                                    {item.title} {item.user && <span className="text-gray-500 font-normal ml-2">por {getUserName(item.user)}</span>}
+                                                </span>
+                                                <span className="text-xs text-gray-500">
+                                                    {format(item.date, 'd MMM yyyy, HH:mm', { locale: es })}
+                                                </span>
+                                            </div>
+                                            <p className="text-gray-700 text-sm whitespace-pre-line">{item.description}</p>
+                                        </div>
+                                    </div>
+                                ))
                             )}
                         </div>
                     </div>
@@ -383,6 +562,15 @@ export default function ProspectDetail() {
                     </div>
                 </div>
             </div>
+
+            {/* Calendar Event Modal */}
+            {isCalendarModalOpen && (
+                <EventFormModal
+                    initialDate={new Date()}
+                    initialProspectId={selectedProspect.id}
+                    onClose={() => setIsCalendarModalOpen(false)}
+                />
+            )}
         </div>
     );
 }

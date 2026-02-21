@@ -43,11 +43,8 @@ export default function Login() {
             if (data.user) {
                 const { error: profileError } = await supabase
                     .from('users')
-                    .upsert({
-                        id: data.user.id,
-                        email: data.user.email,
-                        last_sign_in_at: new Date().toISOString(),
-                    }, { onConflict: 'id' });
+                    .update({ last_sign_in_at: new Date().toISOString() })
+                    .eq('id', data.user.id);
 
                 if (profileError) console.error('Error updating profile:', profileError);
 

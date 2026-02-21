@@ -1,0 +1,132 @@
+﻿
+> vite-react-typescript-starter@0.0.0 build
+> vite build
+
+[36mvite v5.4.8 [32mbuilding for production...[36m[39m
+transforming...
+node.exe : 
+Browserslist: 
+caniuse-lite is 
+outdated. Please run:
+En C:\Program 
+Files\nodejs\npm.ps1: 
+29 Carácter: 3
++   & $NODE_EXE 
+$NPM_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (Browserslist:   
+  c...ed. Please ru    
+n::String) [], Rem    
+oteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+  npx update-browsersli
+st-db@latest
+  Why you should do it 
+regularly: https://gith
+ub.com/browserslist/upd
+ate-db#readme
+[32mÔ£ô[39m 1944 modules transformed.
+[31mx[39m Build 
+failed in 11.04s
+[31merror during 
+build:
+[31m[vite:esbuild] 
+Transform failed with 
+1 error:
+C:/Users/redi_/OneDrive
+/Documentos/Proyecto In
+nomind/innomind/src/mod
+ules/procurement/compon
+ents/PurchaseOrderForm.
+tsx:276:49: ERROR: The 
+character ">" is not 
+valid inside a JSX 
+element[31m
+file: [36mC:/Users/red
+i_/OneDrive/Documentos/
+Proyecto Innomind/innom
+ind/src/modules/procure
+ment/components/Purchas
+eOrderForm.tsx:276:49[
+31m
+[33m
+[33mThe character ">" 
+is not valid inside a 
+JSX element[33m
+274|                   
+           {montoTotal 
+> 50000 && (
+275|                   
+               <p 
+className="text-[10px] 
+text-amber-600 
+font-medium text-right 
+leading-tight">
+276|                   
+                   
+Nota: Montos > $50k 
+requerir├ín visto 
+bueno gerencial 
+autom├íticamente.
+   |                   
+                       
+         ^
+277|                   
+               </p>
+278|                   
+           )}
+[31m
+    at 
+failureErrorWithLog (C:
+\Users\redi_\OneDrive\D
+ocumentos\Proyecto Inno
+mind\innomind\node_modu
+les\esbuild\lib\main.js
+:1472:15)
+    at C:\Users\redi_\O
+neDrive\Documentos\Proy
+ecto Innomind\innomind\
+node_modules\esbuild\li
+b\main.js:755:50
+    at responseCallback
+s.<computed> (C:\Users\
+redi_\OneDrive\Document
+os\Proyecto Innomind\in
+nomind\node_modules\esb
+uild\lib\main.js:622:9)
+    at 
+handleIncomingPacket (C
+:\Users\redi_\OneDrive\
+Documentos\Proyecto Inn
+omind\innomind\node_mod
+ules\esbuild\lib\main.j
+s:677:12)
+    at 
+Socket.readFromStdout (
+C:\Users\redi_\OneDrive
+\Documentos\Proyecto In
+nomind\innomind\node_mo
+dules\esbuild\lib\main.
+js:600:7)
+    at Socket.emit 
+(node:events:518:28)
+    at addChunk (node:i
+nternal/streams/readabl
+e:561:12)
+    at readableAddChunk
+PushByteMode (node:inte
+rnal/streams/readable:5
+12:3)
+    at Readable.push (n
+ode:internal/streams/re
+adable:392:5)
+    at 
+Pipe.onStreamRead (node
+:internal/stream_base_c
+ommons:189:23)[39m

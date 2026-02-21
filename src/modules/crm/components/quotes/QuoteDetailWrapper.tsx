@@ -23,20 +23,7 @@ export default function QuoteDetailWrapper() {
                             Cotizaciones
                         </div>
                     </NavLink>
-                    <NavLink
-                        to="/crm/quotes/catalogo"
-                        className={({ isActive }) =>
-                            `whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm ${isActive
-                                ? 'border-blue-500 text-blue-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                            }`
-                        }
-                    >
-                        <div className="flex items-center gap-2">
-                            <Package className="h-4 w-4" />
-                            Catálogo
-                        </div>
-                    </NavLink>
+
                     <NavLink
                         to="/crm/quotes/plantillas"
                         className={({ isActive }) =>

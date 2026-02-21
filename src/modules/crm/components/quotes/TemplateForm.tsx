@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, Plus, Trash2 } from 'lucide-react';
 import { useCRM } from '@/context/CRMContext';
+import { useInventory } from '@/context/InventoryContext';
 import { QuoteTemplate, QuoteTemplateItem } from '@/types';
 
 interface TemplateFormProps {
@@ -18,7 +19,8 @@ const PAYMENT_METHODS = [
 ];
 
 export default function TemplateForm({ onClose, editingTemplate }: TemplateFormProps) {
-    const { addQuoteTemplate, updateQuoteTemplate, products } = useCRM();
+    const { addQuoteTemplate, updateQuoteTemplate } = useCRM();
+    const { products } = useInventory();
 
     const [nombre, setNombre] = useState('');
     const [descripcion, setDescripcion] = useState('');
@@ -77,7 +79,7 @@ export default function TemplateForm({ onClose, editingTemplate }: TemplateFormP
                     const product = products.find(p => p.id === value);
                     if (product) {
                         updatedItem.nombre = product.nombre;
-                        updatedItem.descripcion = product.descripcion;
+                        updatedItem.descripcion = product.descripcion || '';
                         updatedItem.precioUnitario = product.precio;
                     }
                 }
