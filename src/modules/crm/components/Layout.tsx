@@ -1,4 +1,4 @@
-import { Users, LayoutDashboard, Menu, Search, Building2, Trello, LogOut } from 'lucide-react';
+import { Users, LayoutDashboard, Menu, Search, Building2, Trello, LogOut, FileText } from 'lucide-react';
 import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -14,6 +14,7 @@ export default function Layout() {
     { id: 'embudo', label: 'Embudo de Ventas', icon: Trello },
     { id: 'prospectos', label: 'Prospectos', icon: Users },
     { id: 'clientes', label: 'Clientes', icon: Building2 },
+    { id: 'quotes', label: 'Cotizaciones', icon: FileText },
   ];
 
   return (

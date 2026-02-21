@@ -42,6 +42,75 @@ export interface Prospect {
   }>;
 }
 
+export interface QuoteItem {
+  id: string;
+  productId?: string;
+  nombre: string;
+  descripcion: string;
+  cantidad: number;
+  precioUnitario: number;
+  descuento?: number;
+  tipoDescuento?: 'porcentaje' | 'monto';
+  total: number;
+}
+
+export interface Quote {
+  id: string;
+  prospectId: string;
+  numero: string;
+  fecha: Date;
+  vigencia: Date;
+  items: QuoteItem[];
+  subtotal: number;
+  ivaPorcentaje: number;
+  ivaTotal: number;
+  total: number;
+  estado: 'Borrador' | 'Enviada' | 'Aceptada' | 'Rechazada' | 'Vencida' | 'Actualizada';
+  condicionesPago?: string;
+  notasAdicionales?: string;
+  terminosCondiciones?: string;
+  metodosPagoAceptados?: string[];
+}
+
+export interface QuoteTemplateItem {
+  id: string; // Add ID for local form management
+  productId?: string;
+  nombre: string;
+  descripcion: string;
+  descripcionDetallada?: string;
+  cantidad: number;
+  precioUnitario: number;
+  descuento: number;
+  tipoDescuento: 'porcentaje' | 'monto';
+  subtotal: number;
+}
+
+export interface QuoteTemplate {
+  id: string;
+  nombre: string;
+  descripcion: string;
+  items: QuoteTemplateItem[];
+  subtotal: number; // Sum of items before global adjustments if any
+  totalEstimado: number;
+  condicionesPago?: string;
+  notasAdicionales?: string;
+  terminosCondiciones?: string;
+  metodosPagoAceptados?: string[];
+  creadoPor: string;
+  fechaCreacion: Date;
+}
+
+export interface Product {
+  id: string;
+  nombre: string;
+  descripcion: string;
+  categoria: string;
+  precio: number;
+  unidad: string;
+  estado: 'activo' | 'inactivo';
+  fechaActualizacion: Date;
+}
+
 export interface Cliente {
   id: string;
   nombre: string;

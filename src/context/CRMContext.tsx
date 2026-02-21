@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
-import { Prospect, ProspectStatus } from '@/types';
+import { Prospect, ProspectStatus, Quote, QuoteTemplate, Product } from '@/types';
 
 interface CRMContextType {
     prospects: Prospect[];
@@ -9,6 +9,21 @@ interface CRMContextType {
     addProspect: (prospect: Prospect) => void;
     updateProspect: (id: string, data: Partial<Prospect>) => void;
     addFollowUp: (prospectId: string, note: string, userId: string) => void;
+    quotes: Quote[];
+    addQuote: (quote: Omit<Quote, 'id'>) => void;
+    updateQuote: (id: string, data: Partial<Quote>) => void;
+    deleteQuote: (id: string) => void;
+
+    products: Product[];
+    addProduct: (product: Omit<Product, 'id'>) => void;
+    updateProduct: (id: string, data: Partial<Product>) => void;
+    deleteProduct: (id: string) => void;
+
+    quoteTemplates: QuoteTemplate[];
+    addQuoteTemplate: (template: Omit<QuoteTemplate, 'id'>) => void;
+    updateQuoteTemplate: (id: string, data: Partial<QuoteTemplate>) => void;
+    deleteQuoteTemplate: (id: string) => void;
+    duplicateQuoteTemplate: (id: string) => void;
 }
 
 const CRMContext = createContext<CRMContextType | undefined>(undefined);
@@ -108,6 +123,72 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         });
     };
 
+    const [quotes, setQuotes] = useState<Quote[]>([]);
+
+    const addQuote = (quoteData: Omit<Quote, 'id'>) => {
+        const newQuote: Quote = {
+            ...quoteData,
+            id: Math.random().toString(36).substr(2, 9)
+        };
+        setQuotes(prev => [newQuote, ...prev]);
+    };
+
+    const updateQuote = (id: string, data: Partial<Quote>) => {
+        setQuotes(prev => prev.map(q => q.id === id ? { ...q, ...data } : q));
+    };
+
+    const deleteQuote = (id: string) => {
+        setQuotes(prev => prev.filter(q => q.id !== id));
+    };
+
+    const [products, setProducts] = useState<Product[]>([]);
+
+    const addProduct = (productData: Omit<Product, 'id'>) => {
+        const newProduct: Product = {
+            ...productData,
+            id: Math.random().toString(36).substr(2, 9)
+        };
+        setProducts(prev => [newProduct, ...prev]);
+    };
+
+    const updateProduct = (id: string, data: Partial<Product>) => {
+        setProducts(prev => prev.map(p => p.id === id ? { ...p, ...data } : p));
+    };
+
+    const deleteProduct = (id: string) => {
+        setProducts(prev => prev.filter(p => p.id !== id));
+    };
+
+    const [quoteTemplates, setQuoteTemplates] = useState<QuoteTemplate[]>([]);
+
+    const addQuoteTemplate = (templateData: Omit<QuoteTemplate, 'id'>) => {
+        const newTemplate: QuoteTemplate = {
+            ...templateData,
+            id: Math.random().toString(36).substr(2, 9)
+        };
+        setQuoteTemplates(prev => [newTemplate, ...prev]);
+    }
+
+    const updateQuoteTemplate = (id: string, data: Partial<QuoteTemplate>) => {
+        setQuoteTemplates(prev => prev.map(t => t.id === id ? { ...t, ...data } : t));
+    }
+
+    const deleteQuoteTemplate = (id: string) => {
+        setQuoteTemplates(prev => prev.filter(t => t.id !== id));
+    }
+
+    const duplicateQuoteTemplate = (id: string) => {
+        const templateToDuplicate = quoteTemplates.find(t => t.id === id);
+        if (templateToDuplicate) {
+            const newTemplate: QuoteTemplate = {
+                ...templateToDuplicate,
+                id: Math.random().toString(36).substr(2, 9),
+                nombre: `${templateToDuplicate.nombre} (Copia)`
+            };
+            setQuoteTemplates(prev => [newTemplate, ...prev]);
+        }
+    }
+
     return (
         <CRMContext.Provider value={{
             prospects,
@@ -116,7 +197,20 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             deleteProspect,
             addProspect,
             updateProspect,
-            addFollowUp
+            addFollowUp,
+            quotes,
+            addQuote,
+            updateQuote,
+            deleteQuote,
+            products,
+            addProduct,
+            updateProduct,
+            deleteProduct,
+            quoteTemplates,
+            addQuoteTemplate,
+            updateQuoteTemplate,
+            deleteQuoteTemplate,
+            duplicateQuoteTemplate
         }}>
             {children}
         </CRMContext.Provider>
