@@ -7,6 +7,6 @@ CREATE OR REPLACE FUNCTION get_current_workspace()
 RETURNS text AS $$
   SELECT COALESCE(
     (SELECT workspace FROM public.users WHERE id = auth.uid()),
-    'Innomind'
+    (SELECT id::text FROM public.company_profiles LIMIT 1)
   );
 $$ LANGUAGE sql STABLE SECURITY DEFINER;

@@ -6,6 +6,8 @@ import { useAuth } from './AuthContext';
 interface User {
     id: string;
     name: string;
+    email?: string;
+    role?: string;
     avatar?: string;
 }
 
@@ -31,12 +33,7 @@ const DEFAULT_COMPANY_PROFILE: CompanyProfile = {
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { user: authUser } = useAuth();
 
-    // Mock users list (could also be fetched from Supabase later)
-    const [users] = useState<User[]>([
-        { id: '1', name: 'Ana Silva', avatar: 'AS' },
-        { id: '2', name: 'Carlos Ruiz', avatar: 'CR' },
-        { id: '3', name: 'Maria Lopez', avatar: 'ML' },
-    ]);
+    const [users, setUsers] = useState<User[]>([]);
 
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [companyProfile, setCompanyProfile] = useState<CompanyProfile>(DEFAULT_COMPANY_PROFILE);
@@ -85,6 +82,30 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 console.error("Error on company sync:", err);
             } finally {
                 setIsLoadingProfile(false);
+            }
+
+            // Fetch Team Members
+            try {
+                const { data: teamData, error: teamError } = await supabase
+                    .from('users')
+                    .select('id, full_name, email, role');
+
+                if (!teamError && teamData) {
+                    setUsers(teamData.map(u => ({
+                        id: u.id,
+                        name: u.full_name || u.email || 'Miembro',
+                        email: u.email,
+                        role: u.role,
+                        avatar: (u.full_name || u.email || 'M').charAt(0).toUpperCase()
+                    })));
+
+                    const currentTeamUser = teamData.find(u => u.id === authUser.id);
+                    if (currentTeamUser) {
+                        setCurrentUser(prev => prev ? { ...prev, role: currentTeamUser.role } : null);
+                    }
+                }
+            } catch (err) {
+                console.error("Error fetching team users:", err);
             }
         };
 

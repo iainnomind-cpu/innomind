@@ -1,13 +1,15 @@
-import { Users, LayoutDashboard, Menu, Search, Building2, Trello, LogOut, FileText, Settings, Calendar as CalendarIcon, Package, Receipt, ShoppingCart } from 'lucide-react';
+import { Users, LayoutDashboard, Menu, Search, Building2, Trello, LogOut, FileText, Settings, Calendar as CalendarIcon, Package, Receipt, ShoppingCart, Hash } from 'lucide-react';
 import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useUsers } from '@/context/UserContext';
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const { currentUser } = useUsers();
 
   const menuItems = [
     { id: 'dashboard', label: 'Panel de Control', icon: LayoutDashboard },
@@ -18,9 +20,15 @@ export default function Layout() {
     { id: 'inventory', label: 'Inventario', icon: Package },
     { id: 'finance', label: 'Finanzas', icon: Receipt },
     { id: 'procurement', label: 'Compras', icon: ShoppingCart },
+    { id: 'workspace', label: 'Nodo', icon: Hash },
     { id: 'calendar', label: 'Calendario', icon: CalendarIcon },
-    { id: 'settings', label: 'Mi Empresa', icon: Settings },
+    { id: 'settings', label: 'Mi Empresa', icon: Settings, adminOnly: true },
   ];
+
+  const visibleMenuItems = menuItems.filter(item => {
+    if (item.adminOnly && currentUser?.role !== 'ADMIN') return false;
+    return true;
+  });
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -38,7 +46,7 @@ export default function Layout() {
         </div>
 
         <nav className="flex-1 p-4 space-y-1">
-          {menuItems.map((item) => {
+          {visibleMenuItems.map((item) => {
             const Icon = item.icon;
             return (
               <button

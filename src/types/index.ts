@@ -321,3 +321,111 @@ export interface PurchaseReception {
   notas?: string;
   createdAt: Date;
 }
+
+// --- WORKSPACE / NODO ---
+
+export type SpaceType = 'GENERAL' | 'TEAM' | 'CONTEXTUAL' | 'DIRECT_MESSAGE';
+export type SpaceRole = 'ADMIN' | 'MEMBER' | 'OBSERVER';
+export type TaskPriority = 'BAJA' | 'MEDIA' | 'ALTA' | 'URGENTE';
+export type TaskStatus = 'PENDIENTE' | 'EN_PROGRESO' | 'BLOQUEADA' | 'COMPLETADA';
+
+export interface WorkspaceSpace {
+  id: string;
+  workspace: string;
+  name?: string;
+  type: SpaceType;
+  linkedObjectType?: string;
+  linkedObjectId?: string;
+  description?: string;
+  isPrivate: boolean;
+  createdBy?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface WorkspaceSpaceMember {
+  spaceId: string;
+  userId: string;
+  role: SpaceRole;
+  joinedAt: Date;
+  // Relational helper optional
+  userExt?: any;
+}
+
+export interface WorkspaceMessage {
+  id: string;
+  workspace: string;
+  spaceId: string;
+  senderId: string;
+  content: string;
+  parentId?: string;
+  hasAttachments: boolean;
+  isPinned: boolean;
+  taskId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  // Optional relational helpers
+  sender?: any;
+}
+
+export interface WorkspaceTask {
+  id: string;
+  workspace: string;
+  title: string;
+  description?: string;
+  assignedTo?: string;
+  dueDate?: Date;
+  priority: TaskPriority;
+  status: TaskStatus;
+  spaceId?: string;
+  linkedObjectType?: string;
+  linkedObjectId?: string;
+  createdFromMessageId?: string;
+  createdBy: string;
+  completedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface WorkspaceTaskComment {
+  id: string;
+  workspace: string;
+  taskId: string;
+  userId: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface WorkspaceTaskChecklist {
+  id: string;
+  taskId: string;
+  title: string;
+  isCompleted: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface WorkspaceStandup {
+  id: string;
+  workspace: string;
+  spaceId: string;
+  userId: string;
+  date: string; // ISO Date String YYYY-MM-DD
+  completedYesterday?: string;
+  workingToday?: string;
+  blockers?: string;
+  hasBlockerFlag: boolean;
+  createdAt: Date;
+}
+
+export interface WorkspaceNote {
+  id: string;
+  workspace: string;
+  spaceId: string;
+  title: string;
+  contentJson?: string;
+  createdBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
