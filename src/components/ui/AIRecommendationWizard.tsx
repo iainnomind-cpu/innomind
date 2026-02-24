@@ -73,41 +73,41 @@ export function AIRecommendationWizard({ onApplyRecommendation, onCancel }: AIRe
 
         // Rule 1: Reto
         if (ans1 === "Conseguir más clientes") {
-            selectedModules.add("Leads y Prospección");
-            selectedModules.add("Automatización de Marketing");
-            selectedModules.add("Pipeline de Ventas"); // Often implied
+            selectedModules.add("Prospectos");
+            selectedModules.add("Cotizaciones");
+            selectedModules.add("Embudo de Ventas"); // Often implied
         } else if (ans1 === "Organizar mis ventas") {
-            selectedModules.add("Pipeline de Ventas");
+            selectedModules.add("Embudo de Ventas");
         } else if (ans1 === "Controlar mejor mis finanzas") {
-            selectedModules.add("Flujo de Caja Predictivo");
+            selectedModules.add("Finanzas");
         } else if (ans1 === "Gestionar mejor a mi equipo") {
-            selectedModules.add("Recursos Humanos (HRM)");
+            selectedModules.add("Nodo");
         } else if (ans1 === "Tengo varios de estos problemas") {
-            selectedModules.add("Pipeline de Ventas");
-            selectedModules.add("Flujo de Caja Predictivo");
+            selectedModules.add("Embudo de Ventas");
+            selectedModules.add("Finanzas");
         }
 
         // Rule 2: Inventario
         if (ans2 === "Sí" || ans2 === "A veces") {
-            selectedModules.add("Gestión de Inventario");
-            selectedModules.add("Gestión de Compras");
+            selectedModules.add("Inventario");
+            selectedModules.add("Compras");
         }
 
         // Rule 3: Proceso Ventas
         if (ans3 === "No tenemos proceso definido") {
-            selectedModules.add("Pipeline de Ventas");
+            selectedModules.add("Embudo de Ventas");
         }
 
         // Rule 4: Equipo
         if (ans4 === "6 a 20 personas" || ans4 === "Más de 20") {
-            selectedModules.add("Recursos Humanos (HRM)");
+            selectedModules.add("Nodo");
         }
 
         // Justification & Type Logic (Simplified)
-        if (selectedModules.has("Gestión de Inventario")) {
+        if (selectedModules.has("Inventario")) {
             tipoNegocio = "Empresa de Productos / Retail";
             justification = "Basado en tu manejo de inventario y necesidades operativas, este paquete optimiza tu stock y flujo de caja.";
-        } else if (selectedModules.has("Recursos Humanos (HRM)")) {
+        } else if (selectedModules.has("Nodo")) {
             tipoNegocio = "Empresa en Crecimiento";
             justification = "Para equipos en expansión, la gestión de talento y procesos definidos es clave.";
         } else {
@@ -137,47 +137,74 @@ export function AIRecommendationWizard({ onApplyRecommendation, onCancel }: AIRe
             const prompt = `
 Eres un asesor experto en implementación de CRM-ERP para micro y pequeñas empresas.
 
-Analiza las respuestas del negocio y recomienda un paquete IDEAL de módulos.
-No recomiendes solo uno si hay múltiples necesidades.
+Analiza las respuestas del negocio y recomienda un paquete IDEAL de módulos del sistema Innomind.
+No recomiendes solo uno si existen múltiples necesidades.
 
-MÓDULOS DISPONIBLES:
+MÓDULOS DISPONIBLES EN INNOMIND:
 
-Gestión Comercial:
-- Leads y Prospección
-- Pipeline de Ventas
-- Automatización de Marketing
+🔵 Gestión Comercial
+(Embudo: Oportunidades | Prospectos: Seguimiento | Clientes: Historial | Cotizaciones: Estados | Calendario: Eventos)
 
-Gestión Financiera:
-- Flujo de Caja Predictivo
-- Gestión de Inventario
-- Gestión de Compras
+Módulos individuales:
+- Embudo de Ventas
+- Prospectos
+- Clientes
+- Cotizaciones
+- Calendario
 
-Gestión de Talento:
-- Recursos Humanos (HRM)
+🟢 Gestión Financiera
+(Finanzas: Ingresos, Egresos, Reportes | Compras: Órdenes, Proveedores)
+
+Módulos individuales:
+- Finanzas
+- Compras
+
+🟣 Gestión Operativa
+(Inventario: Productos, Stock, Movimientos | Nodo: Conversaciones, Bandeja, Mi Día, Tareas Globales, Notas)
+
+Módulos individuales:
+- Inventario
+- Nodo
 
 Respuestas del negocio:
 - Reto principal: ${answers[0]}
 - Maneja inventario: ${answers[1]}
-- Proceso de ventas: ${answers[2]}
+- Proceso de ventas actual: ${answers[2]}
 - Tamaño de empresa: ${answers[3]}
 
-Devuelve respuesta en JSON con este formato:
+Devuelve la respuesta en JSON con este formato exacto:
 
 {
   "modulos_recomendados": [
     "Nombre exacto del módulo",
     "Nombre exacto del módulo"
   ],
-  "justificacion": "Explicación breve profesional y clara de por qué este paquete es ideal",
-  "tipo_negocio_detectado": "Pequeña empresa comercial, empresa de servicios, etc"
+  "justificacion": "Explicación breve, profesional y clara de por qué este paquete es ideal para este negocio",
+  "tipo_negocio_detectado": "Tipo de negocio identificado según las respuestas"
 }
 
-Reglas:
-- Si el reto es clientes → incluir módulos comerciales
-- Si maneja inventario → incluir Gestión de Inventario
-- Si no tiene proceso de ventas → incluir Pipeline
-- Si tiene equipo mayor a 5 → considerar HRM
-- Si menciona varios problemas → combinar Comercial + Financiero
+REGLAS DE DECISIÓN:
+
+- Si el reto principal está relacionado con clientes, ventas o desorganización comercial → incluir:
+  Embudo de Ventas, Prospectos, Clientes y Cotizaciones.
+
+- Si no tiene proceso de ventas estructurado → incluir obligatoriamente:
+  Embudo de Ventas.
+
+- Si maneja inventario → incluir:
+  Inventario.
+
+- Si menciona desorden financiero, falta de control de gastos o flujo de efectivo → incluir:
+  Finanzas y Compras.
+
+- Si el equipo es mayor a 3 personas o menciona problemas de organización interna → incluir:
+  Nodo.
+
+- Si existen múltiples problemas → combinar módulos Comerciales + Financieros + Operativos según corresponda.
+
+- Nunca recomendar solo un módulo si hay más de una necesidad evidente.
+
+- Siempre usar el nombre EXACTO del módulo en el array "modulos_recomendados".
 `;
 
             const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -203,12 +230,21 @@ Reglas:
             const data = await response.json();
             const content = data.choices[0].message.content;
 
+            // Debug response from OpenAI
+            console.log("Raw OpenAI Response:", content);
+
             // Clean markdown verify if it's wrapped in ```json
             const cleanContent = content.replace(/```json\n?|```/g, "").trim();
             const parsedResult = JSON.parse(cleanContent);
 
-            setResult(parsedResult);
-            setStatus('result');
+            console.log("Parsed JSON:", parsedResult);
+
+            if (parsedResult?.modulos_recomendados?.length > 0) {
+                setResult(parsedResult);
+                setStatus('result');
+            } else {
+                throw new Error("Invalid format: modulos_recomendados is missing or empty.");
+            }
 
         } catch (error) {
             console.error("Error fetching recommendation:", error);
@@ -217,13 +253,9 @@ Reglas:
         }
     };
 
-    // Trigger analysis when status changes to analyzing (to ensure state is fresh if we wanted to rely on effect, 
-    // but the timeout above is fine for this mock). 
-    // Actually, to overlap the last setAnswers update, let's use an effect.
     // Trigger analysis when status changes to analyzing
     useEffect(() => {
         if (status === 'analyzing') {
-            // Start the process
             processRecommendation();
         }
     }, [status]);
