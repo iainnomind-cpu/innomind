@@ -4,7 +4,7 @@ import { useLocation } from 'react-router-dom';
 interface ModalContextType {
     isFreeTrialOpen: boolean;
     inviteEmail: string | null;
-    openFreeTrial: (email?: string) => void;
+    openFreeTrial: (email?: any) => void;
     closeFreeTrial: () => void;
 }
 
@@ -14,8 +14,12 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     const [isFreeTrialOpen, setIsFreeTrialOpen] = useState(false);
     const [inviteEmail, setInviteEmail] = useState<string | null>(null);
 
-    const openFreeTrial = (email?: string) => {
-        if (email) setInviteEmail(email);
+    const openFreeTrial = (email?: any) => {
+        if (typeof email === 'string') {
+            setInviteEmail(email);
+        } else {
+            setInviteEmail(null);
+        }
         setIsFreeTrialOpen(true);
     };
 
