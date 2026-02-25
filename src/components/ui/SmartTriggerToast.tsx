@@ -3,69 +3,133 @@ import { Lightbulb, X, Sparkles, TrendingUp } from 'lucide-react';
 
 interface TriggerRule {
     id: string;
+    triggerModule: string;
     condition: (modules: string[]) => boolean;
     title: string;
     description: string;
-    moduleToAdd: string;
+    modulesToAdd: string[];
     icon: 'lightbulb' | 'sparkles' | 'trend';
-    primaryActionLabel?: string;
-    secondaryActionLabel?: string;
+    primaryActionLabel: string;
+    secondaryActionLabel: string;
 }
 
-export function SmartTriggerToast({ selectedModules, onActivateModule }: { selectedModules: string[], onActivateModule: (module: string) => void }) {
+export function SmartTriggerToast({
+    selectedModules,
+    lastAddedModule,
+    onActivateModules
+}: {
+    selectedModules: string[],
+    lastAddedModule: string | null,
+    onActivateModules: (modules: string[]) => void
+}) {
     const [activeSuggestion, setActiveSuggestion] = useState<TriggerRule | null>(null);
     const [isVisible, setIsVisible] = useState(false);
     const [dismissed, setDismissed] = useState<string[]>([]);
 
     const rules: TriggerRule[] = [
         {
-            id: 'rule-sales-finance',
-            condition: (m) => m.includes('Pipeline de Ventas') && !m.includes('Flujo de Caja Predictivo'),
+            id: 'rule-embudo',
+            triggerModule: 'Embudo de Ventas',
+            condition: (m) => !m.includes('Clientes') && !m.includes('Cotizaciones'),
             title: 'Sugerencia',
-            description: 'Activa "Flujo de Caja Predictivo" para automatizar la facturación cuando cierres ventas.',
-            moduleToAdd: 'Flujo de Caja Predictivo',
+            description: 'Para convertir oportunidades en ventas, se recomienda activar Clientes y Cotizaciones.',
+            modulesToAdd: ['Clientes', 'Cotizaciones'],
             icon: 'lightbulb',
-            primaryActionLabel: 'Activar ahora',
-            secondaryActionLabel: 'Después'
+            primaryActionLabel: 'Activar ambos',
+            secondaryActionLabel: 'Mantener solo Embudo'
         },
         {
-            id: 'rule-leads-marketing',
-            condition: (m) => m.includes('Leads y Prospección') && m.includes('Pipeline de Ventas') && !m.includes('Automatización de Marketing'),
-            title: 'Pack Recomendado',
-            description: 'Añade "Automatización de Marketing". Empresas similares aumentan conversión 40% con esta combinación.',
-            moduleToAdd: 'Automatización de Marketing',
-            icon: 'sparkles',
-            primaryActionLabel: 'Añadir',
-            secondaryActionLabel: '+2,000 MXN/mes'
+            id: 'rule-prospectos',
+            triggerModule: 'Prospectos',
+            condition: (m) => !m.includes('Clientes'),
+            title: 'Sugerencia',
+            description: 'Se recomienda activar Clientes para convertir prospectos en clientes.',
+            modulesToAdd: ['Clientes'],
+            icon: 'lightbulb',
+            primaryActionLabel: 'Activar Clientes',
+            secondaryActionLabel: 'Omitir'
         },
         {
-            id: 'rule-inventory-finance',
-            condition: (m) => m.includes('Gestión de Compras') && m.includes('Gestión de Inventario') && !m.includes('Flujo de Caja Predictivo'),
-            title: 'Combo Operativo',
-            description: 'Activa "Flujo de Caja Predictivo" para controlar el capital inmovilizado automáticamente.',
-            moduleToAdd: 'Flujo de Caja Predictivo',
+            id: 'rule-cotizaciones',
+            triggerModule: 'Cotizaciones',
+            condition: (m) => !m.includes('Clientes'),
+            title: 'Requisito',
+            description: 'Cotizaciones requiere Clientes para funcionar correctamente.',
+            modulesToAdd: ['Clientes'],
+            icon: 'lightbulb',
+            primaryActionLabel: 'Activar Clientes',
+            secondaryActionLabel: 'Continuar sin activar'
+        },
+        {
+            id: 'rule-calendario',
+            triggerModule: 'Calendario',
+            condition: (m) => !m.includes('Prospectos') && !m.includes('Clientes'),
+            title: 'Sugerencia',
+            description: 'El Calendario funciona mejor con Prospectos o Clientes activos.',
+            modulesToAdd: ['Prospectos'],
+            icon: 'lightbulb',
+            primaryActionLabel: 'Activar Prospectos',
+            secondaryActionLabel: 'Omitir'
+        },
+        {
+            id: 'rule-compras',
+            triggerModule: 'Compras',
+            condition: (m) => !m.includes('Finanzas'),
+            title: 'Requisito',
+            description: 'Compras necesita Finanzas para registrar egresos.',
+            modulesToAdd: ['Finanzas'],
             icon: 'trend',
-            primaryActionLabel: 'Activar',
-            secondaryActionLabel: 'Incluido en tu plan'
+            primaryActionLabel: 'Activar Finanzas',
+            secondaryActionLabel: 'Omitir'
+        },
+        {
+            id: 'rule-inventario',
+            triggerModule: 'Inventario',
+            condition: (m) => !m.includes('Compras'),
+            title: 'Sugerencia',
+            description: 'Se recomienda activar Compras para gestionar entradas de inventario.',
+            modulesToAdd: ['Compras'],
+            icon: 'trend',
+            primaryActionLabel: 'Activar Compras',
+            secondaryActionLabel: 'Omitir'
+        },
+        {
+            id: 'rule-nodo',
+            triggerModule: 'Nodo',
+            condition: (m) => !m.includes('Prospectos') && !m.includes('Clientes'),
+            title: 'Sugerencia',
+            description: 'Nodo se potencia al integrarse con Prospectos o Clientes.',
+            modulesToAdd: ['Prospectos'],
+            icon: 'sparkles',
+            primaryActionLabel: 'Activar Prospectos',
+            secondaryActionLabel: 'Omitir'
         }
     ];
 
     useEffect(() => {
-        // Reset state when selection changes to avoid stale suggestions
-        setIsVisible(false);
-        setActiveSuggestion(null);
+        if (!lastAddedModule) return;
 
-        const match = rules.find(r => r.condition(selectedModules) && !dismissed.includes(r.id));
+        console.log("[SmartTriggerToast] Evaluating rule for newly selected module:", lastAddedModule);
+
+        // Check if any rule matches the newly added module
+        const match = rules.find(r => {
+            const isMatch = r.triggerModule === lastAddedModule && r.condition(selectedModules) && !dismissed.includes(r.id);
+            if (isMatch) console.log(`[SmartTriggerToast] Matched rule for ${lastAddedModule}:`, r.title);
+            return isMatch;
+        });
 
         if (match) {
+            // Instantly apply suggestion
+            setIsVisible(false); // Quick hide if there was one
+            // We use a tiny timeout just to allow React's batched render of the hide before showing the new one
             const timer = setTimeout(() => {
                 setActiveSuggestion(match);
                 setIsVisible(true);
-            }, 500); // Immediate feedback (500ms debounce)
+            }, 10);
 
             return () => clearTimeout(timer);
         }
-    }, [selectedModules, dismissed]);
+    }, [lastAddedModule, selectedModules]);
 
     if (!activeSuggestion || !isVisible) return null;
 
@@ -78,7 +142,10 @@ export function SmartTriggerToast({ selectedModules, onActivateModule }: { selec
 
                 {/* Close Button */}
                 <button
-                    onClick={() => setIsVisible(false)}
+                    onClick={() => {
+                        setIsVisible(false);
+                        setDismissed(prev => [...prev, activeSuggestion.id]);
+                    }}
                     className="absolute top-3 right-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
                 >
                     <X size={16} />
@@ -94,22 +161,26 @@ export function SmartTriggerToast({ selectedModules, onActivateModule }: { selec
                             {activeSuggestion.description}
                         </p>
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
                             <button
                                 onClick={() => {
-                                    onActivateModule(activeSuggestion.moduleToAdd);
+                                    onActivateModules(activeSuggestion.modulesToAdd);
                                     setIsVisible(false);
                                     setDismissed(prev => [...prev, activeSuggestion.id]);
                                 }}
-                                className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity shadow-sm"
+                                className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity shadow-sm whitespace-nowrap"
                             >
-                                {activeSuggestion.primaryActionLabel || 'Activar'}
+                                {activeSuggestion.primaryActionLabel}
                             </button>
-                            {activeSuggestion.secondaryActionLabel && (
-                                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                                    {activeSuggestion.secondaryActionLabel}
-                                </span>
-                            )}
+                            <button
+                                onClick={() => {
+                                    setIsVisible(false);
+                                    setDismissed(prev => [...prev, activeSuggestion.id]);
+                                }}
+                                className="text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors py-2 px-1 text-left"
+                            >
+                                {activeSuggestion.secondaryActionLabel}
+                            </button>
                         </div>
                     </div>
                 </div>

@@ -16,21 +16,21 @@ export function SmartSuggestion({ selectedModules, onAddModule }: { selectedModu
         const rules = [
             {
                 id: 'rule-finance-sales',
-                condition: () => selectedModules.includes('Pipeline de Ventas') && !selectedModules.includes('Flujo de Caja Predictivo'),
+                condition: () => selectedModules.includes('Embudo de Ventas') && !selectedModules.includes('Finanzas'),
                 text: "Conecta tus ventas con tus finanzas para predecir tu flujo de caja automáticamente.",
-                moduleToAdd: 'Flujo de Caja Predictivo'
+                moduleToAdd: 'Finanzas'
             },
             {
                 id: 'rule-marketing-leads',
-                condition: () => selectedModules.includes('Leads y Prospección') && selectedModules.includes('Pipeline de Ventas') && !selectedModules.includes('Automatización de Marketing'),
-                text: "Automatiza el seguimiento de tus leads calificados con campañas personalizadas.",
-                moduleToAdd: 'Automatización de Marketing'
+                condition: () => selectedModules.includes('Prospectos') && selectedModules.includes('Embudo de Ventas') && !selectedModules.includes('Cotizaciones'),
+                text: "Automatiza el seguimiento de tus prospectos con cotizaciones rápidas y precisas.",
+                moduleToAdd: 'Cotizaciones'
             },
             {
                 id: 'rule-inventory-finance',
-                condition: () => selectedModules.includes('Gestión de Inventario') && !selectedModules.includes('Flujo de Caja Predictivo'),
+                condition: () => selectedModules.includes('Inventario') && !selectedModules.includes('Finanzas'),
                 text: "Controla el impacto financiero de tu stock en tiempo real.",
-                moduleToAdd: 'Flujo de Caja Predictivo'
+                moduleToAdd: 'Finanzas'
             }
         ];
 

@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { X, ArrowRight, Check, ShieldCheck, Lock, Star } from 'lucide-react';
 import { useModal } from '../../context/ModalContext';
-import { SmartSuggestion } from './SmartSuggestion';
 import { SmartTriggerToast } from './SmartTriggerToast';
 import { AIRecommendationWizard } from './AIRecommendationWizard';
 import { supabase } from '@/lib/supabase';
@@ -19,6 +18,7 @@ export default function FreeTrialModal() {
 
     const [selectedMainModule, setSelectedMainModule] = useState<'crm-erp' | 'project-tracker' | null>(null);
     const [selectedSubModules, setSelectedSubModules] = useState<string[]>([]);
+    const [lastAddedModule, setLastAddedModule] = useState<string | null>(null);
 
     // Step 1 State
     const [companySize, setCompanySize] = useState('1-10 empleados');
@@ -113,10 +113,15 @@ export default function FreeTrialModal() {
     }, [sanitizedWorkspace, isPasswordValid, doPasswordsMatch, termsAccepted]);
 
     const toggleSubModule = (module: string) => {
-        if (selectedSubModules.includes(module)) {
-            setSelectedSubModules(selectedSubModules.filter(m => m !== module));
-        } else {
-            setSelectedSubModules([...selectedSubModules, module]);
+        const isAdding = !selectedSubModules.includes(module);
+
+        setSelectedSubModules(prev =>
+            isAdding ? [...prev, module] : prev.filter(m => m !== module)
+        );
+
+        if (isAdding) {
+            setLastAddedModule(module);
+            setTimeout(() => setLastAddedModule(null), 100);
         }
     };
 
@@ -401,19 +406,22 @@ export default function FreeTrialModal() {
                                             <div className="grid md:grid-cols-3 gap-4">
                                                 <ModuleSelectionCard
                                                     title="Gestión Comercial"
-                                                    items={['Leads y Prospección', 'Pipeline de Ventas', 'Automatización de Marketing']}
+                                                    description="(Embudo: Oportunidades | Prospectos: Seguimiento | Clientes: Historial | Cotizaciones: Estados | Calendario: Eventos)"
+                                                    items={['Embudo de Ventas', 'Prospectos', 'Clientes', 'Cotizaciones', 'Calendario']}
                                                     selected={selectedSubModules}
                                                     toggle={toggleSubModule}
                                                 />
                                                 <ModuleSelectionCard
                                                     title="Gestión Financiera"
-                                                    items={['Flujo de Caja Predictivo', 'Gestión de Inventario', 'Gestión de Compras']}
+                                                    description="(Finanzas: Ingresos, Egresos, Reportes | Compras: Órdenes, Proveedores)"
+                                                    items={['Finanzas', 'Compras']}
                                                     selected={selectedSubModules}
                                                     toggle={toggleSubModule}
                                                 />
                                                 <ModuleSelectionCard
-                                                    title="Gestión de Talento"
-                                                    items={['Recursos Humanos (HRM)']}
+                                                    title="Gestión Operativa"
+                                                    description="(Inventario: Productos, Stock, Movimientos | Nodo: Conversaciones, Bandeja, Mi Día, Tareas Globales, Notas)"
+                                                    items={['Inventario', 'Nodo']}
                                                     selected={selectedSubModules}
                                                     toggle={toggleSubModule}
                                                 />
@@ -427,8 +435,7 @@ export default function FreeTrialModal() {
                                         <AIRecommendationWizard
                                             onApplyRecommendation={(recommendedModules) => {
                                                 setSelectedMainModule('crm-erp');
-                                                const combined = Array.from(new Set([...selectedSubModules, ...recommendedModules]));
-                                                setSelectedSubModules(combined);
+                                                setSelectedSubModules([...recommendedModules]);
 
                                                 // Success Feedback & Scroll
                                                 setSuccessMessage("Paquete aplicado correctamente");
@@ -443,23 +450,12 @@ export default function FreeTrialModal() {
                                         />
                                     )}
 
-                                    {/* Smart Suggestion */}
-                                    <SmartSuggestion
-                                        selectedModules={selectedSubModules}
-                                        onAddModule={(module) => {
-                                            if (!selectedSubModules.includes(module)) {
-                                                toggleSubModule(module);
-                                            }
-                                        }}
-                                    />
-
                                     {/* Delayed Smart Trigger Toast */}
                                     <SmartTriggerToast
                                         selectedModules={selectedSubModules}
-                                        onActivateModule={(module) => {
-                                            if (!selectedSubModules.includes(module)) {
-                                                toggleSubModule(module);
-                                            }
+                                        lastAddedModule={lastAddedModule}
+                                        onActivateModules={(modules) => {
+                                            setSelectedSubModules(prev => Array.from(new Set([...prev, ...modules])));
                                         }}
                                     />
                                 </div>
@@ -797,26 +793,53 @@ function InputGroup({ label, placeholder, type = 'text', value, onChange, error,
     );
 }
 
-function ModuleSelectionCard({ title, items, selected, toggle }: { title: string, items: string[], selected: string[], toggle: (m: string) => void }) {
+function ModuleSelectionCard({ title, description, items, selected, toggle }: { title: string, description: string, items: string[], selected: string[], toggle: (m: string) => void }) {
+    const allSelected = items.every(item => selected.includes(item));
+    const hasSelectedItems = items.some(item => selected.includes(item));
+
+    const handleCardClick = () => {
+        items.forEach(item => {
+            if (allSelected) {
+                if (selected.includes(item)) toggle(item);
+            } else {
+                if (!selected.includes(item)) toggle(item);
+            }
+        });
+    };
+
     return (
-        <div className="p-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50">
-            <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase mb-3 tracking-wide">{title}</h4>
-            <div className="space-y-2">
-                {items.map((item, i) => {
-                    const isSelected = selected.includes(item);
-                    return (
-                        <div
-                            key={i}
-                            className="flex items-start gap-2 cursor-pointer group"
-                            onClick={() => toggle(item)}
-                        >
-                            <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center transition-colors ${isSelected ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300 dark:border-slate-600 group-hover:border-blue-500'}`}>
-                                {isSelected && <Check size={10} strokeWidth={4} />}
+        <div
+            className={`p-5 h-full flex flex-col rounded-xl border transition-all cursor-pointer group/card ${hasSelectedItems
+                ? 'border-blue-400 bg-blue-50/50 dark:border-blue-600/50 dark:bg-blue-900/20 shadow-sm shadow-blue-500/10'
+                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-blue-300 dark:hover:border-blue-700'
+                }`}
+            onClick={handleCardClick}
+        >
+            <div className="mb-2">
+                <h4 className="text-base font-bold text-slate-900 dark:text-white mb-1.5 group-hover/card:text-blue-600 dark:group-hover/card:text-blue-400 transition-colors">{title}</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-3">{description}</p>
+            </div>
+            <div className="border-t border-slate-100 dark:border-slate-700/50 pt-4 flex-1">
+                <div className="space-y-3">
+                    {items.map((item, i) => {
+                        const isSelected = selected.includes(item);
+                        return (
+                            <div
+                                key={i}
+                                className="flex items-start gap-3 cursor-pointer group/item"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggle(item);
+                                }}
+                            >
+                                <div className={`mt-0.5 w-5 h-5 shrink-0 rounded border flex items-center justify-center transition-colors ${isSelected ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300 dark:border-slate-600 group-hover/item:border-blue-500'}`}>
+                                    {isSelected && <Check size={12} strokeWidth={4} />}
+                                </div>
+                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover/item:text-slate-900 dark:group-hover/item:text-white transition-colors">{item}</span>
                             </div>
-                            <span className="text-xs font-medium text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">{item}</span>
-                        </div>
-                    );
-                })}
+                        );
+                    })}
+                </div>
             </div>
         </div>
     );
