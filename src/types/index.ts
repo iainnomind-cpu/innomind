@@ -1,4 +1,4 @@
-export type ProspectStatus = 'Nuevo' | 'Contactado' | 'En seguimiento' | 'Cotizado' | 'Venta cerrada' | 'Perdido';
+export type ProspectStatus = 'Nuevo' | 'Contactado' | 'En seguimiento' | 'Cotizado' | 'Venta cerrada' | 'Cliente Activo' | 'Cliente Inactivo' | 'Perdido';
 export type Platform = 'WhatsApp' | 'Instagram' | 'Facebook';
 
 export interface Prospect {
@@ -20,6 +20,7 @@ export interface Prospect {
   industria?: string;
   tamanoEmpresa?: string;
   nivelInteres?: 'Bajo' | 'Medio' | 'Alto';
+  valorEstimado?: number;
   direccion?: string;
   fechaProximoSeguimiento?: Date;
   seguimientos: Array<{
@@ -142,35 +143,7 @@ export interface InventoryMovement {
   fechaMovimiento: Date;
 }
 
-export interface Cliente {
-  id: string;
-  nombre: string;
-  email: string;
-  telefono: string;
-  empresa: string;
-  estado: 'prospecto' | 'activo' | 'inactivo';
-  valor_estimado: number;
-  notas: string;
-  fecha_creacion: string;
-  ultima_actualizacion: string;
-}
 
-export interface ClienteFormData {
-  nombre: string;
-  email: string;
-  telefono: string;
-  empresa: string;
-  estado: 'prospecto' | 'activo' | 'inactivo';
-  valor_estimado: number;
-  notas: string;
-}
-
-export interface MetricasData {
-  totalClientes: number;
-  clientesActivos: number;
-  valorTotal: number;
-  nuevosMes: number;
-}
 
 export interface CompanyProfile {
   nombreEmpresa: string;
@@ -181,6 +154,7 @@ export interface CompanyProfile {
   logoUrl?: string; // base64 or URL
   sitioWeb?: string;
   colorPrimario?: string; // for PDF accents
+  enabledModules?: string[]; // sidebar module IDs selected during registration
 }
 
 export type EventType = 'reunión' | 'llamada' | 'recordatorio';

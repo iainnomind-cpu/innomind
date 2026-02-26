@@ -50,7 +50,9 @@ export default function ProspectDetail() {
             case 'Contactado': return 'bg-yellow-100 text-yellow-800';
             case 'En seguimiento': return 'bg-orange-100 text-orange-800';
             case 'Cotizado': return 'bg-purple-100 text-purple-800';
-            case 'Venta cerrada': return 'bg-green-100 text-green-800';
+            case 'Venta cerrada': return 'bg-emerald-100 text-emerald-800';
+            case 'Cliente Activo': return 'bg-green-100 text-green-800';
+            case 'Cliente Inactivo': return 'bg-gray-100 text-gray-600';
             case 'Perdido': return 'bg-red-100 text-red-800';
             default: return 'bg-gray-100 text-gray-800';
         }
@@ -272,6 +274,25 @@ export default function ProspectDetail() {
                         </div>
                     </div>
 
+                    {/* Conversion Banner */}
+                    {selectedProspect.estado === 'Venta cerrada' && (
+                        <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl border border-emerald-200 p-5 flex items-center gap-4 shadow-sm">
+                            <div className="p-3 bg-emerald-100 rounded-lg">
+                                <Briefcase size={24} className="text-emerald-600" />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="font-bold text-emerald-900">¡Venta cerrada!</h3>
+                                <p className="text-sm text-emerald-700 mt-1">Este prospecto ha completado una compra. ¿Deseas marcarlo como Cliente Activo?</p>
+                            </div>
+                            <button
+                                onClick={() => handleStatusChange('Cliente Activo')}
+                                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium text-sm transition-colors shadow-sm"
+                            >
+                                Convertir a Cliente ✅
+                            </button>
+                        </div>
+                    )}
+
                     {/* Main Info Card */}
                     <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
                         <div className="flex justify-between items-start mb-6">
@@ -300,7 +321,7 @@ export default function ProspectDetail() {
                                         onBlur={() => setEditingStatus(false)}
                                         className="px-3 py-1 rounded-full text-sm font-semibold border border-gray-300 focus:ring-2 focus:ring-blue-500"
                                     >
-                                        {['Nuevo', 'Contactado', 'En seguimiento', 'Cotizado', 'Venta cerrada', 'Perdido'].map(status => (
+                                        {['Nuevo', 'Contactado', 'En seguimiento', 'Cotizado', 'Venta cerrada', 'Cliente Activo', 'Cliente Inactivo', 'Perdido'].map(status => (
                                             <option key={status} value={status}>{status}</option>
                                         ))}
                                     </select>
@@ -498,6 +519,12 @@ export default function ProspectDetail() {
                                 <span className="text-base font-semibold text-gray-900 flex items-center gap-1">
                                     {selectedProspect.plataforma === 'WhatsApp' ? '💬' : selectedProspect.plataforma === 'Facebook' ? '📘' : '📷'}
                                     {selectedProspect.plataforma}
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
+                                <span className="text-sm text-gray-600">Valor Estimado</span>
+                                <span className="text-base font-semibold text-gray-900">
+                                    {selectedProspect.valorEstimado ? `$${selectedProspect.valorEstimado.toLocaleString()}` : '—'}
                                 </span>
                             </div>
                             <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">

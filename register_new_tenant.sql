@@ -6,7 +6,8 @@ CREATE OR REPLACE FUNCTION public.register_new_tenant(
   p_company_name text,
   p_workspace_name text,
   p_phone text,
-  p_company_size text
+  p_company_size text,
+  p_enabled_modules text[] DEFAULT '{}'
 ) RETURNS text AS $$
 DECLARE
   v_workspace_id uuid;
@@ -20,13 +21,15 @@ BEGIN
     workspace,
     nombre_empresa,
     email,
-    telefono
+    telefono,
+    enabled_modules
   ) VALUES (
     v_workspace_id,
     p_workspace_name,
     p_company_name,
     p_email,
-    p_phone
+    p_phone,
+    p_enabled_modules
   );
 
   -- 3. Upsert en public.users
@@ -34,46 +37,20 @@ BEGIN
     id,
     email,
     workspace,
+    role,
     last_sign_in_at
   ) VALUES (
     p_user_id,
     p_email,
     v_workspace_id::text,
+    'ADMIN',
     now()
   )
   ON CONFLICT (id) DO UPDATE SET
     email = EXCLUDED.email,
     workspace = EXCLUDED.workspace,
+    role = EXCLUDED.role,
     last_sign_in_at = EXCLUDED.last_sign_in_at;
-
-  -- 4. Insertar Prospecto Inicial
-  INSERT INTO public.prospects (
-    workspace,
-    nombre,
-    empresa,
-    correo,
-    telefono,
-    servicio_interes,
-    plataforma,
-    estado,
-    responsable,
-    cargo,
-    tamano_empresa,
-    user_id
-  ) VALUES (
-    v_workspace_id::text,
-    p_full_name,
-    p_company_name,
-    p_email,
-    p_phone,
-    'CRM-ERP',
-    'Sitio Web',
-    'Nuevo',
-    '1',
-    'Administrador',
-    p_company_size,
-    p_user_id
-  );
 
   -- Retornar el nuevo ID del Workspace en texto para confirmación
   RETURN v_workspace_id::text;

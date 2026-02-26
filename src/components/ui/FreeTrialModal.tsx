@@ -125,6 +125,27 @@ export default function FreeTrialModal() {
         }
     };
 
+    // Map user-facing module names to sidebar route IDs
+    const mapModulesToSidebarIds = (modules: string[]): string[] => {
+        const mapping: Record<string, string[]> = {
+            'Embudo de Ventas': ['embudo'],
+            'Prospectos': ['prospectos'],
+            'Clientes': ['prospectos?tab=clientes'],
+            'Cotizaciones': ['quotes'],
+            'Calendario': ['calendar'],
+            'Finanzas': ['finance'],
+            'Compras': ['procurement'],
+            'Inventario': ['inventory'],
+            'Nodo': ['workspace'],
+        };
+        const ids = new Set<string>();
+        modules.forEach(m => {
+            const mapped = mapping[m];
+            if (mapped) mapped.forEach(id => ids.add(id));
+        });
+        return Array.from(ids);
+    };
+
     if (!isFreeTrialOpen) return null;
 
     return (
@@ -682,6 +703,10 @@ export default function FreeTrialModal() {
                                             if (authError) throw authError;
 
                                             if (authData.user) {
+                                                if (!authData.user.identities || authData.user.identities.length === 0) {
+                                                    throw new Error("Este correo electrónico ya está registrado. Por favor, inicia sesión.");
+                                                }
+
                                                 if (!isInvitedUser) {
                                                     // 1. Llamar al RPC Seguro para crear Empresa, Usuario y Prospecto ignorando RLS
                                                     const { data: newWorkspaceId, error: rpcError } = await supabase.rpc(
@@ -693,7 +718,8 @@ export default function FreeTrialModal() {
                                                             p_company_name: companyName,
                                                             p_workspace_name: workspaceName,
                                                             p_phone: phone,
-                                                            p_company_size: companySize
+                                                            p_company_size: companySize,
+                                                            p_enabled_modules: mapModulesToSidebarIds(selectedSubModules)
                                                         }
                                                     );
 
@@ -702,28 +728,7 @@ export default function FreeTrialModal() {
                                                         throw new Error("No se pudo completar el registro de la empresa.");
                                                     }
 
-                                                    // 2. Opcional: Agregar al estado local del CRM si es que se está navegando ahí
-                                                    try {
-                                                        const newProspect: Prospect = {
-                                                            id: Math.random().toString(36).substr(2, 9),
-                                                            nombre: fullName,
-                                                            empresa: companyName,
-                                                            correo: email,
-                                                            telefono: phone,
-                                                            origen: 'Sitio Web',
-                                                            servicioInteres: 'CRM-ERP',
-                                                            estado: 'Nuevo',
-                                                            plataforma: 'WhatsApp',
-                                                            responsable: '1',
-                                                            fechaContacto: new Date(),
-                                                            tamanoEmpresa: companySize,
-                                                            cargo: 'Administrador',
-                                                            seguimientos: [],
-                                                            cotizaciones: [],
-                                                            tareas: []
-                                                        };
-                                                        addProspect(newProspect);
-                                                    } catch (e) { }
+
                                                 }
 
                                                 closeFreeTrial();

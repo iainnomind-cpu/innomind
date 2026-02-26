@@ -14,7 +14,7 @@ export default function ProspectForm({ onClose, onSuccess }: ProspectFormProps) 
     const { users, currentUser } = useUsers();
 
     const [currentStep, setCurrentStep] = useState(1);
-    
+
     const [formData, setFormData] = useState<Partial<Prospect>>({
         nombre: '',
         empresa: '',
@@ -32,6 +32,7 @@ export default function ProspectForm({ onClose, onSuccess }: ProspectFormProps) 
         responsable: '',
         estado: 'Nuevo',
         plataforma: 'WhatsApp',
+        valorEstimado: 0,
         fechaProximoSeguimiento: new Date()
     });
 
@@ -65,7 +66,7 @@ export default function ProspectForm({ onClose, onSuccess }: ProspectFormProps) 
             if (!formData.nombre?.trim()) newErrors.nombre = 'Nombre requerido';
             if (!formData.empresa?.trim()) newErrors.empresa = 'Empresa requerida';
             if (!formData.cargo?.trim()) newErrors.cargo = 'Cargo requerido';
-            
+
             if (!formData.telefono?.trim()) {
                 newErrors.telefono = 'Teléfono requerido';
             } else if (!/^[+]?[\d\s()-]+$/.test(formData.telefono)) {
@@ -100,7 +101,7 @@ export default function ProspectForm({ onClose, onSuccess }: ProspectFormProps) 
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (currentStep !== 3) {
             handleNext();
             return;
@@ -127,6 +128,7 @@ export default function ProspectForm({ onClose, onSuccess }: ProspectFormProps) 
                 industria: formData.industria,
                 tamanoEmpresa: formData.tamanoEmpresa,
                 nivelInteres: formData.nivelInteres as 'Bajo' | 'Medio' | 'Alto',
+                valorEstimado: Number(formData.valorEstimado) || 0,
                 direccion: formData.direccion,
                 notasInternas: formData.notasInternas,
                 fechaProximoSeguimiento: formData.fechaProximoSeguimiento ? new Date(formData.fechaProximoSeguimiento) : undefined,
@@ -149,7 +151,7 @@ export default function ProspectForm({ onClose, onSuccess }: ProspectFormProps) 
     return (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-6 overflow-y-auto">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl flex flex-col max-h-[90vh] overflow-hidden flex-shrink-0 animate-in fade-in zoom-in-95 duration-200">
-                
+
                 {/* Header */}
                 <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-white z-10">
                     <div className="flex items-center gap-3">
@@ -168,7 +170,7 @@ export default function ProspectForm({ onClose, onSuccess }: ProspectFormProps) 
 
                 {/* Main Content Area */}
                 <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-                    
+
                     {/* Sidebar / Stepper */}
                     <div className="w-full md:w-64 bg-gray-50 border-r border-gray-100 p-6 flex-shrink-0">
                         <nav aria-label="Progress">
@@ -177,10 +179,9 @@ export default function ProspectForm({ onClose, onSuccess }: ProspectFormProps) 
                                     <li key={step.name || step.id}>
                                         <div className={`group flex items-start ${currentStep > step.id ? 'opacity-100' : currentStep === step.id ? 'opacity-100' : 'opacity-50'}`}>
                                             <div className="flex-shrink-0 relative flex items-center justify-center">
-                                                <span className={`h-10 w-10 flex items-center justify-center rounded-xl border-2 transition-colors ${
-                                                    currentStep > step.id ? 'bg-blue-600 border-blue-600' :
+                                                <span className={`h-10 w-10 flex items-center justify-center rounded-xl border-2 transition-colors ${currentStep > step.id ? 'bg-blue-600 border-blue-600' :
                                                     currentStep === step.id ? 'bg-white border-blue-600' : 'bg-white border-gray-300'
-                                                }`}>
+                                                    }`}>
                                                     {currentStep > step.id ? (
                                                         <CheckCircle2 className="text-white" size={20} />
                                                     ) : (
@@ -199,7 +200,7 @@ export default function ProspectForm({ onClose, onSuccess }: ProspectFormProps) 
                                 ))}
                             </ol>
                         </nav>
-                        
+
                         {/* Overall Progress */}
                         <div className="mt-10 hidden md:block">
                             <div className="text-xs font-semibold text-gray-500 flex justify-between mb-2">
@@ -207,8 +208,8 @@ export default function ProspectForm({ onClose, onSuccess }: ProspectFormProps) 
                                 <span>{Math.round((currentStep / steps.length) * 100)}%</span>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div 
-                                    className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                                <div
+                                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                                     style={{ width: `${(currentStep / steps.length) * 100}%` }}
                                 ></div>
                             </div>
@@ -218,7 +219,7 @@ export default function ProspectForm({ onClose, onSuccess }: ProspectFormProps) 
                     {/* Form Content */}
                     <div className="flex-1 overflow-y-auto p-6 md:p-8 bg-white custom-scrollbar">
                         <form id="prospectForm" onSubmit={handleSubmit} className="h-full">
-                            
+
                             {/* ERROR ALERT */}
                             {errors.submit && (
                                 <div className="mb-6 p-4 rounded-lg bg-red-50 text-red-700 border border-red-200 flex items-center gap-3">
@@ -234,7 +235,7 @@ export default function ProspectForm({ onClose, onSuccess }: ProspectFormProps) 
                                         <h3 className="text-lg font-bold text-gray-900">{steps[0].title}</h3>
                                         <p className="text-gray-500 text-sm">{steps[0].description}</p>
                                     </div>
-                                    
+
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="md:col-span-2">
                                             <label className="block text-sm font-semibold text-gray-700 mb-1.5 line-clamp-1">Nombre Completo <span className="text-red-500">*</span></label>
@@ -344,7 +345,7 @@ export default function ProspectForm({ onClose, onSuccess }: ProspectFormProps) 
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        
+
                                         <div>
                                             <label className="block text-sm font-semibold text-gray-700 mb-1.5">Servicio de Interés <span className="text-red-500">*</span></label>
                                             <input
@@ -371,21 +372,38 @@ export default function ProspectForm({ onClose, onSuccess }: ProspectFormProps) 
                                             </select>
                                         </div>
 
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Valor Estimado (MXN)</label>
+                                            <div className="relative">
+                                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <span className="text-gray-400 text-sm font-semibold">$</span>
+                                                </div>
+                                                <input
+                                                    name="valorEstimado"
+                                                    type="number"
+                                                    min="0"
+                                                    step="100"
+                                                    value={formData.valorEstimado || ''}
+                                                    onChange={handleChange}
+                                                    className="block w-full pl-8 pr-3 py-2.5 bg-gray-50 border border-gray-200 focus:bg-white focus:ring-blue-100 focus:border-blue-500 rounded-xl text-sm transition-all focus:ring-4 outline-none"
+                                                    placeholder="0.00"
+                                                />
+                                            </div>
+                                        </div>
                                         <div className="md:col-span-2">
                                             <label className="block text-sm font-semibold text-gray-700 mb-1.5">Origen del Prospecto <span className="text-red-500">*</span></label>
                                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                                 {['Sitio Web', 'Redes Sociales', 'Referido', 'Evento', 'Google Ads', 'Llamada', 'Directorio', 'Otro'].map(origen => (
-                                                    <div 
+                                                    <div
                                                         key={origen}
                                                         onClick={() => {
                                                             setFormData(p => ({ ...p, origen }));
                                                             if (errors.origen) setErrors(p => ({ ...p, origen: '' }));
                                                         }}
-                                                        className={`cursor-pointer px-3 py-2.5 border rounded-xl text-center text-sm font-medium transition-all ${
-                                                            formData.origen === origen 
-                                                            ? 'border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600' 
+                                                        className={`cursor-pointer px-3 py-2.5 border rounded-xl text-center text-sm font-medium transition-all ${formData.origen === origen
+                                                            ? 'border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600'
                                                             : 'border-gray-200 bg-white text-gray-600 hover:border-blue-300 hover:bg-gray-50'
-                                                        }`}
+                                                            }`}
                                                     >
                                                         {origen}
                                                     </div>
@@ -452,7 +470,7 @@ export default function ProspectForm({ onClose, onSuccess }: ProspectFormProps) 
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        
+
                                         <div>
                                             <label className="block text-sm font-semibold text-gray-700 mb-1.5">Vendedor Asignado</label>
                                             <div className="relative">
@@ -485,6 +503,9 @@ export default function ProspectForm({ onClose, onSuccess }: ProspectFormProps) 
                                                 <option value="Contactado">CONTACTADO - Primer acercamiento</option>
                                                 <option value="En seguimiento">SEGUIMIENTO - Negociación</option>
                                                 <option value="Cotizado">COTIZADO - Propuesta enviada</option>
+                                                <option value="Venta cerrada">VENTA CERRADA - Compra realizada</option>
+                                                <option value="Cliente Activo">CLIENTE ACTIVO - Relación activa</option>
+                                                <option value="Cliente Inactivo">CLIENTE INACTIVO - Sin actividad</option>
                                             </select>
                                         </div>
 
@@ -495,11 +516,10 @@ export default function ProspectForm({ onClose, onSuccess }: ProspectFormProps) 
                                                     <div
                                                         key={plat}
                                                         onClick={() => setFormData(p => ({ ...p, plataforma: plat }))}
-                                                        className={`cursor-pointer px-2 py-2 border rounded-xl text-center text-sm font-medium transition-all ${
-                                                            formData.plataforma === plat 
-                                                            ? 'border-green-600 bg-green-50 text-green-700 ring-1 ring-green-600' 
+                                                        className={`cursor-pointer px-2 py-2 border rounded-xl text-center text-sm font-medium transition-all ${formData.plataforma === plat
+                                                            ? 'border-green-600 bg-green-50 text-green-700 ring-1 ring-green-600'
                                                             : 'border-gray-200 bg-white text-gray-600 hover:border-green-300 hover:bg-gray-50'
-                                                        }`}
+                                                            }`}
                                                     >
                                                         {plat === 'WhatsApp' ? 'WA' : plat === 'Facebook' ? 'FB' : 'IG'}
                                                     </div>
@@ -564,7 +584,7 @@ export default function ProspectForm({ onClose, onSuccess }: ProspectFormProps) 
                             'Cancelar'
                         )}
                     </button>
-                    
+
                     <button
                         type="button"
                         onClick={currentStep < steps.length ? handleNext : handleSubmit}

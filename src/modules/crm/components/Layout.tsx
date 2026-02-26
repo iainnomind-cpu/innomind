@@ -12,22 +12,28 @@ export default function Layout() {
   const { currentUser } = useUsers();
 
   const menuItems = [
-    { id: 'dashboard', label: 'Panel de Control', icon: LayoutDashboard },
+    { id: 'dashboard', label: 'Panel de Control', icon: LayoutDashboard, alwaysVisible: true },
     { id: 'embudo', label: 'Embudo de Ventas', icon: Trello },
     { id: 'prospectos', label: 'Prospectos', icon: Users },
-    { id: 'clientes', label: 'Clientes', icon: Building2 },
+    { id: 'prospectos?tab=clientes', label: 'Clientes', icon: Building2 },
     { id: 'quotes', label: 'Cotizaciones', icon: FileText },
     { id: 'inventory', label: 'Inventario', icon: Package },
     { id: 'finance', label: 'Finanzas', icon: Receipt },
     { id: 'procurement', label: 'Compras', icon: ShoppingCart },
     { id: 'workspace', label: 'Nodo', icon: Hash },
     { id: 'calendar', label: 'Calendario', icon: CalendarIcon },
-    { id: 'settings', label: 'Mi Empresa', icon: Settings, adminOnly: true },
+    { id: 'settings', label: 'Mi Empresa', icon: Settings, adminOnly: true, alwaysVisible: true },
   ];
+
+  const { enabledModules } = useUsers();
 
   const visibleMenuItems = menuItems.filter(item => {
     if (item.adminOnly && currentUser?.role !== 'ADMIN') return false;
-    return true;
+    if (item.alwaysVisible) return true;
+    // If no modules configured (legacy or empty), show all
+    if (!enabledModules || enabledModules.length === 0) return true;
+    // Check if this module's sidebar ID is in enabledModules
+    return enabledModules.includes(item.id);
   });
 
   return (
@@ -48,6 +54,16 @@ export default function Layout() {
         <nav className="flex-1 p-4 space-y-1">
           {visibleMenuItems.map((item) => {
             const Icon = item.icon;
+            const isClientesTab = item.id === 'prospectos?tab=clientes';
+            const isProspectosBase = item.id === 'prospectos';
+            const currentSearch = location.search;
+
+            const isActive = isClientesTab
+              ? location.pathname.includes('prospectos') && currentSearch.includes('tab=clientes')
+              : isProspectosBase
+                ? location.pathname.includes('prospectos') && !currentSearch.includes('tab=clientes')
+                : location.pathname.includes(item.id);
+
             return (
               <button
                 key={item.id}
@@ -55,7 +71,7 @@ export default function Layout() {
                   navigate(`/crm/${item.id}`);
                   setSidebarOpen(false);
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${location.pathname.includes(item.id)
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${isActive
                   ? 'bg-blue-50 text-blue-600'
                   : 'text-gray-600 hover:bg-gray-50'
                   }`}

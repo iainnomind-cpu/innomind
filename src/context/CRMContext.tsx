@@ -58,6 +58,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         responsable: row.responsable || '',
         fechaContacto: row.fecha_contacto ? new Date(row.fecha_contacto) : undefined,
         tamanoEmpresa: row.tamano_empresa || '',
+        valorEstimado: row.valor_estimado || 0,
         seguimientos: [],
         cotizaciones: [],
         tareas: []
@@ -147,7 +148,8 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             plataforma: prospect.plataforma,
             estado: prospect.estado,
             responsable: prospect.responsable,
-            tamano_empresa: prospect.tamanoEmpresa
+            tamano_empresa: prospect.tamanoEmpresa,
+            valor_estimado: prospect.valorEstimado || 0
         }).select().single();
 
         if (data && !error) {
@@ -174,6 +176,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (data.estado !== undefined) payload.estado = data.estado;
         if (data.responsable !== undefined) payload.responsable = data.responsable;
         if (data.tamanoEmpresa !== undefined) payload.tamano_empresa = data.tamanoEmpresa;
+        if (data.valorEstimado !== undefined) payload.valor_estimado = data.valorEstimado;
         // if (data.fechaContacto !== undefined) payload.fecha_contacto = data.fechaContacto?.toISOString() || null;
 
         if (Object.keys(payload).length > 0) {

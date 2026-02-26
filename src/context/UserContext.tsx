@@ -16,6 +16,8 @@ interface UserContextType {
     currentUser: User | null;
     companyProfile: CompanyProfile;
     updateCompanyProfile: (profile: Partial<CompanyProfile>) => Promise<void>;
+    enabledModules: string[];
+    updateEnabledModules: (modules: string[]) => Promise<void>;
     isLoadingProfile: boolean;
 }
 
@@ -37,6 +39,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [companyProfile, setCompanyProfile] = useState<CompanyProfile>(DEFAULT_COMPANY_PROFILE);
+    const [enabledModules, setEnabledModules] = useState<string[]>([]);
     const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
     // Sync Auth User & Fetch Profile
@@ -75,8 +78,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         email: data.email,
                         logoUrl: data.logo_url,
                         sitioWeb: data.sitio_web,
-                        colorPrimario: data.color_primario || DEFAULT_COMPANY_PROFILE.colorPrimario
+                        colorPrimario: data.color_primario || DEFAULT_COMPANY_PROFILE.colorPrimario,
+                        enabledModules: data.enabled_modules || []
                     });
+                    setEnabledModules(data.enabled_modules || []);
                 }
             } catch (err) {
                 console.error("Error on company sync:", err);
@@ -125,7 +130,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             email: updatedProfile.email !== undefined ? updatedProfile.email : companyProfile.email,
             logo_url: updatedProfile.logoUrl !== undefined ? updatedProfile.logoUrl : companyProfile.logoUrl,
             sitio_web: updatedProfile.sitioWeb !== undefined ? updatedProfile.sitioWeb : companyProfile.sitioWeb,
-            color_primario: updatedProfile.colorPrimario !== undefined ? updatedProfile.colorPrimario : companyProfile.colorPrimario
+            color_primario: updatedProfile.colorPrimario !== undefined ? updatedProfile.colorPrimario : companyProfile.colorPrimario,
+            enabled_modules: updatedProfile.enabledModules !== undefined ? updatedProfile.enabledModules : companyProfile.enabledModules || []
         };
 
         try {
@@ -137,17 +143,35 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const { data: existing } = await supabase.from('company_profiles').select('id').single();
 
             if (existing) {
-                await supabase.from('company_profiles').update(payload).eq('id', existing.id);
+                const { error: updateError } = await supabase.from('company_profiles').update(payload).eq('id', existing.id);
+                if (updateError) console.error("Error updating company profile:", updateError);
             } else {
-                await supabase.from('company_profiles').insert(payload);
+                const { error: insertError } = await supabase.from('company_profiles').insert(payload);
+                if (insertError) console.error("Error inserting company profile:", insertError);
             }
         } catch (err) {
             console.error("Error saving profile to database:", err);
         }
     };
 
+    const updateEnabledModules = async (modules: string[]) => {
+        setEnabledModules(modules);
+        setCompanyProfile(prev => ({ ...prev, enabledModules: modules }));
+        try {
+            const { data: existing } = await supabase.from('company_profiles').select('id').single();
+            if (existing) {
+                const { error } = await supabase.from('company_profiles')
+                    .update({ enabled_modules: modules })
+                    .eq('id', existing.id);
+                if (error) console.error('Error updating enabled modules:', error);
+            }
+        } catch (err) {
+            console.error('Error updating enabled modules:', err);
+        }
+    };
+
     return (
-        <UserContext.Provider value={{ users, currentUser, companyProfile, updateCompanyProfile, isLoadingProfile }}>
+        <UserContext.Provider value={{ users, currentUser, companyProfile, updateCompanyProfile, enabledModules, updateEnabledModules, isLoadingProfile }}>
             {children}
         </UserContext.Provider>
     );

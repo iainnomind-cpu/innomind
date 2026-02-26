@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Edit, Download, Send, FileText, Calendar, User, Loader2, CheckCircle, Receipt } from 'lucide-react';
+import { ArrowLeft, Edit, Download, Send, FileText, Calendar, User, Loader2, CheckCircle, Receipt, Mail, MessageSquare, X, Copy } from 'lucide-react';
 import { Quote } from '@/types';
 import { format } from 'date-fns';
 import { useCRM } from '@/context/CRMContext';
@@ -43,42 +43,129 @@ const QuoteDetail: React.FC<QuoteDetailProps> = ({ quote, onClose, onEdit }) => 
     const hasNotaCargo = documents.some(d => d.quoteId === quote.id && d.tipo === 'NOTA_CARGO');
 
     const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+    const [isSending, setIsSending] = useState(false);
+    const [shareSuccess, setShareSuccess] = useState<string | null>(null);
 
     // @ts-ignore
     const isExpired = quote.vigencia ? new Date() > new Date(quote.vigencia) && quote.estado === 'Enviada' : false;
     const displayStatus = isExpired ? 'Vencida' : quote.estado;
 
-    const generatePDF = async () => {
-        const input = document.getElementById(`quote-pdf-${quote.id}`);
-        if (!input) return;
+    const pdfFileName = `Cotizacion_${quote.numero}_${companyProfile.nombreEmpresa.replace(/\s+/g, '_')}.pdf`;
 
+    const generatePDFDocument = async (): Promise<jsPDF | null> => {
+        const input = document.getElementById(`quote-pdf-${quote.id}`);
+        if (!input) return null;
+
+        const canvas = await html2canvas(input, {
+            scale: 2,
+            useCORS: true,
+            logging: false
+        });
+
+        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+        return pdf;
+    };
+
+    const generatePDF = async () => {
         setIsGeneratingPDF(true);
         try {
-            const canvas = await html2canvas(input, {
-                scale: 2, // High resolution
-                useCORS: true,
-                logging: false
-            });
-
-            const imgData = canvas.toDataURL('image/jpeg', 1.0);
-
-            // A4 size: 210 x 297 mm
-            const pdf = new jsPDF({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: 'a4'
-            });
-
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-            pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-            pdf.save(`Cotizacion_${quote.numero}_${companyProfile.nombreEmpresa.replace(/\s+/g, '_')}.pdf`);
+            const pdf = await generatePDFDocument();
+            if (pdf) pdf.save(pdfFileName);
         } catch (error) {
             console.error('Error generating PDF:', error);
             alert('Hubo un error al generar el PDF. Por favor, intente de nuevo.');
         } finally {
             setIsGeneratingPDF(false);
+        }
+    };
+
+    const handleShareEmail = async () => {
+        setIsSending(true);
+        try {
+            // Generate and download the PDF first
+            const pdf = await generatePDFDocument();
+            if (pdf) pdf.save(pdfFileName);
+
+            // Build mailto link
+            const to = prospect?.correo || '';
+            const subject = encodeURIComponent(`Cotización #${quote.numero} - ${companyProfile.nombreEmpresa}`);
+            const body = encodeURIComponent(
+                `Estimado/a ${prospect?.nombre || 'Cliente'},\n\n` +
+                `Adjunto encontrará la cotización #${quote.numero} por un total de $${(quote.total || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN.\n\n` +
+                `Vigencia: ${safeFormat(quote.vigencia)}\n\n` +
+                `Por favor, adjunte el archivo "${pdfFileName}" que se acaba de descargar.\n\n` +
+                `Quedamos a sus órdenes.\n` +
+                `${companyProfile.nombreEmpresa}\n` +
+                `${companyProfile.telefono || ''}\n` +
+                `${companyProfile.email || ''}`
+            );
+
+            const mailtoUrl = `mailto:${to}?subject=${subject}&body=${body}`;
+            const a = document.createElement('a');
+            a.href = mailtoUrl;
+            a.target = '_self';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            // Update quote status to 'Enviada'
+            if (quote.estado === 'Borrador') {
+                updateQuote(quote.id, { estado: 'Enviada' });
+            }
+
+            setShareSuccess('PDF descargado y cliente de correo abierto. Adjunta el archivo al correo.');
+            setTimeout(() => setShareSuccess(null), 5000);
+        } catch (error) {
+            console.error('Error sharing via email:', error);
+            alert('Error al preparar el envío por correo.');
+        } finally {
+            setIsSending(false);
+        }
+    };
+
+    const handleShareWhatsApp = async () => {
+        setIsSending(true);
+        try {
+            // Generate and download the PDF first
+            const pdf = await generatePDFDocument();
+            if (pdf) pdf.save(pdfFileName);
+
+            // Clean phone number (remove spaces, dashes, parentheses)
+            let phone = (prospect?.telefono || '').replace(/[\s\-()]/g, '');
+            // Add country code if missing
+            if (phone && !phone.startsWith('+') && !phone.startsWith('52')) {
+                phone = '52' + phone;
+            } else if (phone && phone.startsWith('+')) {
+                phone = phone.substring(1);
+            }
+
+            const message = encodeURIComponent(
+                `Hola ${prospect?.nombre || ''},\n\n` +
+                `Le comparto la cotización *#${quote.numero}* de *${companyProfile.nombreEmpresa}* ` +
+                `por un total de *$${(quote.total || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN*.\n\n` +
+                `📎 El PDF se descargó automáticamente, por favor adjúntelo en este chat.\n\n` +
+                `Quedo a sus órdenes.`
+            );
+
+            window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+
+            // Update quote status to 'Enviada'
+            if (quote.estado === 'Borrador') {
+                updateQuote(quote.id, { estado: 'Enviada' });
+            }
+
+            setShareSuccess('PDF descargado y WhatsApp abierto. Adjunta el archivo en la conversación.');
+            setTimeout(() => setShareSuccess(null), 5000);
+        } catch (error) {
+            console.error('Error sharing via WhatsApp:', error);
+            alert('Error al preparar el envío por WhatsApp.');
+        } finally {
+            setIsSending(false);
         }
     };
 
@@ -184,7 +271,10 @@ const QuoteDetail: React.FC<QuoteDetailProps> = ({ quote, onClose, onEdit }) => 
                         {isGeneratingPDF ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
                         {isGeneratingPDF ? 'Generando...' : 'Descargar PDF'}
                     </button>
-                    <button className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium">
+                    <button
+                        onClick={() => setIsShareModalOpen(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium"
+                    >
                         <Send className="h-4 w-4" /> Enviar
                     </button>
                 </div>
@@ -340,6 +430,86 @@ const QuoteDetail: React.FC<QuoteDetailProps> = ({ quote, onClose, onEdit }) => 
                     </div>
                 </div>
             </div>
+
+            {/* Share Modal */}
+            {isShareModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden relative">
+                        <div className="flex justify-between items-center p-6 border-b border-gray-100">
+                            <div>
+                                <h2 className="text-xl font-bold text-gray-900">Enviar Cotización</h2>
+                                <p className="text-sm text-gray-500 mt-1">#{quote.numero} · {prospect?.nombre || 'Cliente'}</p>
+                            </div>
+                            <button onClick={() => setIsShareModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-full text-gray-500">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-3">
+                            {shareSuccess && (
+                                <div className="bg-green-50 text-green-700 text-sm p-3 rounded-lg border border-green-100 flex items-center gap-2 animate-in fade-in">
+                                    <CheckCircle size={16} /> {shareSuccess}
+                                </div>
+                            )}
+
+                            {/* Email Option */}
+                            <button
+                                onClick={handleShareEmail}
+                                disabled={isSending}
+                                className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50/50 transition-all group disabled:opacity-60"
+                            >
+                                <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <Mail size={24} />
+                                </div>
+                                <div className="text-left flex-1">
+                                    <h4 className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors">Enviar por Correo</h4>
+                                    <p className="text-xs text-gray-500">
+                                        {prospect?.correo ? `A: ${prospect.correo}` : 'Se abrirá tu cliente de correo'}
+                                    </p>
+                                </div>
+                                {isSending ? <Loader2 size={20} className="animate-spin text-gray-400" /> : <Send size={16} className="text-gray-400" />}
+                            </button>
+
+                            {/* WhatsApp Option */}
+                            <button
+                                onClick={handleShareWhatsApp}
+                                disabled={isSending || !prospect?.telefono}
+                                className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-gray-200 hover:border-green-400 hover:bg-green-50/50 transition-all group disabled:opacity-60 disabled:cursor-not-allowed"
+                            >
+                                <div className="w-12 h-12 bg-green-100 text-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <MessageSquare size={24} />
+                                </div>
+                                <div className="text-left flex-1">
+                                    <h4 className="font-bold text-gray-900 group-hover:text-green-600 transition-colors">Enviar por WhatsApp</h4>
+                                    <p className="text-xs text-gray-500">
+                                        {prospect?.telefono ? `A: ${prospect.telefono}` : 'El prospecto no tiene teléfono registrado'}
+                                    </p>
+                                </div>
+                                {isSending ? <Loader2 size={20} className="animate-spin text-gray-400" /> : <Send size={16} className="text-gray-400" />}
+                            </button>
+
+                            {/* Download Only */}
+                            <button
+                                onClick={async () => { await generatePDF(); setShareSuccess('PDF descargado exitosamente.'); setTimeout(() => setShareSuccess(null), 3000); }}
+                                disabled={isGeneratingPDF}
+                                className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-gray-200 hover:border-gray-400 hover:bg-gray-50 transition-all group disabled:opacity-60"
+                            >
+                                <div className="w-12 h-12 bg-gray-100 text-gray-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <Download size={24} />
+                                </div>
+                                <div className="text-left flex-1">
+                                    <h4 className="font-bold text-gray-900 group-hover:text-gray-700 transition-colors">Solo Descargar PDF</h4>
+                                    <p className="text-xs text-gray-500">Guardar el archivo sin enviar</p>
+                                </div>
+                            </button>
+                        </div>
+
+                        <div className="p-4 bg-gray-50 border-t border-gray-100">
+                            <p className="text-xs text-gray-400 text-center">El PDF se descargará automáticamente al seleccionar una opción de envío.</p>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Hidden PDF Blueprint */}
             <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>

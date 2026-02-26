@@ -1,15 +1,20 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useUsers } from '@/context/UserContext';
-import { Building, Upload, AtSign, Phone, MapPin, Hash, Palette, CheckCircle, Users, UserPlus, Shield, X, Send } from 'lucide-react';
+import { Building, Upload, AtSign, Phone, MapPin, Hash, Palette, CheckCircle, Users, UserPlus, Shield, X, Send, Blocks, Check } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 const CompanySettings: React.FC = () => {
-    const { companyProfile, updateCompanyProfile, users, currentUser } = useUsers();
+    const { companyProfile, updateCompanyProfile, users, currentUser, isLoadingProfile, enabledModules, updateEnabledModules } = useUsers();
     const [saved, setSaved] = useState(false);
-    const [activeTab, setActiveTab] = useState<'profile' | 'team'>('profile');
+    const [activeTab, setActiveTab] = useState<'profile' | 'team' | 'modules'>('profile');
 
     const [profile, setProfile] = useState(companyProfile);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Keep local state in sync with context (crucial for when async fetch completes)
+    useEffect(() => {
+        setProfile(companyProfile);
+    }, [companyProfile]);
 
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
     const [inviteEmail, setInviteEmail] = useState('');
@@ -34,10 +39,14 @@ const CompanySettings: React.FC = () => {
         }
     };
 
-    const handleSave = () => {
-        updateCompanyProfile(profile);
-        setSaved(true);
-        setTimeout(() => setSaved(false), 3000);
+    const handleSave = async () => {
+        try {
+            await updateCompanyProfile(profile);
+            setSaved(true);
+            setTimeout(() => setSaved(false), 3000);
+        } catch (err) {
+            console.error('Error saving company profile:', err);
+        }
     };
 
     const handleSendInvite = async () => {
@@ -100,6 +109,9 @@ const CompanySettings: React.FC = () => {
                 </button>
                 <button onClick={() => setActiveTab('team')} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'team' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
                     <Users size={16} /> Mi Equipo
+                </button>
+                <button onClick={() => setActiveTab('modules')} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'modules' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                    <Blocks size={16} /> Módulos
                 </button>
             </div>
 
@@ -214,6 +226,61 @@ const CompanySettings: React.FC = () => {
                                 )}
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            )}
+
+            {activeTab === 'modules' && (
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 space-y-6 animate-in fade-in">
+                    <div className="pb-4 border-b border-gray-100">
+                        <h2 className="text-lg font-bold text-gray-900">Módulos Activos</h2>
+                        <p className="text-sm text-gray-500 mt-1">Activa o desactiva los módulos que aparecen en el menú lateral. Los módulos desactivados no serán visibles para ningún miembro del equipo.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {[
+                            { id: 'embudo', label: 'Embudo de Ventas', desc: 'Pipeline visual de oportunidades' },
+                            { id: 'prospectos', label: 'Prospectos', desc: 'Gestión de contactos pre-venta' },
+                            { id: 'prospectos?tab=clientes', label: 'Clientes', desc: 'Cartera de clientes activos' },
+                            { id: 'quotes', label: 'Cotizaciones', desc: 'Propuestas comerciales y presupuestos' },
+                            { id: 'calendar', label: 'Calendario', desc: 'Eventos, reuniones y recordatorios' },
+                            { id: 'finance', label: 'Finanzas', desc: 'Ingresos, egresos y reportes' },
+                            { id: 'procurement', label: 'Compras', desc: 'Órdenes de compra y proveedores' },
+                            { id: 'inventory', label: 'Inventario', desc: 'Productos, stock y movimientos' },
+                            { id: 'workspace', label: 'Nodo', desc: 'Conversaciones, tareas y notas' },
+                        ].map(mod => {
+                            const isActive = enabledModules.length === 0 || enabledModules.includes(mod.id);
+                            return (
+                                <div
+                                    key={mod.id}
+                                    onClick={() => {
+                                        let newModules: string[];
+                                        if (enabledModules.length === 0) {
+                                            // First toggle: activate all except this one
+                                            newModules = ['embudo', 'prospectos', 'prospectos?tab=clientes', 'quotes', 'calendar', 'finance', 'procurement', 'inventory', 'workspace'].filter(m => m !== mod.id);
+                                        } else if (isActive) {
+                                            newModules = enabledModules.filter(m => m !== mod.id);
+                                        } else {
+                                            newModules = [...enabledModules, mod.id];
+                                        }
+                                        updateEnabledModules(newModules);
+                                    }}
+                                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${isActive ? 'border-blue-400 bg-blue-50/50 shadow-sm' : 'border-gray-200 bg-gray-50 opacity-60 hover:opacity-80'}`}
+                                >
+                                    <div className="flex items-center justify-between mb-2">
+                                        <h4 className="font-bold text-sm text-gray-900">{mod.label}</h4>
+                                        <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${isActive ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-300'}`}>
+                                            {isActive && <Check size={12} strokeWidth={4} />}
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-gray-500">{mod.desc}</p>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    <div className="pt-4 border-t border-gray-100">
+                        <p className="text-xs text-gray-400">Los cambios se aplican inmediatamente al menú lateral para todos los miembros de este workspace.</p>
                     </div>
                 </div>
             )}
