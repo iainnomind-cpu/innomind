@@ -1,14 +1,30 @@
-import React from 'react';
-import { Routes, Route, Navigate, Outlet, NavLink } from 'react-router-dom';
-import { FileText, Calendar, Building, Receipt } from 'lucide-react';
+import { Routes, Route, Navigate, NavLink } from 'react-router-dom';
+import { FileText, Calendar, Building, Receipt, Loader2 } from 'lucide-react';
+import { useModuleAccess } from '@/hooks/useModuleAccess';
+import ModuleLockedScreen from '@/components/common/ModuleLockedScreen';
 
 import Receivables from './components/Receivables';
 import Payables from './components/Payables';
 import ExpenseManager from './components/ExpenseManager';
 import Treasury from './components/Treasury';
+
 export default function FinanceLayout() {
+    const { hasAccess, isLoadingAccess } = useModuleAccess();
+
+    if (isLoadingAccess) {
+        return (
+            <div className="w-full h-full flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+                <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+            </div>
+        );
+    }
+
+    if (!hasAccess('finance')) {
+        return <ModuleLockedScreen />;
+    }
+
     return (
-        <div className="flex flex-col h-full bg-slate-50">
+        <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-900">
             {/* Cabecera / Sub-navegación local de Finanzas */}
             <div className="bg-white border-b border-gray-200 px-6 pt-4">
                 <div className="flex items-center gap-3 mb-6">

@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { useCRM } from '@/context/CRMContext';
 import { Prospect } from '@/types';
+import { isDevelopment, isProduction } from '@/lib/environment';
 
 export default function FreeTrialModal() {
     const { isFreeTrialOpen, inviteEmail, closeFreeTrial } = useModal();
@@ -682,37 +683,115 @@ export default function FreeTrialModal() {
                                     }
                                     else if (step < 3) setStep(step + 1);
                                     else if (isStep3Valid) {
-                                        // Registro con Supabase
+                                        // 1. Validaciones previas
                                         setIsSubmitting(true);
                                         setApiError(null);
 
                                         try {
-                                            const { data: authData, error: authError } = await supabase.auth.signUp({
+                                            // 4. PREVENCIÓN DE USUARIOS DUPLICADOS
+                                            // Verificamos si podemos iniciar sesión antes de registrar para detectar
+                                            // si el usuario ya existe y su contraseña es correcta.
+                                            let existingSession = false;
+                                            const { data: signInData } = await supabase.auth.signInWithPassword({
                                                 email,
-                                                password,
-                                                options: {
-                                                    data: {
-                                                        full_name: fullName,
-                                                        company_name: companyName,
-                                                        phone: phone,
-                                                        workspace_name: workspaceName
-                                                    }
-                                                }
+                                                password
                                             });
 
-                                            if (authError) throw authError;
+                                            if (signInData?.session) {
+                                                existingSession = true;
+                                            }
 
-                                            if (authData.user) {
-                                                if (!authData.user.identities || authData.user.identities.length === 0) {
-                                                    throw new Error("Este correo electrónico ya está registrado. Por favor, inicia sesión.");
+                                            let authUser = signInData?.user || null;
+                                            let authSession = signInData?.session || null;
+
+                                            if (existingSession) {
+                                                if (isProduction) {
+                                                    // ─── PROD ─────────────────────────────────
+                                                    // En producción: confirmación requerida.
+                                                    // Supabase Dashboard → Auth → Email → "Confirm email" ON
+                                                    // Variable: VITE_ENV=production
+                                                    // ──────────────────────────────────────────
+                                                    await supabase.auth.signOut(); // Limpiamos sesión por seguridad
+                                                    throw new Error("Este correo ya tiene una cuenta. ¿Quieres iniciar sesión?");
+                                                } else {
+                                                    // ─── DEV ──────────────────────────────────
+                                                    // En desarrollo: sin confirmación de email.
+                                                    // Supabase Dashboard → Auth → Email → "Confirm email" OFF
+                                                    // Variable: VITE_ENV=development
+                                                    // ──────────────────────────────────────────
+                                                    console.log("DEV MODE: Email confirmation skipped, user already exists, signed in directly.");
+                                                }
+                                            } else {
+                                                // 3. signUp con lógica dev/prod
+                                                const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+                                                    email,
+                                                    password,
+                                                    options: {
+                                                        data: {
+                                                            full_name: fullName,
+                                                            company_name: companyName,
+                                                            phone: phone,
+                                                            workspace_name: workspaceName
+                                                        }
+                                                    }
+                                                });
+
+                                                if (signUpError) {
+                                                    // Manejo de Error 429
+                                                    if (signUpError.status === 429) {
+                                                        throw new Error("Límite de registros alcanzado. Intenta en 1 hora.");
+                                                    }
+                                                    // Manejo de Red
+                                                    if (signUpError.message.toLowerCase().includes('failed to fetch') || signUpError.message.toLowerCase().includes('network')) {
+                                                        throw new Error("Error de conexión. Verifica tu internet.");
+                                                    }
+                                                    // Usuario ya registrado (cuando confirm email está OFF en Supabase arroja esto)
+                                                    if (signUpError.message.toLowerCase().includes('already registered')) {
+                                                        if (isProduction) {
+                                                            throw new Error("Este correo ya tiene una cuenta. ¿Quieres iniciar sesión?");
+                                                        } else {
+                                                            throw new Error("Este correo ya está registrado pero la contraseña provista es incorrecta.");
+                                                        }
+                                                    }
+                                                    throw signUpError;
                                                 }
 
+                                                authUser = signUpData.user;
+                                                authSession = signUpData.session;
+
+                                                // Detectar dupliado cuando Confirm Email está ON (Supabase retorna identities vacío)
+                                                if (authUser && (!authUser.identities || authUser.identities.length === 0)) {
+                                                    if (isProduction) {
+                                                        throw new Error("Este correo ya tiene una cuenta. ¿Quieres iniciar sesión?");
+                                                    } else {
+                                                        throw new Error("Este correo ya está registrado pero la contraseña actual no nos permitió hacer login automático.");
+                                                    }
+                                                }
+
+                                                // 4. Manejo de sesión para entorno DEV
+                                                // En DEV, si confirm email está OFF, signIn ocurre automáticamente o podemos forzarlo
+                                                if (isDevelopment && !authSession && authUser) {
+                                                    console.log("DEV MODE: Esperando propagación de Supabase (800ms)...");
+                                                    await new Promise(resolve => setTimeout(resolve, 800));
+
+                                                    const { data: sessionData } = await supabase.auth.getSession();
+                                                    if (sessionData.session) {
+                                                        authSession = sessionData.session;
+                                                    } else {
+                                                        const { data: forcedSignIn } = await supabase.auth.signInWithPassword({ email, password });
+                                                        authSession = forcedSignIn?.session || null;
+                                                    }
+                                                    console.log("DEV MODE: Email confirmation skipped, session established.");
+                                                }
+                                            }
+
+                                            if (authUser) {
                                                 if (!isInvitedUser) {
-                                                    // 1. Llamar al RPC Seguro para crear Empresa, Usuario y Prospecto ignorando RLS
-                                                    const { data: newWorkspaceId, error: rpcError } = await supabase.rpc(
+                                                    // 5. RPC register_new_tenant (sin cambios)
+                                                    const { error: rpcError } = await supabase.rpc(
                                                         'register_new_tenant',
                                                         {
-                                                            p_user_id: authData.user.id,
+                                                            p_user_id: authUser.id,
                                                             p_email: email,
                                                             p_full_name: fullName,
                                                             p_company_name: companyName,
@@ -724,31 +803,34 @@ export default function FreeTrialModal() {
                                                     );
 
                                                     if (rpcError) {
+                                                        // No mostramos el error técnico exacto para ser amigables.
                                                         console.error("Error creating tenant via RPC", rpcError);
-                                                        throw new Error("No se pudo completar el registro de la empresa.");
+                                                        throw new Error("Ha ocurrido un problema al configurar tu espacio de trabajo. Por favor contacta a soporte o intenta de nuevo.");
                                                     }
-
-
                                                 }
 
                                                 closeFreeTrial();
 
-                                                // Redirección inteligente
-                                                if (authData.session) {
+                                                // 6. Manejo tras el éxito según el entorno
+                                                if (authSession || isDevelopment) {
+                                                    // En DEV o si por alguna razón la sesión ya existe en prod, va directo
                                                     navigate('/crm/dashboard');
                                                 } else {
-                                                    // Caso: Confirmación de correo requerida
+                                                    // En PROD: mostrar mensaje amigable para confirmar cuenta
                                                     navigate('/crm/login', {
                                                         state: {
                                                             username: email,
-                                                            message: "Por favor confirma tu correo electrónico."
+                                                            message: "Revisa tu correo para confirmar tu cuenta y completar el registro."
                                                         }
                                                     });
                                                 }
+                                            } else {
+                                                throw new Error("No se pudo completar el registro.");
                                             }
                                         } catch (error: any) {
                                             console.error("Registration error:", error);
-                                            setApiError(error.message || "Error al registrar usuario.");
+                                            // Manejo genérico de errores sobrantes, mostrando el string amistoso configurado arriba.
+                                            setApiError(error.message || "Ha ocurrido un error inesperado al registrarte. Intenta de nuevo.");
                                         } finally {
                                             setIsSubmitting(false);
                                         }
