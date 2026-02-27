@@ -1,5 +1,11 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './components/landing/LandingPage';
+import RetailPage from './components/landing/industries/RetailPage';
+import ServicesPage from './components/landing/industries/ServicesPage';
+import ManufacturePage from './components/landing/industries/ManufacturePage';
+import LogisticsPage from './components/landing/industries/LogisticsPage';
+import HealthPage from './components/landing/industries/HealthPage';
+import EducationPage from './components/landing/industries/EducationPage';
 import { ModalProvider } from './context/ModalContext';
 import { CRMProvider } from '@/context/CRMContext';
 import { UserProvider } from '@/context/UserContext';
@@ -47,6 +53,12 @@ function App() {
                     <FreeTrialModal />
                     <Routes>
                       <Route path="/" element={<LandingPage />} />
+                      <Route path="/industrias/retail" element={<RetailPage />} />
+                      <Route path="/industrias/servicios" element={<ServicesPage />} />
+                      <Route path="/industrias/manufactura" element={<ManufacturePage />} />
+                      <Route path="/industrias/logistica" element={<LogisticsPage />} />
+                      <Route path="/industrias/salud" element={<HealthPage />} />
+                      <Route path="/industrias/educacion" element={<EducationPage />} />
 
                       {/* Rutas del CRM */}
                       <Route path="/crm/login" element={<Login />} />
