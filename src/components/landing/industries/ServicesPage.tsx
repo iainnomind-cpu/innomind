@@ -203,9 +203,9 @@ export default function ServicesPage() {
                                     </div>
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Facturación electrónica integrada</h3>
+                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Gestión y control de facturación</h3>
                                     <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                                        Emite recibos, facturas recurrentes con CFDI 4.0 directamente ligados a tus cotizaciones aprobadas, sin doble captura de datos.
+                                        Administra, organiza y da seguimiento a todas tus facturas emitidas desde un solo lugar. Controla estatus de pago, fechas de vencimiento y montos pendientes sin perder ningún documento.
                                     </p>
                                 </div>
                             </div>
