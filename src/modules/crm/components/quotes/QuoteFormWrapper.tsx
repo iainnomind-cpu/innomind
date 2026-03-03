@@ -15,12 +15,15 @@ export default function QuoteFormWrapper() {
         ? allQuotes.find(q => q.id === id)
         : undefined;
 
+    const initialProspectId = searchParams.get('prospectId') || undefined;
+
     return (
         <>
             <QuoteList />
             <QuoteForm
                 onClose={() => navigate('/crm/quotes')}
                 editingQuote={editingQuote as any}
+                initialProspectId={initialProspectId}
             />
         </>
     );

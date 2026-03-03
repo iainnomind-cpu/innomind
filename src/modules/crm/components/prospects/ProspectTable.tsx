@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Search, Plus, Eye, MessageSquare, Trash2, Building2, Phone, Calendar, Mail, Users, TrendingUp, DollarSign, UserPlus } from 'lucide-react';
+import { Search, Plus, Eye, MessageSquare, Trash2, Building2, Phone, Calendar, Mail, Users, TrendingUp, DollarSign, UserPlus, Edit2 } from 'lucide-react';
 import { ProspectStatus, Platform } from '@/types';
 import { useCRM } from '@/context/CRMContext';
 import { useUsers } from '@/context/UserContext';
@@ -34,6 +34,7 @@ export default function ProspectTable({ navigationParams }: ProspectTableProps) 
     const [platformFilter, setPlatformFilter] = useState<Platform | 'all'>('all');
     const [userFilter, setUserFilter] = useState<string | 'all'>('all');
     const [showAddModal, setShowAddModal] = useState(false);
+    const [editingProspect, setEditingProspect] = useState<any>(null);
     const [highlightedProspectId, setHighlightedProspectId] = useState<string | null>(null);
 
     // Sync tab from URL
@@ -188,9 +189,13 @@ export default function ProspectTable({ navigationParams }: ProspectTableProps) 
                 </button>
             </div>
 
-            {showAddModal && (
+            {(showAddModal || editingProspect) && (
                 <ProspectForm
-                    onClose={() => setShowAddModal(false)}
+                    editingProspect={editingProspect}
+                    onClose={() => {
+                        setShowAddModal(false);
+                        setEditingProspect(null);
+                    }}
                     onSuccess={handleProspectCreated}
                 />
             )}
@@ -382,10 +387,20 @@ export default function ProspectTable({ navigationParams }: ProspectTableProps) 
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
+                                                        setEditingProspect(prospect);
+                                                    }}
+                                                    className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                                                    title="Editar"
+                                                >
+                                                    <Edit2 size={18} />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
                                                         selectProspect(prospect);
                                                         navigate('/crm/prospectos/detalle');
                                                     }}
-                                                    className="text-blue-600 hover:text-blue-900 mx-1"
+                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                                     title="Ver detalles"
                                                 >
                                                     <Eye size={18} />

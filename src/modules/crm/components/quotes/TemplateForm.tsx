@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Plus, Trash2 } from 'lucide-react';
+import { X, Save, Plus, Trash2, Loader2 } from 'lucide-react';
 import { useCRM } from '@/context/CRMContext';
 import { useInventory } from '@/context/InventoryContext';
 import { QuoteTemplate, QuoteTemplateItem } from '@/types';
@@ -33,6 +33,8 @@ export default function TemplateForm({ onClose, editingTemplate }: TemplateFormP
     const [metodosPagoAceptados, setMetodosPagoAceptados] = useState<string[]>([]);
 
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [isLoading, setIsLoading] = useState(false);
+    const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     useEffect(() => {
         if (editingTemplate) {
@@ -134,7 +136,12 @@ export default function TemplateForm({ onClose, editingTemplate }: TemplateFormP
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const showToast = (type: 'success' | 'error', text: string) => {
+        setToastMessage({ type, text });
+        setTimeout(() => setToastMessage(null), 3000);
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!validate()) {
@@ -143,6 +150,8 @@ export default function TemplateForm({ onClose, editingTemplate }: TemplateFormP
             if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
         }
+
+        setIsLoading(true);
 
         const templateData = {
             nombre,
@@ -154,17 +163,32 @@ export default function TemplateForm({ onClose, editingTemplate }: TemplateFormP
             notasAdicionales,
             terminosCondiciones,
             metodosPagoAceptados,
-            creadoPor: editingTemplate?.creadoPor || 'Usuario Actual', // Replace with actual user context later
-            fechaCreacion: editingTemplate?.fechaCreacion || new Date()
         };
 
-        if (editingTemplate) {
-            updateQuoteTemplate(editingTemplate.id, templateData);
-        } else {
-            addQuoteTemplate(templateData);
-        }
+        try {
+            if (editingTemplate) {
+                await updateQuoteTemplate(editingTemplate.id, templateData);
+                showToast('success', 'Plantilla actualizada exitosamente');
+            } else {
+                await addQuoteTemplate(templateData);
+                showToast('success', 'Plantilla creada exitosamente');
+            }
 
-        onClose();
+            // Allow user to see the success message briefly before closing
+            setTimeout(() => {
+                onClose();
+            }, 1500);
+
+        } catch (error: any) {
+            console.error("Error saving template", error);
+            if (error?.code === '42501') {
+                showToast('error', 'Error 403: No tienes permisos (RLS) en este workspace.');
+            } else {
+                showToast('error', error?.message || 'Ocurrió un error al guardar la plantilla');
+            }
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -183,7 +207,13 @@ export default function TemplateForm({ onClose, editingTemplate }: TemplateFormP
                     </button>
                 </div>
 
-                <div className="p-6 overflow-y-auto flex-1">
+                <div className="p-6 overflow-y-auto flex-1 relative">
+                    {toastMessage && (
+                        <div className={`absolute top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-lg shadow-lg text-white font-medium z-10 ${toastMessage.type === 'success' ? 'bg-green-600' : 'bg-red-600'
+                            }`}>
+                            {toastMessage.text}
+                        </div>
+                    )}
                     <form onSubmit={handleSubmit} className="space-y-8">
                         {/* Información General */}
                         <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
@@ -447,16 +477,25 @@ export default function TemplateForm({ onClose, editingTemplate }: TemplateFormP
                     <button
                         type="button"
                         onClick={onClose}
-                        className="px-6 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                        disabled={isLoading}
+                        className="px-6 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         Cancelar
                     </button>
                     <button
                         onClick={handleSubmit}
-                        className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
+                        disabled={isLoading}
+                        className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <Save className="h-4 w-4" />
-                        {editingTemplate ? 'Guardar Cambios' : 'Crear Plantilla'}
+                        {isLoading ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <Save className="h-4 w-4" />
+                        )}
+                        {isLoading
+                            ? (editingTemplate ? 'Actualizando...' : 'Guardando...')
+                            : (editingTemplate ? 'Actualizar Plantilla' : 'Crear Plantilla')
+                        }
                     </button>
                 </div>
             </div>

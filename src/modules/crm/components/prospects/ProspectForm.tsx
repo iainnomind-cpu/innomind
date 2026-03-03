@@ -7,43 +7,45 @@ import { ProspectStatus, Platform, Prospect } from '@/types';
 interface ProspectFormProps {
     onClose: () => void;
     onSuccess?: () => void;
+    editingProspect?: Prospect | null;
 }
 
-export default function ProspectForm({ onClose, onSuccess }: ProspectFormProps) {
-    const { addProspect } = useCRM();
+export default function ProspectForm({ onClose, onSuccess, editingProspect }: ProspectFormProps) {
+    const { addProspect, updateProspect } = useCRM();
     const { users, currentUser } = useUsers();
 
     const [currentStep, setCurrentStep] = useState(1);
 
     const [formData, setFormData] = useState<Partial<Prospect>>({
-        nombre: '',
-        empresa: '',
-        cargo: '',
-        telefono: '',
-        telefonoSecundario: '',
-        correo: '',
-        origen: '',
-        servicioInteres: '',
-        industria: '',
-        tamanoEmpresa: '',
-        nivelInteres: 'Medio',
-        direccion: '',
-        notasInternas: '',
-        responsable: '',
-        estado: 'Nuevo',
-        plataforma: 'WhatsApp',
-        valorEstimado: 0,
-        fechaProximoSeguimiento: new Date()
+        nombre: editingProspect?.nombre || '',
+        empresa: editingProspect?.empresa || '',
+        cargo: editingProspect?.cargo || '',
+        telefono: editingProspect?.telefono || '',
+        telefonoSecundario: editingProspect?.telefonoSecundario || '',
+        correo: editingProspect?.correo || '',
+        origen: editingProspect?.origen || '',
+        servicioInteres: editingProspect?.servicioInteres || '',
+        industria: editingProspect?.industria || '',
+        tamanoEmpresa: editingProspect?.tamanoEmpresa || '',
+        nivelInteres: editingProspect?.nivelInteres || 'Medio',
+        direccion: editingProspect?.direccion || '',
+        notasInternas: editingProspect?.notasInternas || '',
+        responsable: editingProspect?.responsable || '',
+        estado: editingProspect?.estado || 'Nuevo',
+        plataforma: editingProspect?.plataforma || 'WhatsApp',
+        valorEstimado: editingProspect?.valorEstimado || 0,
+        fechaProximoSeguimiento: editingProspect?.fechaProximoSeguimiento || new Date()
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     useEffect(() => {
-        if (currentUser && !formData.responsable) {
+        if (currentUser && !formData.responsable && !editingProspect) {
             setFormData(prev => ({ ...prev, responsable: currentUser.id }));
         }
-    }, [currentUser]);
+    }, [currentUser, editingProspect]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -111,38 +113,71 @@ export default function ProspectForm({ onClose, onSuccess }: ProspectFormProps) 
 
         setIsSubmitting(true);
         try {
-            const newProspect: Prospect = {
-                id: Math.random().toString(36).substr(2, 9),
-                nombre: formData.nombre || '',
-                telefono: formData.telefono || '',
-                correo: formData.correo || '',
-                servicioInteres: formData.servicioInteres || '',
-                plataforma: formData.plataforma as Platform || 'WhatsApp',
-                estado: formData.estado as ProspectStatus || 'Nuevo',
-                responsable: formData.responsable || '1',
-                fechaContacto: new Date(),
-                empresa: formData.empresa,
-                cargo: formData.cargo,
-                telefonoSecundario: formData.telefonoSecundario,
-                origen: formData.origen,
-                industria: formData.industria,
-                tamanoEmpresa: formData.tamanoEmpresa,
-                nivelInteres: formData.nivelInteres as 'Bajo' | 'Medio' | 'Alto',
-                valorEstimado: Number(formData.valorEstimado) || 0,
-                direccion: formData.direccion,
-                notasInternas: formData.notasInternas,
-                fechaProximoSeguimiento: formData.fechaProximoSeguimiento ? new Date(formData.fechaProximoSeguimiento) : undefined,
-                seguimientos: [],
-                cotizaciones: [],
-                tareas: []
-            };
+            if (editingProspect) {
+                // Update mode
+                const updatePayload: Partial<Prospect> = {
+                    nombre: formData.nombre,
+                    telefono: formData.telefono,
+                    correo: formData.correo,
+                    servicioInteres: formData.servicioInteres,
+                    plataforma: formData.plataforma as Platform,
+                    estado: formData.estado as ProspectStatus,
+                    responsable: formData.responsable,
+                    empresa: formData.empresa,
+                    cargo: formData.cargo,
+                    telefonoSecundario: formData.telefonoSecundario,
+                    origen: formData.origen,
+                    industria: formData.industria,
+                    tamanoEmpresa: formData.tamanoEmpresa,
+                    nivelInteres: formData.nivelInteres as 'Bajo' | 'Medio' | 'Alto',
+                    valorEstimado: Number(formData.valorEstimado) || 0,
+                    direccion: formData.direccion,
+                    notasInternas: formData.notasInternas,
+                    fechaProximoSeguimiento: formData.fechaProximoSeguimiento ? new Date(formData.fechaProximoSeguimiento) : undefined,
+                };
 
-            await addProspect(newProspect);
-            onSuccess?.();
-            onClose();
+                await updateProspect(editingProspect.id, updatePayload);
+                setToastMessage({ type: 'success', text: 'Prospecto actualizado correctamente' });
+            } else {
+                // Create mode
+                const newProspect: Prospect = {
+                    id: Math.random().toString(36).substr(2, 9),
+                    nombre: formData.nombre || '',
+                    telefono: formData.telefono || '',
+                    correo: formData.correo || '',
+                    servicioInteres: formData.servicioInteres || '',
+                    plataforma: formData.plataforma as Platform || 'WhatsApp',
+                    estado: formData.estado as ProspectStatus || 'Nuevo',
+                    responsable: formData.responsable || '1',
+                    fechaContacto: new Date(),
+                    empresa: formData.empresa,
+                    cargo: formData.cargo,
+                    telefonoSecundario: formData.telefonoSecundario,
+                    origen: formData.origen,
+                    industria: formData.industria,
+                    tamanoEmpresa: formData.tamanoEmpresa,
+                    nivelInteres: formData.nivelInteres as 'Bajo' | 'Medio' | 'Alto',
+                    valorEstimado: Number(formData.valorEstimado) || 0,
+                    direccion: formData.direccion,
+                    notasInternas: formData.notasInternas,
+                    fechaProximoSeguimiento: formData.fechaProximoSeguimiento ? new Date(formData.fechaProximoSeguimiento) : undefined,
+                    seguimientos: [],
+                    cotizaciones: [],
+                    tareas: []
+                };
+
+                await addProspect(newProspect);
+                setToastMessage({ type: 'success', text: 'Prospecto creado correctamente' });
+            }
+
+            setTimeout(() => {
+                onSuccess?.();
+                onClose();
+            }, 1000);
         } catch (error) {
-            console.error('Error creating prospect:', error);
+            console.error('Error saving prospect:', error);
             setErrors({ submit: 'Error al guardar. Intente nuevamente.' });
+            setToastMessage({ type: 'error', text: 'Error al guardar. Verifica la conexión.' });
         } finally {
             setIsSubmitting(false);
         }
@@ -159,8 +194,8 @@ export default function ProspectForm({ onClose, onSuccess }: ProspectFormProps) 
                             <User className="text-blue-600" size={24} />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-bold text-gray-900">Nuevo Prospecto</h2>
-                            <p className="text-sm text-gray-500 font-medium">Capture un nuevo lead empresarial</p>
+                            <h2 className="text-2xl font-bold text-gray-900">{editingProspect ? 'Editar Contacto' : 'Nuevo Prospecto'}</h2>
+                            <p className="text-sm text-gray-500 font-medium">{editingProspect ? 'Modifica la información existente' : 'Capture un nuevo lead empresarial'}</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-700 hover:bg-gray-100 p-2 rounded-full transition-colors">
@@ -175,8 +210,8 @@ export default function ProspectForm({ onClose, onSuccess }: ProspectFormProps) 
                     <div className="w-full md:w-64 bg-gray-50 border-r border-gray-100 p-6 flex-shrink-0">
                         <nav aria-label="Progress">
                             <ol role="list" className="space-y-6">
-                                {steps.map((step, stepIdx) => (
-                                    <li key={step.name || step.id}>
+                                {steps.map((step) => (
+                                    <li key={step.id}>
                                         <div className={`group flex items-start ${currentStep > step.id ? 'opacity-100' : currentStep === step.id ? 'opacity-100' : 'opacity-50'}`}>
                                             <div className="flex-shrink-0 relative flex items-center justify-center">
                                                 <span className={`h-10 w-10 flex items-center justify-center rounded-xl border-2 transition-colors ${currentStep > step.id ? 'bg-blue-600 border-blue-600' :
@@ -515,7 +550,7 @@ export default function ProspectForm({ onClose, onSuccess }: ProspectFormProps) 
                                                 {['WhatsApp', 'Facebook', 'Instagram'].map(plat => (
                                                     <div
                                                         key={plat}
-                                                        onClick={() => setFormData(p => ({ ...p, plataforma: plat }))}
+                                                        onClick={() => setFormData(p => ({ ...p, plataforma: plat as Platform }))}
                                                         className={`cursor-pointer px-2 py-2 border rounded-xl text-center text-sm font-medium transition-all ${formData.plataforma === plat
                                                             ? 'border-green-600 bg-green-50 text-green-700 ring-1 ring-green-600'
                                                             : 'border-gray-200 bg-white text-gray-600 hover:border-green-300 hover:bg-gray-50'
@@ -591,7 +626,12 @@ export default function ProspectForm({ onClose, onSuccess }: ProspectFormProps) 
                         disabled={isSubmitting}
                         className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
                     >
-                        {isSubmitting ? 'Guardando...' : currentStep < steps.length ? (
+                        {isSubmitting ? (
+                            <span className="flex items-center gap-2">
+                                <span className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
+                                Guardando...
+                            </span>
+                        ) : currentStep < steps.length ? (
                             <>
                                 Siguiente
                                 <ChevronRight size={18} />
@@ -599,11 +639,20 @@ export default function ProspectForm({ onClose, onSuccess }: ProspectFormProps) 
                         ) : (
                             <>
                                 <CheckCircle2 size={18} />
-                                Guardar Prospecto
+                                {editingProspect ? 'Actualizar' : 'Guardar Prospecto'}
                             </>
                         )}
                     </button>
                 </div>
+
+                {/* Toast Notification */}
+                {toastMessage && (
+                    <div className={`absolute top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-xl border animate-in slide-in-from-top-4 fade-in duration-300 ${toastMessage.type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'
+                        }`}>
+                        {toastMessage.type === 'success' ? <CheckCircle2 size={20} className="text-green-500" /> : <AlertCircle size={20} className="text-red-500" />}
+                        <p className="font-semibold text-sm">{toastMessage.text}</p>
+                    </div>
+                )}
             </div>
         </div>
     );

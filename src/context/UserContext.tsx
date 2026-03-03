@@ -71,6 +71,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                 if (data) {
                     setCompanyProfile({
+                        id: data.id,
                         nombreEmpresa: data.nombre_empresa || DEFAULT_COMPANY_PROFILE.nombreEmpresa,
                         rfc: data.rfc,
                         direccion: data.direccion,

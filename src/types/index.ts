@@ -89,6 +89,8 @@ export interface QuoteTemplateItem {
 
 export interface QuoteTemplate {
   id: string;
+  workspace_id: string;
+  created_by: string;
   nombre: string;
   descripcion: string;
   items: QuoteTemplateItem[];
@@ -98,8 +100,8 @@ export interface QuoteTemplate {
   notasAdicionales?: string;
   terminosCondiciones?: string;
   metodosPagoAceptados?: string[];
-  creadoPor: string;
   fechaCreacion: Date;
+  updatedAt?: Date;
 }
 
 export interface Product {
@@ -146,6 +148,7 @@ export interface InventoryMovement {
 
 
 export interface CompanyProfile {
+  id?: string;
   nombreEmpresa: string;
   rfc?: string;
   direccion?: string;
