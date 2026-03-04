@@ -6,7 +6,6 @@ import {
     User,
     FileText,
     Plus,
-    Clock,
     Phone,
     Mail,
     Edit2,
@@ -23,14 +22,16 @@ import { ProspectStatus } from '@/types';
 import { EventFormModal } from '../calendar/Calendar';
 
 import { useNavigate } from 'react-router-dom';
+import ProspectForm from './ProspectForm';
+import { FollowUpSection } from './FollowUpSection';
 
 export default function ProspectDetail() {
     const navigate = useNavigate();
-    const { selectedProspect, addFollowUp, updateProspect, calendarEvents, quotes, addCalendarEvent } = useCRM();
-    const { users, currentUser } = useUsers();
+    const { selectedProspect, updateProspect, calendarEvents, quotes, addCalendarEvent } = useCRM();
+    const { users } = useUsers();
 
-    const [newNote, setNewNote] = useState('');
     const [editingStatus, setEditingStatus] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
     const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
 
     // Task State
@@ -58,13 +59,7 @@ export default function ProspectDetail() {
         }
     };
 
-    const handleAddFollowUp = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newNote.trim() || !currentUser) return;
 
-        addFollowUp(selectedProspect.id, newNote, currentUser.id);
-        setNewNote('');
-    };
 
     const handleStatusChange = (newStatus: ProspectStatus) => {
         updateProspect(selectedProspect.id, { estado: newStatus });
@@ -101,40 +96,6 @@ export default function ProspectDetail() {
     // --- ACTIVITY ENGINE LOGIC --- //
     const prospectEvents = calendarEvents.filter(e => e.prospectId === selectedProspect.id);
     const prospectQuotes = quotes.filter(q => q.prospectId === selectedProspect.id);
-
-    type TimelineItem = {
-        id: string;
-        type: 'note' | 'event' | 'quote';
-        date: Date;
-        title: string;
-        description: string;
-        user?: string;
-    };
-
-    const timeline: TimelineItem[] = [
-        ...(selectedProspect.seguimientos || []).map(s => ({
-            id: s.id,
-            type: 'note' as const,
-            date: new Date(s.fecha),
-            title: 'Nota de seguimiento',
-            description: s.nota,
-            user: s.usuario
-        })),
-        ...prospectEvents.map(e => ({
-            id: e.id,
-            type: 'event' as const,
-            date: new Date(e.startTime),
-            title: `📅 Evento: ${e.title}`,
-            description: e.description || e.type,
-        })),
-        ...prospectQuotes.map(q => ({
-            id: q.id,
-            type: 'quote' as const,
-            date: new Date(q.fecha),
-            title: `📄 Cotización ${q.numero} (${q.estado})`,
-            description: `Total: $${q.total.toLocaleString()}`,
-        }))
-    ].sort((a, b) => b.date.getTime() - a.date.getTime());
 
     const handleLaunchSequence = async () => {
         if (!window.confirm('¿Deseas lanzar la Secuencia de Seguimiento Inicial automáticamente? (Creará 3 eventos en tu calendario)')) return;
@@ -242,13 +203,22 @@ export default function ProspectDetail() {
 
     return (
         <div className="space-y-6 max-w-7xl mx-auto pb-8">
-            <button
-                onClick={() => navigate('/crm/prospectos')}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors group"
-            >
-                <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-                <span className="font-medium">Volver a prospectos</span>
-            </button>
+            <div className="flex justify-between items-center mb-6">
+                <button
+                    onClick={() => navigate('/crm/prospectos')}
+                    className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors group"
+                >
+                    <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+                    <span className="font-medium">Volver a prospectos</span>
+                </button>
+                <button
+                    onClick={() => setIsEditing(true)}
+                    className="flex items-center gap-2 text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg font-medium transition-colors border border-blue-200"
+                >
+                    <Edit2 size={18} />
+                    Editar Información
+                </button>
+            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Main Column */}
@@ -355,7 +325,9 @@ export default function ProspectDetail() {
                                 <div>
                                     <p className="text-xs text-gray-400">Fecha de contacto</p>
                                     <p className="text-sm font-medium">
-                                        {format(new Date(selectedProspect.fechaContacto), 'dd MMM yyyy', { locale: es })}
+                                        {selectedProspect.fechaContacto
+                                            ? format(new Date(selectedProspect.fechaContacto), 'dd MMM yyyy', { locale: es })
+                                            : 'No registrada'}
                                     </p>
                                 </div>
                             </div>
@@ -441,71 +413,10 @@ export default function ProspectDetail() {
                     </div>
 
                     {/* Timeline */}
-                    <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-                        <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                            <Clock size={20} className="text-blue-500" />
-                            Seguimiento
-                        </h2>
-
-                        <form onSubmit={handleAddFollowUp} className="mb-8">
-                            <div className="flex gap-3">
-                                <input
-                                    id="new-note-input"
-                                    type="text"
-                                    value={newNote}
-                                    onChange={(e) => setNewNote(e.target.value)}
-                                    placeholder="Agregar nota de seguimiento..."
-                                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                                <button
-                                    type="submit"
-                                    disabled={!newNote.trim()}
-                                    className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-                                >
-                                    Agregar
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setIsCalendarModalOpen(true)}
-                                    className="flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-4 py-2 rounded-lg font-medium transition-colors border border-indigo-200"
-                                >
-                                    <Calendar size={18} />
-                                    Agendar
-                                </button>
-                            </div>
-                        </form>
-
-                        <div className="space-y-6 relative before:absolute before:inset-y-0 before:left-[19px] before:w-0.5 before:bg-gray-200">
-                            {timeline.length === 0 ? (
-                                <div className="text-center py-8 text-gray-500">
-                                    No hay actividad registrada
-                                </div>
-                            ) : (
-                                timeline.map((item) => (
-                                    <div key={item.id} className="relative pl-12">
-                                        <div className={`absolute left-0 top-1.5 w-10 h-10 bg-white border-2 rounded-full flex items-center justify-center z-10 
-                                            ${item.type === 'note' ? 'border-blue-500' : item.type === 'event' ? 'border-purple-500' : 'border-green-500'}`
-                                        }>
-                                            {item.type === 'note' && <MessageSquare size={16} className="text-blue-500" />}
-                                            {item.type === 'event' && <Calendar size={16} className="text-purple-500" />}
-                                            {item.type === 'quote' && <FileText size={16} className="text-green-500" />}
-                                        </div>
-                                        <div className="bg-gray-50 rounded-lg p-4 shadow-sm border border-gray-100">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <span className="font-semibold text-gray-900 text-sm">
-                                                    {item.title} {item.user && <span className="text-gray-500 font-normal ml-2">por {getUserName(item.user)}</span>}
-                                                </span>
-                                                <span className="text-xs text-gray-500">
-                                                    {format(item.date, 'd MMM yyyy, HH:mm', { locale: es })}
-                                                </span>
-                                            </div>
-                                            <p className="text-gray-700 text-sm whitespace-pre-line">{item.description}</p>
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </div>
+                    <FollowUpSection
+                        prospect={selectedProspect}
+                        onAddCalendarEvent={() => setIsCalendarModalOpen(true)}
+                    />
                 </div>
 
                 {/* Sidebar Column */}
@@ -539,7 +450,7 @@ export default function ProspectDetail() {
                             </div>
                             <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
                                 <span className="text-sm text-gray-600">Cotizaciones</span>
-                                <span className="text-base font-semibold text-gray-900">{selectedProspect.cotizaciones?.length || 0}</span>
+                                <span className="text-base font-semibold text-gray-900">{prospectQuotes.length}</span>
                             </div>
                             <div className="flex justify-between items-center py-2 last:border-0">
                                 <span className="text-sm text-gray-600">Último contacto</span>
@@ -556,18 +467,21 @@ export default function ProspectDetail() {
                     <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="font-semibold text-gray-900">Cotizaciones</h3>
-                            <button className="p-1 hover:bg-gray-100 rounded-full text-blue-600 transition-colors">
+                            <button
+                                onClick={() => navigate(`/crm/quotes/new?prospectId=${selectedProspect.id}`)}
+                                className="p-1 hover:bg-gray-100 rounded-full text-blue-600 transition-colors"
+                            >
                                 <Plus size={18} />
                             </button>
                         </div>
 
                         <div className="space-y-3">
-                            {(!selectedProspect.cotizaciones || selectedProspect.cotizaciones.length === 0) ? (
+                            {prospectQuotes.length === 0 ? (
                                 <div className="text-center py-6 text-gray-400 text-sm italic">
                                     No hay cotizaciones
                                 </div>
                             ) : (
-                                selectedProspect.cotizaciones.map(cotizacion => (
+                                prospectQuotes.map(cotizacion => (
                                     <div key={cotizacion.id} className="p-3 bg-gray-50 rounded-lg border border-gray-100">
                                         <div className="flex justify-between items-start mb-1">
                                             <span className="font-bold text-gray-900">${cotizacion.total.toLocaleString()}</span>
@@ -596,6 +510,14 @@ export default function ProspectDetail() {
                     initialDate={new Date()}
                     initialProspectId={selectedProspect.id}
                     onClose={() => setIsCalendarModalOpen(false)}
+                />
+            )}
+
+            {/* Edit Prospect Modal */}
+            {isEditing && (
+                <ProspectForm
+                    editingProspect={selectedProspect}
+                    onClose={() => setIsEditing(false)}
                 />
             )}
         </div>

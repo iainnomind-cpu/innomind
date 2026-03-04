@@ -7,13 +7,14 @@ import { Quote, QuoteItem, QuoteTemplate } from '@/types';
 interface QuoteFormProps {
     onClose: () => void;
     editingQuote?: Quote;
+    initialProspectId?: string;
 }
 
 const PAYMENT_METHODS = [
     'Transferencia bancaria', 'PayPal', 'Stripe', 'Tarjeta de crédito', 'Efectivo', 'Cheque'
 ];
 
-export default function QuoteForm({ onClose, editingQuote }: QuoteFormProps) {
+export default function QuoteForm({ onClose, editingQuote, initialProspectId }: QuoteFormProps) {
     const { addQuote, updateQuote, prospects, quoteTemplates } = useCRM();
     const { products } = useInventory();
 
@@ -21,7 +22,7 @@ export default function QuoteForm({ onClose, editingQuote }: QuoteFormProps) {
     const [templateSearch, setTemplateSearch] = useState('');
     const [saveSuccess, setSaveSuccess] = useState('');
 
-    const [prospectId, setProspectId] = useState('');
+    const [prospectId, setProspectId] = useState(initialProspectId || '');
     const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
     const [vigencia, setVigencia] = useState(
         new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().split('T')[0]

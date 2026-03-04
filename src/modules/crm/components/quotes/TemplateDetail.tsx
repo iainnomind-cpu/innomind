@@ -1,11 +1,14 @@
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit, Copy } from 'lucide-react';
 import { useCRM } from '@/context/CRMContext';
+import TemplateForm from './TemplateForm';
 
 export default function TemplateDetail() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { quoteTemplates, duplicateQuoteTemplate } = useCRM();
+    const [showEditForm, setShowEditForm] = useState(false);
 
     const template = quoteTemplates.find(t => t.id === id);
 
@@ -50,7 +53,7 @@ export default function TemplateDetail() {
 
                     <div className="flex items-center gap-3">
                         <button
-                            onClick={() => navigate(`/crm/quotes/templates/edit/${template.id}`)}
+                            onClick={() => setShowEditForm(true)}
                             className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm font-medium"
                         >
                             <Edit className="h-4 w-4" />
@@ -66,7 +69,7 @@ export default function TemplateDetail() {
                     </div>
                 </div>
                 <div className="mt-4 pt-4 border-t border-gray-100 flex items-center gap-6 text-sm text-gray-500">
-                    <div>Creado por: <span className="font-medium text-gray-700">{template.creadoPor}</span></div>
+                    <div>Creado por: <span className="font-medium text-gray-700">{template.created_by}</span></div>
                     <div>Fecha: <span className="font-medium text-gray-700">{new Date(template.fechaCreacion).toLocaleDateString()}</span></div>
                 </div>
             </div>
@@ -195,6 +198,14 @@ export default function TemplateDetail() {
                     )}
                 </div>
             </div>
+
+            {/* Modal de Edición */}
+            {showEditForm && (
+                <TemplateForm
+                    onClose={() => setShowEditForm(false)}
+                    editingTemplate={template}
+                />
+            )}
         </div>
     );
 }
