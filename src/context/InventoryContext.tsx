@@ -8,6 +8,7 @@ interface InventoryContextType {
     locations: InventoryLocation[];
     movements: InventoryMovement[];
     isLoadingInventory: boolean;
+    setLocations: React.Dispatch<React.SetStateAction<InventoryLocation[]>>;
 
     // Product Master Actions
     addProduct: (product: Omit<Product, 'id'>) => Promise<void>;
@@ -62,9 +63,9 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     const mapMovementFromDB = (row: any): InventoryMovement => ({
         id: row.id,
-        productId: row.product_id,
+        productId: row.producto_id || row.product_id,
         locationId: row.location_id,
-        tipoMovimiento: row.tipo_movimiento,
+        tipoMovimiento: row.movement_type || row.tipo_movimiento,
         cantidad: Number(row.cantidad),
         costoUnitario: Number(row.costo_unitario),
         notas: row.notas,
@@ -164,14 +165,13 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             activo: location.activo
         };
         const { data, error } = await supabase.from('inventory_locations').insert(payload).select().single();
-        if (data && !error) {
+        if (error) throw error;
+        if (data) {
             setLocations(prev => [...prev, mapLocationFromDB(data)]);
         }
     };
 
     const updateLocation = async (id: string, data: Partial<InventoryLocation>) => {
-        setLocations(prev => prev.map(l => l.id === id ? { ...l, ...data } : l));
-
         const payload: any = {};
         if (data.nombre !== undefined) payload.nombre = data.nombre;
         if (data.direccion !== undefined) payload.direccion = data.direccion;
@@ -179,27 +179,40 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         if (data.activo !== undefined) payload.activo = data.activo;
 
         if (Object.keys(payload).length > 0) {
-            await supabase.from('inventory_locations').update(payload).eq('id', id);
+            const { error } = await supabase.from('inventory_locations').update(payload).eq('id', id);
+            if (error) throw error;
         }
+
+        setLocations(prev => prev.map(l => l.id === id ? { ...l, ...data } : l));
     };
 
     const deleteLocation = async (id: string) => {
+        const { error } = await supabase.from('inventory_locations').delete().eq('id', id);
+        if (error) throw error;
         setLocations(prev => prev.filter(l => l.id !== id));
-        await supabase.from('inventory_locations').delete().eq('id', id);
     };
 
     // MOVEMENTS & STOCK CONTROL
     const registerMovement = async (movement: Omit<InventoryMovement, 'id' | 'fechaMovimiento' | 'userId'>) => {
+        if (!movement.tipoMovimiento) {
+            console.error("El tipo de movimiento no puede estar vacío");
+            throw new Error("El tipo de movimiento no puede estar vacío");
+        }
+
         const payload = {
-            product_id: movement.productId,
+            producto_id: movement.productId,
             location_id: movement.locationId,
-            tipo_movimiento: movement.tipoMovimiento,
+            movement_type: movement.tipoMovimiento, // Cambio crucial: movement_type esperado por la DB
+            tipo_movimiento: movement.tipoMovimiento, // Mantenemos tipo_movimiento también si la DB es híbrida
             cantidad: movement.cantidad,
             costo_unitario: movement.costoUnitario,
             notas: movement.notas,
             reference_id: movement.referenceId,
             user_id: authUser?.id
         };
+
+        console.log("Registrando movimiento con payload:", payload);
+
         const { data, error } = await supabase.from('inventory_movements').insert(payload).select().single();
         if (data && !error) {
             setMovements(prev => [mapMovementFromDB(data), ...prev]);
@@ -226,7 +239,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     return (
         <InventoryContext.Provider value={{
-            products, locations, movements, isLoadingInventory,
+            products, locations, setLocations, movements, isLoadingInventory,
             addProduct, updateProduct, deleteProduct,
             addLocation, updateLocation, deleteLocation, registerMovement, getProductStock
         }}>

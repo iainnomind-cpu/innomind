@@ -4,6 +4,7 @@ import { Search, Plus, Receipt, CheckCircle, Clock, X, UploadCloud, Check, FileT
 import { FinanceDocument } from '@/types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { supabase } from '@/lib/supabase';
 
 export default function ExpenseManager() {
     const { documents, updateDocumentStatus, addDocument } = useFinance();
@@ -175,9 +176,63 @@ function NewExpenseModal({ onClose, onAdd }: { onClose: () => void, onAdd: (doc:
     const [estado, setEstado] = useState('PENDIENTE_APROBACION');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const [file, setFile] = useState<File | null>(null);
+    const [fileError, setFileError] = useState('');
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFileError('');
+        const selectedFile = e.target.files?.[0];
+        if (!selectedFile) return;
+
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+        if (!allowedTypes.includes(selectedFile.type)) {
+            setFileError('Formato no permitido. Solo se aceptan PDF, JPG y PNG.');
+            return;
+        }
+
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (selectedFile.size > maxSize) {
+            setFileError('El archivo supera el tamaño máximo permitido de 5MB.');
+            return;
+        }
+
+        setFile(selectedFile);
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
+        setFileError('');
+
+        let evidenciaUrl = '';
+
+        if (file) {
+            try {
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+                const filePath = `gastos/${fileName}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from('expense-evidence')
+                    .upload(filePath, file);
+
+                if (uploadError) {
+                    throw uploadError;
+                }
+
+                const { data: publicUrlData } = supabase.storage
+                    .from('expense-evidence')
+                    .getPublicUrl(filePath);
+
+                evidenciaUrl = publicUrlData.publicUrl;
+            } catch (err: any) {
+                console.error("Error al subir archivo:", err);
+                setFileError('Error al subir la evidencia. Inténtalo de nuevo.');
+                setIsSubmitting(false);
+                return; // Evitamos guardar el gasto si la subida falló inesperadamente
+            }
+        }
+
         await onAdd({
             tipo: 'GASTO',
             estado: estado,
@@ -187,7 +242,9 @@ function NewExpenseModal({ onClose, onAdd }: { onClose: () => void, onAdd: (doc:
             categoria,
             concepto,
             proveedorNombre: 'Empleado Logueado', // TODO: Use real context
+            evidenciaUrl: evidenciaUrl || undefined,
         });
+
         setIsSubmitting(false);
         onClose();
     };
@@ -246,12 +303,39 @@ function NewExpenseModal({ onClose, onAdd }: { onClose: () => void, onAdd: (doc:
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Ticket o Comprobante</label>
-                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:bg-gray-50 transition-colors">
-                            <UploadCloud className="mx-auto h-8 w-8 text-indigo-400 mb-2" />
-                            <p className="text-sm font-medium text-indigo-600">Subir foto o PDF</p>
-                            <p className="text-xs text-gray-500 mt-1">Simulado para V1</p>
-                        </div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Evidencia del gasto (Opcional)</label>
+
+                        {file ? (
+                            <div className="flex items-center justify-between p-3 border border-indigo-100 bg-indigo-50 rounded-lg">
+                                <div className="flex items-center gap-2 overflow-hidden">
+                                    <FileText className="text-indigo-500 flex-shrink-0" size={20} />
+                                    <span className="text-sm font-medium text-indigo-900 truncate">{file.name}</span>
+                                    <span className="text-xs text-indigo-400">({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => { setFile(null); setFileError(''); }}
+                                    className="p-1 text-indigo-400 hover:text-indigo-600 hover:bg-indigo-100 rounded-md transition-colors"
+                                    title="Eliminar archivo"
+                                >
+                                    <X size={16} />
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="relative border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:bg-gray-50 transition-colors group">
+                                <input
+                                    type="file"
+                                    accept=".pdf, .jpg, .jpeg, .png"
+                                    onChange={handleFileChange}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    disabled={isSubmitting}
+                                />
+                                <UploadCloud className="mx-auto h-8 w-8 text-indigo-400 mb-2 group-hover:text-indigo-500 transition-colors" />
+                                <p className="text-sm font-medium text-indigo-600">Subir foto o PDF</p>
+                                <p className="text-xs text-gray-400 mt-1">Máx. 5MB (PDF, JPG, PNG)</p>
+                            </div>
+                        )}
+                        {fileError && <p className="text-xs text-red-500 mt-2 font-medium">{fileError}</p>}
                     </div>
 
                     <div>

@@ -62,7 +62,7 @@ export default function StockControl() {
                         className="px-4 py-2 border border-gray-200 rounded-lg flex items-center gap-2 hover:bg-gray-50 text-gray-700 font-medium transition-colors"
                     >
                         <Settings2 size={18} />
-                        Ajustes
+                        Configurar Almacenes
                     </button>
                 </div>
             </div>
