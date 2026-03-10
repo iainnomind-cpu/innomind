@@ -1,27 +1,30 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useProcurement } from '@/context/ProcurementContext';
-import { useAuth } from '@/context/AuthContext';
-import { CheckSquare, ShieldCheck, XCircle, Search, FileText } from 'lucide-react';
+import { ShieldCheck, XCircle, Search, FileText, CheckCircle2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 export default function ApprovalsManager() {
-    const { purchaseOrders, suppliers, updatePurchaseOrderStatus } = useProcurement();
-    const { session } = useAuth();
+    const { purchaseOrders, suppliers, approvePurchaseOrder, rejectPurchaseOrder } = useProcurement();
     const [searchTerm, setSearchTerm] = useState('');
 
-    const pendingApprovals = purchaseOrders.filter(o => o.estado === 'PENDIENTE_APROBACION');
+    const pendingApprovals = purchaseOrders.filter(o =>
+        (o.status === 'pending_approval' || o.estado === 'PENDIENTE_APROBACION')
+    );
 
     const filteredApprovals = pendingApprovals.filter(order => {
-        const supplier = suppliers.find(s => s.id === order.proveedorId);
-        return order.numeroOrden.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        const supplier = suppliers.find(s => s.id === (order.supplier_id || order.proveedorId));
+        const orderNo = order.order_number || order.numeroOrden || '';
+        return orderNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
             (supplier && supplier.nombreComercial.toLowerCase().includes(searchTerm.toLowerCase()));
     });
 
     const handleApprove = async (id: string) => {
-        if (window.confirm('¿Estás seguro de autorizar esta Orden de Compra?')) {
+        const comments = window.prompt('Comentarios de aprobación (Opcional):');
+        if (comments !== null) {
             try {
-                await updatePurchaseOrderStatus(id, 'APROBADA');
+                await approvePurchaseOrder(id, comments);
+                alert("Orden aprobada exitosamente.");
             } catch (error) {
                 console.error("Error approving order", error);
                 alert("Error al aprobar la orden.");
@@ -30,14 +33,17 @@ export default function ApprovalsManager() {
     };
 
     const handleReject = async (id: string) => {
-        const reason = window.prompt("Motivo de rechazo:");
-        if (reason !== null) {
+        const comments = window.prompt("Motivo de rechazo (Obligatorio):");
+        if (comments) {
             try {
-                await updatePurchaseOrderStatus(id, 'CANCELADA', `Rechazada: ${reason}`);
+                await rejectPurchaseOrder(id, comments);
+                alert("Orden rechazada.");
             } catch (error) {
                 console.error("Error rejecting order", error);
                 alert("Error al rechazar la orden.");
             }
+        } else if (comments === "") {
+            alert("Debe proporcionar un motivo para rechazar.");
         }
     };
 
@@ -84,29 +90,38 @@ export default function ApprovalsManager() {
                             {filteredApprovals.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                                        <ShieldCheck size={48} className="mx-auto text-gray-300 mb-3" />
-                                        <p>No hay órdenes pendientes de aprobación.</p>
+                                        <div className="flex flex-col items-center">
+                                            <div className="p-4 bg-emerald-50 text-emerald-500 rounded-full mb-4">
+                                                <CheckCircle2 size={48} />
+                                            </div>
+                                            <p className="font-medium text-gray-900">¡Todo al día!</p>
+                                            <p className="text-sm">No hay órdenes pendientes de aprobación.</p>
+                                        </div>
                                     </td>
                                 </tr>
                             ) : (
                                 filteredApprovals.map(order => {
-                                    const supplier = suppliers.find(s => s.id === order.proveedorId);
+                                    const supplier = suppliers.find(s => s.id === (order.supplier_id || order.proveedorId));
+                                    const amount = order.total_amount || order.montoTotal || 0;
+                                    const orderNo = order.order_number || order.numeroOrden || 'S/N';
+                                    const date = order.created_at || order.fechaCreacion || new Date();
+
                                     return (
                                         <tr key={order.id} className="hover:bg-amber-50/50 transition-colors">
                                             <td className="px-6 py-4">
                                                 <div className="font-bold text-gray-900 flex items-center gap-2">
                                                     <FileText size={16} className="text-gray-400" />
-                                                    {order.numeroOrden}
+                                                    {orderNo}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="font-medium text-gray-900">{supplier?.nombreComercial || 'Desconocido'}</div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <div className="text-sm text-gray-600">{format(order.fechaCreacion, "dd MMM yyyy", { locale: es })}</div>
+                                                <div className="text-sm text-gray-600">{format(new Date(date), "dd MMM yyyy", { locale: es })}</div>
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <div className="font-bold text-gray-900 text-lg">${order.montoTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                                                <div className="font-bold text-gray-900 text-lg">${amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex justify-center gap-2">

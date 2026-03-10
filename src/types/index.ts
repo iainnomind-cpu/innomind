@@ -212,6 +212,26 @@ export interface FinanceDocument {
   createdAt: Date;
 }
 
+export type ExpenseStatus = 'pending_approval' | 'approved' | 'rejected' | 'paid';
+
+export interface Expense {
+  id: string;
+  workspace_id: string;
+  employee_id: string;
+
+  amount: number;
+  category: string;
+  description: string;
+  expense_date: Date;
+
+  paid_by: 'employee' | 'company';
+  status: ExpenseStatus;
+
+  receipt_url?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
 export interface FinancePayment {
   id: string;
   documentId: string;
@@ -223,6 +243,42 @@ export interface FinancePayment {
   comprobanteUrl?: string;
   notas?: string;
   createdAt: Date;
+}
+
+export interface RecurringExpense {
+  id: string;
+  workspace_id: string;
+  concept: string;
+  amount: number;
+  category?: string;
+  frequency: 'weekly' | 'biweekly' | 'monthly';
+  day_of_period: number;
+  start_date: Date;
+  end_date?: Date;
+  active: boolean;
+  created_at: Date;
+}
+
+export type TreasuryScenario = 'optimistic' | 'realistic' | 'pessimistic';
+
+export interface TreasuryProjectionPoint {
+  date: Date;
+  balance: number;
+  inflow: number;
+  outflow: number;
+}
+
+export type TreasuryMovementType = 'deposit' | 'withdrawal' | 'transfer_in' | 'transfer_out' | 'adjustment';
+
+export interface TreasuryMovement {
+  id: string;
+  workspace_id: string;
+  account_id: string;
+  movement_type: TreasuryMovementType;
+  amount: number;
+  description: string;
+  reference_id?: string;
+  created_at: Date;
 }
 
 // ==========================================
@@ -246,57 +302,108 @@ export interface Supplier {
 }
 
 export type PurchaseOrderStatus =
-  | 'BORRADOR'
-  | 'PENDIENTE_APROBACION'
-  | 'APROBADA'
-  | 'ENVIADA'
-  | 'RECIBIDA_PARCIAL'
-  | 'COMPLETADA'
-  | 'CANCELADA';
+  | 'draft'
+  | 'pending_approval'
+  | 'approved'
+  | 'rejected'
+  | 'received'
+  | 'cancelled';
 
 export interface PurchaseOrder {
   id: string;
-  workspace: string;
-  proveedorId: string;
-  numeroOrden: string;
-  estado: PurchaseOrderStatus;
-  fechaCreacion: Date;
-  fechaEsperada?: Date;
-  subtotal: number;
-  impuestos: number;
-  montoTotal: number;
-  notasInternas?: string;
-  terminosCondiciones?: string;
-  requiereAprobacionGerencial: boolean;
-  aprobadoPor?: string;
-  creadoPor?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  workspace_id: string;
+  supplier_id: string;
+  order_number: string;
+  status: PurchaseOrderStatus;
+  total_amount: number;
+  currency: string;
+  notes?: string;
+  created_by?: string;
+  created_at: Date;
+  approved_by?: string;
+  approved_at?: Date;
+  updated_at: Date;
+  // Campos mapeados para UI legado si es necesario
+  proveedorId?: string;
+  numeroOrden?: string;
+  estado?: PurchaseOrderStatus;
+  fechaCreacion?: Date;
+  montoTotal?: number;
 }
 
 export interface PurchaseOrderItem {
   id: string;
-  workspace: string;
-  purchaseOrderId: string;
-  productId?: string;
-  descripcion: string;
-  cantidadSolicitada: number;
-  cantidadRecibida: number;
-  precioUnitario: number;
-  impuestoPorcentaje: number;
-  totalLinea: number;
-  createdAt: Date;
+  purchase_order_id: string;
+  product_id?: string;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+  created_at: Date;
 }
 
-export interface PurchaseReception {
+export interface PurchaseApproval {
   id: string;
-  workspace: string;
-  purchaseOrderId: string;
-  fechaRecepcion: Date;
-  recibidoPor?: string;
-  numeroRemision?: string;
-  notas?: string;
-  createdAt: Date;
+  purchase_order_id: string;
+  approved_by: string;
+  status: string;
+  comments?: string;
+  created_at: Date;
+}
+
+export interface WarehouseReceipt {
+  id: string;
+  purchase_order_id: string;
+  workspace_id: string;
+  supplier_id: string;
+  receipt_date: Date;
+  received_by: string;
+  notes?: string;
+  created_at: Date;
+}
+
+export interface WarehouseReceiptItem {
+  id: string;
+  receipt_id: string;
+  product_id: string;
+  quantity_received: number;
+}
+
+// --- CUENTAS POR PAGAR (Accounts Payable) ---
+export type AccountsPayableStatus = 'pending' | 'scheduled' | 'paid' | 'overdue';
+
+export interface AccountsPayable {
+  id: string;
+  workspace_id: string;
+  supplier_id?: string;
+  concept: string;
+  amount: number;
+  balance_due: number;
+  due_date: Date;
+  status: AccountsPayableStatus;
+  payment_method?: string;
+  payment_reference?: string;
+  notes?: string;
+  created_at: Date;
+  created_by?: string;
+  paid_at?: Date;
+  supplier?: Supplier;
+  supplier_type?: 'supplier' | 'employee' | 'company_expense';
+  employee_id?: string;
+  reference_id?: string;
+}
+
+export interface AccountsPayablePayment {
+  id: string;
+  account_payable_id: string;
+  workspace_id: string;
+  payment_date: Date;
+  amount: number;
+  payment_method: string;
+  reference_number?: string;
+  evidence_file_url?: string;
+  notes?: string;
+  created_at: Date;
+  created_by?: string;
 }
 
 // --- WORKSPACE / NODO ---
@@ -405,4 +512,71 @@ export interface WorkspaceNote {
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+// --- CUENTAS POR COBRAR (Accounts Receivable) ---
+export type ChargeNoteStatus = 'pending' | 'partial' | 'paid' | 'overdue' | 'cancelled';
+
+export interface ChargeNoteItem {
+  id: string;
+  charge_note_id: string;
+  item_name: string;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
+}
+
+export interface ChargeNotePayment {
+  id: string;
+  charge_note_id: string;
+  client_id: string;
+  payment_method: string;
+  amount: number;
+  payment_date: string;
+  reference: string;
+  notes: string;
+  created_at: string;
+}
+
+export interface ProspectData {
+  id: string;
+  nombre: string;
+  correo: string;
+  empresa: string;
+}
+
+export interface ChargeNote {
+  id: string;
+  workspace_id: string;
+  client_id: string;
+  prospect_id: string;
+  note_number: string;
+  issue_date: string;
+  due_date: string;
+  subtotal: number;
+  total_amount: number;
+  paid_amount: number;
+  balance_due: number;
+  status: ChargeNoteStatus;
+  created_at: string;
+  updated_at: string;
+  prospect?: ProspectData;
+  items?: ChargeNoteItem[];
+  payments?: ChargeNotePayment[];
+}
+
+export interface BankMovement {
+  id: string;
+  workspace_id: string;
+  account_id?: string; // Relation to finance_accounts
+  movement_date: string;
+  movement_type?: TreasuryMovementType;
+  description: string;
+  reference?: string;
+  amount: number;
+  created_by?: string;
+  matched_payment_id?: string;
+  imported_at?: string;
+  suggested_match?: ChargeNotePayment; // For UI
 }

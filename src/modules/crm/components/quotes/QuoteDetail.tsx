@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { useCRM } from '@/context/CRMContext';
 import { useInventory } from '@/context/InventoryContext';
 import { useFinance } from '@/context/FinanceContext';
+import { useAccountsReceivable } from '@/context/AccountsReceivableContext';
 import { useUsers } from '@/context/UserContext';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -37,10 +38,10 @@ const QuoteDetail: React.FC<QuoteDetailProps> = ({ quote, onClose, onEdit }) => 
     const { prospects, updateQuote } = useCRM();
     const { companyProfile } = useUsers();
     const { products, locations, registerMovement } = useInventory();
-    const { documents, addDocument } = useFinance();
+    const { chargeNotes, addChargeNote } = useAccountsReceivable();
     const prospect = prospects.find(p => p.id === quote.prospectId);
 
-    const hasNotaCargo = documents.some(d => d.quoteId === quote.id && d.tipo === 'NOTA_CARGO');
+    const hasNotaCargo = chargeNotes.some(n => n.prospect_id === quote.prospectId && n.subtotal === quote.subtotal);
 
     const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -206,17 +207,28 @@ const QuoteDetail: React.FC<QuoteDetailProps> = ({ quote, onClose, onEdit }) => 
         if (!confirm('¿Generar Nota de Cargo por el total de esta cotización?')) return;
 
         try {
-            await addDocument({
-                tipo: 'NOTA_CARGO',
-                estado: 'PENDIENTE',
-                numeroFolio: `NC-${quote.numero}`,
-                montoTotal: quote.total,
-                moneda: 'MXN', // For V1 assuming MXN
-                fechaEmision: new Date(),
-                prospectId: quote.prospectId,
-                quoteId: quote.id,
-                concepto: `Cobro por Cotización ${quote.numero}`,
-            });
+            const dueDate = new Date();
+            dueDate.setDate(dueDate.getDate() + 30);
+
+            const chargeNoteData = {
+                client_id: quote.prospectId, // Using prospect as client for now or a dummy if none
+                prospect_id: quote.prospectId,
+                note_number: `NC-${quote.numero}`,
+                issue_date: new Date().toISOString().split('T')[0],
+                due_date: dueDate.toISOString().split('T')[0],
+                subtotal: quote.subtotal,
+                total_amount: quote.total,
+            };
+
+            const chargeNoteItems = (quote.items || []).map(item => ({
+                item_name: item.nombre,
+                description: item.descripcion || '',
+                quantity: item.cantidad,
+                unit_price: item.precioUnitario,
+                total: item.total
+            }));
+
+            await addChargeNote(chargeNoteData, chargeNoteItems);
             alert('Nota de Cargo generada exitosamente. Puedes verla en Finanzas -> Cuentas por Cobrar.');
         } catch (error) {
             console.error('Error generating document:', error);
