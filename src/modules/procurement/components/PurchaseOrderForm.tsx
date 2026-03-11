@@ -70,24 +70,18 @@ export default function PurchaseOrderForm({ onClose }: PurchaseOrderFormProps) {
         try {
             // Format items 
             const formattedItems = items.map(item => ({
-                productId: item.productId || undefined,
-                descripcion: item.descripcion,
-                cantidadSolicitada: item.cantidadSolicitada,
-                cantidadRecibida: 0,
-                precioUnitario: item.precioUnitario,
-                impuestoPorcentaje: item.impuestoPorcentaje,
-                totalLinea: item.cantidadSolicitada * item.precioUnitario
+                product_id: item.productId || undefined,
+                quantity: item.cantidadSolicitada,
+                unit_price: item.precioUnitario,
+                total_price: item.cantidadSolicitada * item.precioUnitario
             }));
 
             await addPurchaseOrder({
-                proveedorId,
-                subtotal,
-                impuestos,
-                montoTotal,
-                fechaEsperada: fechaEsperada ? new Date(fechaEsperada) : undefined,
-                notasInternas,
-                terminosCondiciones
-            } as any, formattedItems);
+                supplier_id: proveedorId,
+                total_amount: montoTotal,
+                currency: 'MXN', // Hardcoded for V1
+                notes: notasInternas,
+            } as any, formattedItems as any);
 
             alert("Orden de Compra creada exitosamente.");
             onClose();
@@ -188,7 +182,7 @@ export default function PurchaseOrderForm({ onClose }: PurchaseOrderFormProps) {
                                         <td colSpan={7} className="p-8 text-center text-gray-500">Haz click en "Agregar Fila" para añadir artículos a la orden.</td>
                                     </tr>
                                 ) : (
-                                    items.map((item, index) => (
+                                    items.map((item) => (
                                         <tr key={item.id} className="hover:bg-gray-50 transition-colors">
                                             <td className="p-3">
                                                 <select

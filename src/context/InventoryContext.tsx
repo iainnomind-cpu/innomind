@@ -62,9 +62,9 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     const mapMovementFromDB = (row: any): InventoryMovement => ({
         id: row.id,
-        productId: row.product_id,
+        productId: row.producto_id,
         locationId: row.location_id,
-        tipoMovimiento: row.tipo_movimiento,
+        tipoMovimiento: row.movement_type,
         cantidad: Number(row.cantidad),
         costoUnitario: Number(row.costo_unitario),
         notas: row.notas,
@@ -191,9 +191,9 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     // MOVEMENTS & STOCK CONTROL
     const registerMovement = async (movement: Omit<InventoryMovement, 'id' | 'fechaMovimiento' | 'userId'>) => {
         const payload = {
-            product_id: movement.productId,
+            producto_id: movement.productId,
             location_id: movement.locationId,
-            tipo_movimiento: movement.tipoMovimiento,
+            movement_type: movement.tipoMovimiento,
             cantidad: movement.cantidad,
             costo_unitario: movement.costoUnitario,
             notas: movement.notas,

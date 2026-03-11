@@ -1,14 +1,21 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from './AuthContext';
-import { useFinance } from './FinanceContext';
-import { Supplier, PurchaseOrder, PurchaseOrderItem, PurchaseReception, PurchaseOrderStatus } from '@/types';
+import { useAccountsPayable } from './AccountsPayableContext';
+import {
+    Supplier,
+    PurchaseOrder,
+    PurchaseOrderItem,
+    PurchaseOrderStatus,
+    PurchaseApproval,
+    WarehouseReceipt
+} from '@/types';
 
 interface ProcurementContextType {
     suppliers: Supplier[];
     purchaseOrders: PurchaseOrder[];
     purchaseOrderItems: PurchaseOrderItem[];
-    receptions: PurchaseReception[];
+    warehouseReceipts: WarehouseReceipt[];
     loading: boolean;
     refreshProcurementData: () => Promise<void>;
 
@@ -18,22 +25,24 @@ interface ProcurementContextType {
     deleteSupplier: (id: string) => Promise<any>;
 
     // Purchase Orders
-    addPurchaseOrder: (order: Omit<PurchaseOrder, 'id' | 'workspace' | 'estado' | 'numeroOrden' | 'createdAt' | 'updatedAt'>, items: Omit<PurchaseOrderItem, 'id' | 'workspace' | 'purchaseOrderId' | 'createdAt'>[]) => Promise<any>;
+    addPurchaseOrder: (order: Partial<PurchaseOrder>, items: Partial<PurchaseOrderItem>[]) => Promise<any>;
     updatePurchaseOrderStatus: (id: string, status: PurchaseOrderStatus, notes?: string) => Promise<any>;
+    approvePurchaseOrder: (id: string, comments: string) => Promise<any>;
+    rejectPurchaseOrder: (id: string, comments: string) => Promise<any>;
 
     // Receptions
-    registerReception: (reception: Omit<PurchaseReception, 'id' | 'workspace' | 'createdAt'>, itemsReceived: { id: string, cantidadRecibida: number }[]) => Promise<any>;
+    registerReception: (reception: Partial<WarehouseReceipt>, itemsReceived: { product_id: string, quantity_received: number }[]) => Promise<any>;
 }
 
 const ProcurementContext = createContext<ProcurementContextType | undefined>(undefined);
 
 export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { session } = useAuth();
-    const { addDocument } = useFinance();
+    const { addPayable } = useAccountsPayable();
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
     const [purchaseOrderItems, setPurchaseOrderItems] = useState<PurchaseOrderItem[]>([]);
-    const [receptions, setReceptions] = useState<PurchaseReception[]>([]);
+    const [warehouseReceipts, setWarehouseReceipts] = useState<WarehouseReceipt[]>([]);
     const [loading, setLoading] = useState(true);
 
     const refreshProcurementData = async () => {
@@ -41,17 +50,17 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
         setLoading(true);
 
         try {
-            const [suppliersRes, ordersRes, itemsRes, receptionsRes] = await Promise.all([
+            const [suppliersRes, ordersRes, itemsRes, receiptsRes] = await Promise.all([
                 supabase.from('suppliers').select('*').order('nombre_comercial', { ascending: true }),
                 supabase.from('purchase_orders').select('*').order('created_at', { ascending: false }),
                 supabase.from('purchase_order_items').select('*'),
-                supabase.from('purchase_receptions').select('*').order('fecha_recepcion', { ascending: false })
+                supabase.from('warehouse_receipts').select('*').order('receipt_date', { ascending: false })
             ]);
 
             if (suppliersRes.data) setSuppliers(suppliersRes.data.map(mapSupplier));
             if (ordersRes.data) setPurchaseOrders(ordersRes.data.map(mapOrder));
-            if (itemsRes.data) setPurchaseOrderItems(itemsRes.data.map(mapItem));
-            if (receptionsRes.data) setReceptions(receptionsRes.data.map(mapReception));
+            if (itemsRes.data) setPurchaseOrderItems(itemsRes.data.map(mapOrderItem));
+            if (receiptsRes.data) setWarehouseReceipts(receiptsRes.data.map(mapReceipt));
 
         } catch (error) {
             console.error('Error fetching procurement data:', error);
@@ -101,42 +110,32 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
     };
 
     const deleteSupplier = async (id: string) => {
-        // Soft delete by setting active to false
         return updateSupplier(id, { activo: false });
     };
 
-    const addPurchaseOrder = async (order: any, items: any[]) => {
-        const isManagerRequired = order.montoTotal > 10000; // configurable threshold
-        const initialStatus = isManagerRequired ? 'PENDIENTE_APROBACION' : 'APROBADA';
+    const addPurchaseOrder = async (order: Partial<PurchaseOrder>, items: Partial<PurchaseOrderItem>[]) => {
+        // En el backend o aquí determinamos si requiere aprobación
+        const initialStatus = order.total_amount && order.total_amount > 10000 ? 'pending_approval' : 'approved';
 
-        // 1. Insert Order
         const { data: orderData, error: orderError } = await supabase.from('purchase_orders').insert([{
-            proveedor_id: order.proveedorId,
-            numero_orden: `OC-${Date.now().toString().slice(-6)}`, // Auto generate temp folios for V1
-            estado: initialStatus,
-            fecha_creacion: new Date().toISOString(),
-            fecha_esperada: order.fechaEsperada ? order.fechaEsperada.toISOString() : null,
-            subtotal: order.subtotal,
-            impuestos: order.impuestos,
-            monto_total: order.montoTotal,
-            notas_internas: order.notasInternas,
-            terminos_condiciones: order.terminosCondiciones,
-            requiere_aprobacion_gerencial: isManagerRequired,
-            creado_por: session?.user?.id
+            workspace_id: order.workspace_id,
+            supplier_id: order.supplier_id,
+            order_number: `OC-${Date.now().toString().slice(-6)}`,
+            status: initialStatus,
+            total_amount: order.total_amount,
+            currency: order.currency || 'MXN',
+            notes: order.notes,
+            created_by: session?.user?.id
         }]).select().single();
 
         if (orderError) throw orderError;
 
-        // 2. Insert Items
         const formattedItems = items.map(item => ({
             purchase_order_id: orderData.id,
-            product_id: item.productId,
-            descripcion: item.descripcion,
-            cantidad_solicitada: item.cantidadSolicitada,
-            cantidad_recibida: 0,
-            precio_unitario: item.precioUnitario,
-            impuesto_porcentaje: item.impuestoPorcentaje || 0,
-            total_linea: item.totalLinea
+            product_id: item.product_id,
+            quantity: item.quantity,
+            unit_price: item.unit_price,
+            total_price: item.total_price
         }));
 
         const { data: itemsData, error: itemsError } = await supabase.from('purchase_order_items').insert(formattedItems).select();
@@ -144,20 +143,14 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
         if (itemsError) throw itemsError;
 
         setPurchaseOrders(prev => [mapOrder(orderData), ...prev]);
-        setPurchaseOrderItems(prev => [...prev, ...itemsData.map(mapItem)]);
+        setPurchaseOrderItems(prev => [...prev, ...itemsData.map(mapOrderItem)]);
 
         return orderData;
     };
 
     const updatePurchaseOrderStatus = async (id: string, status: PurchaseOrderStatus, notes?: string) => {
-        const updates: any = { estado: status };
-        if (status === 'APROBADA') {
-            updates.aprobado_por = session?.user?.id;
-        }
-        if (notes) {
-            // fetch current order to append notes ideally, here overwriting for simplicity if provided
-            updates.notas_internas = notes;
-        }
+        const updates: any = { status };
+        if (notes) updates.notes = notes;
 
         const { data, error } = await supabase.from('purchase_orders').update(updates).eq('id', id).select().single();
         if (error) throw error;
@@ -165,64 +158,95 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
         return data;
     };
 
-    const registerReception = async (reception: any, itemsReceived: any[]) => {
-        // 1. Insert reception record
-        const { data: receptionData, error: recError } = await supabase.from('purchase_receptions').insert([{
-            purchase_order_id: reception.purchaseOrderId,
-            fecha_recepcion: reception.fechaRecepcion.toISOString(),
-            recibido_por: session?.user?.id,
-            numero_remision: reception.numeroRemision,
-            notas: reception.notas
+    const approvePurchaseOrder = async (id: string, comments: string) => {
+        const { data, error } = await supabase.from('purchase_orders').update({
+            status: 'approved',
+            approved_by: session?.user?.id,
+            approved_at: new Date().toISOString()
+        }).eq('id', id).select().single();
+
+        if (error) throw error;
+
+        // Registrar en historial de aprobaciones
+        await supabase.from('purchase_approvals').insert([{
+            purchase_order_id: id,
+            approved_by: session?.user?.id,
+            status: 'approved',
+            comments
+        }]);
+
+        setPurchaseOrders(prev => prev.map(o => o.id === id ? mapOrder(data) : o));
+        return data;
+    };
+
+    const rejectPurchaseOrder = async (id: string, comments: string) => {
+        const { data, error } = await supabase.from('purchase_orders').update({
+            status: 'rejected'
+        }).eq('id', id).select().single();
+
+        if (error) throw error;
+
+        await supabase.from('purchase_approvals').insert([{
+            purchase_order_id: id,
+            approved_by: session?.user?.id,
+            status: 'rejected',
+            comments
+        }]);
+
+        setPurchaseOrders(prev => prev.map(o => o.id === id ? mapOrder(data) : o));
+        return data;
+    };
+
+    const registerReception = async (reception: Partial<WarehouseReceipt>, itemsReceived: { product_id: string, quantity_received: number }[]) => {
+        // 1. Insert receipt
+        const { data: receiptData, error: recError } = await supabase.from('warehouse_receipts').insert([{
+            purchase_order_id: reception.purchase_order_id,
+            workspace_id: reception.workspace_id,
+            supplier_id: reception.supplier_id,
+            receipt_date: new Date().toISOString(),
+            received_by: session?.user?.id,
+            notes: reception.notes
         }]).select().single();
 
         if (recError) throw recError;
 
-        // 2. Update Items received amounts
-        for (const item of itemsReceived) {
-            const { error: itemError } = await supabase.from('purchase_order_items')
-                .update({ cantidad_recibida: item.cantidadRecibida })
-                .eq('id', item.id);
-            if (itemError) console.error("Error updating item qty", itemError);
-        }
+        // 2. Insert receipt items
+        const receiptItems = itemsReceived.map(item => ({
+            receipt_id: receiptData.id,
+            product_id: item.product_id,
+            quantity_received: item.quantity_received
+        }));
 
-        // 3. Determine if partial or full reception
-        // In a real scenario we need to calculate total requested vs total received across all receptions.
-        // For V1 we just mark as COMPLETADA if they perform a reception.
+        const { error: itemsError } = await supabase.from('warehouse_receipt_items').insert(receiptItems);
+        if (itemsError) throw itemsError;
+
+        // 3. Mark PO as received
         const { data: orderData, error: orderError } = await supabase.from('purchase_orders').update({
-            estado: 'COMPLETADA'
-        }).eq('id', reception.purchaseOrderId).select().single();
+            status: 'received'
+        }).eq('id', reception.purchase_order_id).select().single();
 
         if (orderError) throw orderError;
 
-        // 4. Auto-generate Cuenta por Pagar in Finance Module
+        // 4. Generate Account Payable
         try {
-            // Fetch order to get total amount and supplier info
-            const order = mapOrder(orderData);
-            const supplier = suppliers.find(s => s.id === order.proveedorId);
+            const supplier = suppliers.find(s => s.id === reception.supplier_id);
+            const po = mapOrder(orderData);
 
-            await addDocument({
-                tipo: 'CUENTA_PAGAR',
-                estado: 'PENDIENTE',
-                numeroFolio: order.numeroOrden,
-                montoTotal: order.montoTotal,
-                moneda: 'MXN', // Defaulting to MXN for V1
-                fechaEmision: new Date(),
-                fechaVencimiento: supplier?.condicionesPago ?
-                    new Date(Date.now() + supplier.condicionesPago * 24 * 60 * 60 * 1000) :
-                    new Date(), // If no credit, due today
-                quoteId: order.id, // Reusing quoteId field to link to Purchase Order id internally for now
-                proveedorNombre: supplier?.nombreComercial || 'Proveedor Desconocido',
-                concepto: `Pago a Proveedor por OC: ${order.numeroOrden}`,
-                categoria: 'Proveedores'
+            await addPayable({
+                workspace_id: reception.workspace_id!,
+                supplier_id: reception.supplier_id!,
+                concept: `Orden de compra #${po.order_number}`,
+                amount: po.total_amount,
+                due_date: supplier?.condicionesPago ?
+                    new Date(Date.now() + (supplier.condicionesPago * 24 * 60 * 60 * 1000)) :
+                    new Date()
             });
-            console.log("Finance payable created automatically");
         } catch (financeError) {
-            console.error("Warning: Could not create finance payable link automtically", financeError);
-            // Non-blocking error for procurement flow 
+            console.error("Caution: Account Payable auto-generation failed", financeError);
         }
 
-        refreshProcurementData(); // Refresh all to get latest item quantities and order status
-        return receptionData;
+        refreshProcurementData();
+        return receiptData;
     };
 
     // Mappers
@@ -244,56 +268,53 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
     const mapOrder = (row: any): PurchaseOrder => ({
         id: row.id,
-        workspace: row.workspace,
-        proveedorId: row.proveedor_id,
-        numeroOrden: row.numero_orden,
-        estado: row.estado as PurchaseOrderStatus,
-        fechaCreacion: new Date(row.fecha_creacion),
-        fechaEsperada: row.fecha_esperada ? new Date(row.fecha_esperada) : undefined,
-        subtotal: Number(row.subtotal),
-        impuestos: Number(row.impuestos),
-        montoTotal: Number(row.monto_total),
-        notasInternas: row.notas_internas,
-        terminosCondiciones: row.terminos_condiciones,
-        requiereAprobacionGerencial: row.requiere_aprobacion_gerencial,
-        aprobadoPor: row.aprobado_por,
-        creadoPor: row.creado_por,
-        createdAt: new Date(row.created_at),
-        updatedAt: new Date(row.updated_at)
+        workspace_id: row.workspace_id,
+        supplier_id: row.supplier_id,
+        order_number: row.order_number,
+        status: row.status as PurchaseOrderStatus,
+        total_amount: Number(row.total_amount),
+        currency: row.currency,
+        notes: row.notes,
+        created_by: row.created_by,
+        created_at: new Date(row.created_at),
+        approved_by: row.approved_by,
+        approved_at: row.approved_at ? new Date(row.approved_at) : undefined,
+        updated_at: new Date(row.updated_at),
+        // Aliases legacy
+        proveedorId: row.supplier_id,
+        numeroOrden: row.order_number,
+        estado: row.status as PurchaseOrderStatus,
+        fechaCreacion: new Date(row.created_at),
+        montoTotal: Number(row.total_amount)
     });
 
-    const mapItem = (row: any): PurchaseOrderItem => ({
+    const mapOrderItem = (row: any): PurchaseOrderItem => ({
         id: row.id,
-        workspace: row.workspace,
-        purchaseOrderId: row.purchase_order_id,
-        productId: row.product_id,
-        descripcion: row.descripcion,
-        cantidadSolicitada: Number(row.cantidad_solicitada),
-        cantidadRecibida: Number(row.cantidad_recibida),
-        precioUnitario: Number(row.precio_unitario),
-        impuestoPorcentaje: Number(row.impuesto_porcentaje),
-        totalLinea: Number(row.total_linea),
-        createdAt: new Date(row.created_at)
+        purchase_order_id: row.purchase_order_id,
+        product_id: row.product_id,
+        quantity: Number(row.quantity),
+        unit_price: Number(row.unit_price),
+        total_price: Number(row.total_price),
+        created_at: new Date(row.created_at)
     });
 
-    const mapReception = (row: any): PurchaseReception => ({
+    const mapReceipt = (row: any): WarehouseReceipt => ({
         id: row.id,
-        workspace: row.workspace,
-        purchaseOrderId: row.purchase_order_id,
-        fechaRecepcion: new Date(row.fecha_recepcion),
-        recibidoPor: row.recibido_por,
-        numeroRemision: row.numero_remision,
-        notas: row.notas,
-        createdAt: new Date(row.created_at)
+        purchase_order_id: row.purchase_order_id,
+        workspace_id: row.workspace_id,
+        supplier_id: row.supplier_id,
+        receipt_date: new Date(row.receipt_date),
+        received_by: row.received_by,
+        notes: row.notes,
+        created_at: new Date(row.created_at)
     });
-
 
     return (
         <ProcurementContext.Provider value={{
             suppliers,
             purchaseOrders,
             purchaseOrderItems,
-            receptions,
+            warehouseReceipts,
             loading,
             refreshProcurementData,
             addSupplier,
@@ -301,6 +322,8 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
             deleteSupplier,
             addPurchaseOrder,
             updatePurchaseOrderStatus,
+            approvePurchaseOrder,
+            rejectPurchaseOrder,
             registerReception
         }}>
             {children}

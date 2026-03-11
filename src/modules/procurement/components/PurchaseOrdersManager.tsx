@@ -1,35 +1,52 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useProcurement } from '@/context/ProcurementContext';
-import { Search, Plus, ShoppingCart, Clock, CheckCircle, XCircle, Send, FileText, Filter, AlertTriangle } from 'lucide-react';
+import { Search, Plus, ShoppingCart, Clock, CheckCircle, XCircle, FileText, Filter } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { PurchaseOrder } from '@/types';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import PurchaseOrderForm from './PurchaseOrderForm';
 
 export default function PurchaseOrdersManager() {
-    const { purchaseOrders, suppliers, purchaseOrderItems } = useProcurement();
+    const { purchaseOrders, suppliers, updatePurchaseOrderStatus } = useProcurement();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [isFormOpen, setIsFormOpen] = useState(false);
 
     const filteredOrders = purchaseOrders.filter(order => {
-        const matchesSearch = order.numeroOrden.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesStatus = statusFilter === 'ALL' || order.estado === statusFilter;
+        const orderNumber = order.order_number || order.numeroOrden || '';
+        const matchesSearch = orderNumber.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = statusFilter === 'ALL' || order.status === statusFilter || order.estado === statusFilter;
         return matchesSearch && matchesStatus;
     });
 
     const getStatusBadge = (status: string) => {
-        switch (status) {
-            case 'BORRADOR': return <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-md text-xs font-medium flex items-center gap-1"><FileText size={12} /> Borrador</span>;
-            case 'PENDIENTE_APROBACION': return <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded-md text-xs font-medium flex items-center gap-1"><Clock size={12} /> Por Aprobar</span>;
-            case 'APROBADA': return <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-medium flex items-center gap-1"><CheckCircle size={12} /> Aprobada</span>;
-            case 'ENVIADA': return <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-md text-xs font-medium flex items-center gap-1"><Send size={12} /> Enviada</span>;
-            case 'RECIBIDA_PARCIAL': return <span className="px-2 py-1 bg-teal-100 text-teal-700 rounded-md text-xs font-medium flex items-center gap-1"><AlertTriangle size={12} /> Recepción Parcial</span>;
-            case 'COMPLETADA': return <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-md text-xs font-medium flex items-center gap-1"><CheckCircle size={12} /> Completada</span>;
-            case 'CANCELADA': return <span className="px-2 py-1 bg-red-100 text-red-700 rounded-md text-xs font-medium flex items-center gap-1"><XCircle size={12} /> Cancelada</span>;
+        switch (status.toLowerCase()) {
+            case 'draft':
+            case 'borrador':
+                return <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-md text-xs font-medium flex items-center gap-1"><FileText size={12} /> Borrador</span>;
+            case 'pending_approval':
+            case 'pendiente_aprobacion':
+                return <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded-md text-xs font-medium flex items-center gap-1"><Clock size={12} /> Por Aprobar</span>;
+            case 'approved':
+            case 'aprobada':
+                return <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-medium flex items-center gap-1"><CheckCircle size={12} /> Aprobada</span>;
+            case 'received':
+            case 'completada':
+                return <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-md text-xs font-medium flex items-center gap-1"><CheckCircle size={12} /> Recibida</span>;
+            case 'rejected':
+            case 'cancelled':
+            case 'cancelada':
+                return <span className="px-2 py-1 bg-red-100 text-red-700 rounded-md text-xs font-medium flex items-center gap-1"><XCircle size={12} /> Cancelada</span>;
             default: return <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-md text-xs font-medium">{status}</span>;
+        }
+    };
+
+    const handleSendToApproval = async (id: string) => {
+        if (window.confirm('¿Enviar esta orden a revisión gerencial?')) {
+            try {
+                await updatePurchaseOrderStatus(id, 'pending_approval');
+            } catch (error) {
+                console.error("Error updating status", error);
+            }
         }
     };
 
@@ -73,10 +90,10 @@ export default function PurchaseOrdersManager() {
                         className="w-full sm:w-48 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
                     >
                         <option value="ALL">Todos los Estados</option>
-                        <option value="PENDIENTE_APROBACION">Por Aprobar</option>
-                        <option value="APROBADA">Aprobadas</option>
-                        <option value="ENVIADA">Enviadas</option>
-                        <option value="COMPLETADA">Completadas</option>
+                        <option value="draft">Borrador</option>
+                        <option value="pending_approval">Por Aprobar</option>
+                        <option value="approved">Aprobadas</option>
+                        <option value="received">Recibidas</option>
                     </select>
                 </div>
             </div>
@@ -101,31 +118,41 @@ export default function PurchaseOrdersManager() {
                                     </td>
                                 </tr>
                             ) : (
-                                filteredOrders.map(order => {
-                                    const supplier = suppliers.find(s => s.id === order.proveedorId);
+                                filteredOrders.map((order: any) => {
+                                    const supplier = suppliers.find(s => s.id === (order.supplier_id || order.proveedorId));
+                                    const amount = order.total_amount || order.montoTotal || 0;
+                                    const orderNo = order.order_number || order.numeroOrden || 'S/N';
+                                    const date = order.created_at || order.fechaCreacion || new Date();
+                                    const status = order.status || order.estado || 'draft';
+
                                     return (
                                         <tr key={order.id} className="hover:bg-gray-50 transition-colors">
                                             <td className="px-6 py-4">
-                                                <div className="font-bold text-gray-900">{order.numeroOrden}</div>
-                                                <div className="text-sm text-gray-500">{format(order.fechaCreacion, "dd MMM yyyy", { locale: es })}</div>
+                                                <div className="font-bold text-gray-900">{orderNo}</div>
+                                                <div className="text-sm text-gray-500">{format(new Date(date), "dd MMM yyyy", { locale: es })}</div>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="font-medium text-gray-900 truncate max-w-[200px]">{supplier?.nombreComercial || 'Proveedor Desconocido'}</div>
                                                 <div className="text-xs text-gray-500 truncate max-w-[200px]">{supplier?.rfc || ''}</div>
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <div className="font-bold text-gray-900">${order.montoTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                                                <div className="font-bold text-gray-900">${amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex justify-center">
-                                                    {getStatusBadge(order.estado)}
+                                                    {getStatusBadge(status)}
                                                 </div>
-                                                {order.requiereAprobacionGerencial && order.estado === 'PENDIENTE_APROBACION' && (
-                                                    <div className="text-[10px] text-amber-600 text-center mt-1 font-medium">Req. Visto Bueno</div>
-                                                )}
                                             </td>
                                             <td className="px-6 py-4 text-right space-x-2">
-                                                <button className="text-sm text-blue-600 hover:text-blue-800 font-medium">Ver Detalle</button>
+                                                {status === 'draft' && (
+                                                    <button
+                                                        onClick={() => handleSendToApproval(order.id)}
+                                                        className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                                                    >
+                                                        Solicitar VoBo
+                                                    </button>
+                                                )}
+                                                <button className="text-sm text-gray-400 hover:text-gray-600 font-medium">Ver</button>
                                             </td>
                                         </tr>
                                     );
