@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useWorkspace } from '@/context/WorkspaceContext';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { Bell, Hash, AtSign, Check, Ghost, Loader2 } from 'lucide-react';
+import { AtSign, Check, Ghost, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function MentionsInbox() {
-    const { setActiveSpace, spaces } = useWorkspace();
+    const { setActiveSpace, spaces, workspace } = useWorkspace();
     const navigate = useNavigate();
     const { user } = useAuth();
 
@@ -15,11 +15,12 @@ export default function MentionsInbox() {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        if (!user || !user.user_metadata?.first_name) return;
+        if (!user || !user.user_metadata?.first_name || !workspace?.id) return;
 
         const fetchMentions = async () => {
             setIsLoading(true);
             const firstName = user.user_metadata.first_name;
+            const workspaceId = workspace.id;
 
             const { data, error } = await supabase
                 .from('workspace_messages')
@@ -28,6 +29,7 @@ export default function MentionsInbox() {
                     sender:sender_id (first_name, last_name, avatar_url),
                     space:workspace_spaces!space_id (name)
                 `)
+                .eq('workspace_id', workspaceId)
                 .or(`content.ilike.%@${firstName}%,content.ilike.%@canal%,content.ilike.%@todos%`)
                 .order('created_at', { ascending: false })
                 .limit(50);
@@ -40,7 +42,7 @@ export default function MentionsInbox() {
                     content: m.content,
                     spaceId: m.space_id,
                     date: new Date(m.created_at),
-                    read: false, // TODO: Implement read receipts table mapping
+                    read: false,
                     priority: m.content.includes('@todos') ? 'URGENT' : 'NORMAL'
                 }));
                 setNotifications(mapped);
@@ -51,10 +53,10 @@ export default function MentionsInbox() {
         };
 
         fetchMentions();
-    }, [user]);
+    }, [user, workspace?.id]);
 
     const handleGoToMessage = (spaceId: string) => {
-        const space = spaces.find(s => s.id === spaceId);
+        const space = (spaces || []).find(s => s.id === spaceId);
         if (space) {
             setActiveSpace(space);
             navigate(`/crm/workspace/chat/${spaceId}`);
@@ -86,7 +88,6 @@ export default function MentionsInbox() {
 
     return (
         <div className="flex-1 flex flex-col bg-white overflow-hidden">
-            {/* Header */}
             <div className="px-6 py-5 border-b border-gray-200 shrink-0 flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
@@ -112,12 +113,10 @@ export default function MentionsInbox() {
                 </div>
             </div>
 
-            {/* List */}
             <div className="flex-1 overflow-y-auto custom-scrollbar p-6 bg-gray-50/30">
                 <div className="max-w-4xl mx-auto space-y-4">
                     {notifications.map((notif, i) => (
                         <div key={i} className={`p-4 rounded-xl border transition-all cursor-pointer flex gap-4 ${notif.read ? 'bg-white border-gray-200' : 'bg-blue-50/50 border-blue-200 shadow-sm'}`}>
-
                             <div className="mt-1 shrink-0">
                                 <div className={`w-10 h-10 rounded-full flex items-center justify-center ${notif.priority === 'URGENT' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>
                                     <AtSign size={18} />

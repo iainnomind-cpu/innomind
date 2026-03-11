@@ -159,15 +159,26 @@ export default function SupplierDirectory() {
 
 
 function SupplierModal({ supplier, onClose, onSave }: { supplier: Supplier | null, onClose: () => void, onSave: (idOrData: any, updates?: any) => Promise<any> }) {
+    const [activeTab, setActiveTab] = useState<'general' | 'fiscal' | 'commercial' | 'contacts'>('general');
     const [formData, setFormData] = useState({
         nombreComercial: supplier?.nombreComercial || '',
         razonSocial: supplier?.razonSocial || '',
         rfc: supplier?.rfc || '',
+        direccionFiscal: supplier?.direccionFiscal || '',
+        pais: supplier?.pais || 'México',
+        estado: supplier?.estado || '',
+        ciudad: supplier?.ciudad || '',
+        codigoPostal: supplier?.codigoPostal || '',
         email: supplier?.email || '',
         telefono: supplier?.telefono || '',
+        categoria: supplier?.categoria || 'Insumos',
+        tipoProveedor: supplier?.tipoProveedor || 'Nacional',
+        moneda: supplier?.moneda || 'MXN',
         condicionesPago: supplier?.condicionesPago || 0,
+        tiempoEntregaPromedio: supplier?.tiempoEntregaPromedio || 0,
         calificacionDesempeno: supplier?.calificacionDesempeno || 0,
-        notas: supplier?.notas || ''
+        notas: supplier?.notas || '',
+        website: supplier?.website || ''
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -202,107 +213,222 @@ function SupplierModal({ supplier, onClose, onSave }: { supplier: Supplier | nul
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                    {/* General Info */}
-                    <div>
-                        <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 pb-2 border-b">Información General</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre Comercial *</label>
-                                <input
-                                    type="text"
-                                    value={formData.nombreComercial}
-                                    onChange={e => setFormData({ ...formData, nombreComercial: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                    required autoFocus
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Razón Social</label>
-                                <input
-                                    type="text"
-                                    value={formData.razonSocial}
-                                    onChange={e => setFormData({ ...formData, razonSocial: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">RFC</label>
-                                <input
-                                    type="text"
-                                    value={formData.rfc}
-                                    onChange={e => setFormData({ ...formData, rfc: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none uppercase"
-                                />
-                            </div>
-                        </div>
-                    </div>
+                <div className="flex border-b border-gray-100 bg-gray-50/50">
+                    {(['general', 'fiscal', 'commercial', 'contacts'] as const).map(tab => (
+                        <button
+                            key={tab}
+                            type="button"
+                            onClick={() => setActiveTab(tab)}
+                            className={`px-6 py-3 text-sm font-bold capitalize transition-all border-b-2 ${activeTab === tab ? 'border-blue-600 text-blue-600 bg-white' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                        >
+                            {tab === 'general' ? 'General' : tab === 'fiscal' ? 'Fiscal' : tab === 'commercial' ? 'Comercial' : 'Contactos y Docs'}
+                        </button>
+                    ))}
+                </div>
 
-                    {/* Contact Info */}
-                    <div>
-                        <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 pb-2 border-b">Contacto</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico (Para Órdenes)</label>
-                                <input
-                                    type="email"
-                                    value={formData.email}
-                                    onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-                                <input
-                                    type="tel"
-                                    value={formData.telefono}
-                                    onChange={e => setFormData({ ...formData, telefono: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                />
+                <form onSubmit={handleSubmit} className="p-6 space-y-6 flex-1">
+                    {activeTab === 'general' && (
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Nombre Comercial *</label>
+                                    <input
+                                        type="text"
+                                        value={formData.nombreComercial}
+                                        onChange={e => setFormData({ ...formData, nombreComercial: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                        required autoFocus
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Email Principal</label>
+                                    <input
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={e => setFormData({ ...formData, email: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                                    <input
+                                        type="tel"
+                                        value={formData.telefono}
+                                        onChange={e => setFormData({ ...formData, telefono: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                                    <input
+                                        type="url"
+                                        value={formData.website}
+                                        onChange={e => setFormData({ ...formData, website: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                        placeholder="https://..."
+                                    />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Notas Internas</label>
+                                    <textarea
+                                        value={formData.notas}
+                                        onChange={e => setFormData({ ...formData, notas: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                        rows={3}
+                                    />
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
 
-                    {/* Commercial Terms */}
-                    <div>
-                        <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 pb-2 border-b">Términos Comerciales y Desempeño</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Condiciones de Pago (Días de Crédito)</label>
-                                <input
-                                    type="number" min="0"
-                                    value={formData.condicionesPago}
-                                    onChange={e => setFormData({ ...formData, condicionesPago: parseInt(e.target.value) || 0 })}
-                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                />
-                                <p className="text-xs text-gray-500 mt-1">0 = Contado</p>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Calificación Histórica (1 a 5)</label>
-                                <select
-                                    value={formData.calificacionDesempeno}
-                                    onChange={e => setFormData({ ...formData, calificacionDesempeno: parseInt(e.target.value) })}
-                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
-                                >
-                                    <option value="0">No Calificado</option>
-                                    <option value="1">1 Estrella - Deficiente</option>
-                                    <option value="2">2 Estrellas - Regular</option>
-                                    <option value="3">3 Estrellas - Aceptable</option>
-                                    <option value="4">4 Estrellas - Bueno</option>
-                                    <option value="5">5 Estrellas - Excelente</option>
-                                </select>
-                            </div>
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Notas Internas</label>
-                                <textarea
-                                    value={formData.notas}
-                                    onChange={e => setFormData({ ...formData, notas: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                    rows={3}
-                                />
+                    {activeTab === 'fiscal' && (
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Razón Social</label>
+                                    <input
+                                        type="text"
+                                        value={formData.razonSocial}
+                                        onChange={e => setFormData({ ...formData, razonSocial: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">RFC</label>
+                                    <input
+                                        type="text"
+                                        value={formData.rfc}
+                                        onChange={e => setFormData({ ...formData, rfc: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none uppercase"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Código Postal</label>
+                                    <input
+                                        type="text"
+                                        value={formData.codigoPostal}
+                                        onChange={e => setFormData({ ...formData, codigoPostal: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Dirección Fiscal</label>
+                                    <input
+                                        type="text"
+                                        value={formData.direccionFiscal}
+                                        onChange={e => setFormData({ ...formData, direccionFiscal: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">País</label>
+                                    <input
+                                        type="text"
+                                        value={formData.pais}
+                                        onChange={e => setFormData({ ...formData, pais: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Ciudad / Estado</label>
+                                    <input
+                                        type="text"
+                                        value={formData.ciudad}
+                                        onChange={e => setFormData({ ...formData, ciudad: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                        placeholder="Ciudad, Estado"
+                                    />
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
+
+                    {activeTab === 'commercial' && (
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+                                    <select
+                                        value={formData.categoria}
+                                        onChange={e => setFormData({ ...formData, categoria: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                                    >
+                                        <option value="Materia Prima">Materia Prima</option>
+                                        <option value="Insumos">Insumos</option>
+                                        <option value="Servicios">Servicios</option>
+                                        <option value="Tecnología">Tecnología</option>
+                                        <option value="Mantenimiento">Mantenimiento</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Proveedor</label>
+                                    <select
+                                        value={formData.tipoProveedor}
+                                        onChange={e => setFormData({ ...formData, tipoProveedor: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                                    >
+                                        <option value="Nacional">Nacional</option>
+                                        <option value="Internacional">Internacional</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Condiciones de Pago (Días)</label>
+                                    <input
+                                        type="number" min="0"
+                                        value={formData.condicionesPago}
+                                        onChange={e => setFormData({ ...formData, condicionesPago: parseInt(e.target.value) || 0 })}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Lead Time Promedio (Días)</label>
+                                    <input
+                                        type="number" min="0"
+                                        value={formData.tiempoEntregaPromedio}
+                                        onChange={e => setFormData({ ...formData, tiempoEntregaPromedio: parseInt(e.target.value) || 0 })}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Moneda Operativa</label>
+                                    <select
+                                        value={formData.moneda}
+                                        onChange={e => setFormData({ ...formData, moneda: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                                    >
+                                        <option value="MXN">MXN</option>
+                                        <option value="USD">USD</option>
+                                        <option value="EUR">EUR</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Calificación Inicial</label>
+                                    <div className="flex items-center gap-1 mt-2">
+                                        {[1, 2, 3, 4, 5].map(star => (
+                                            <button
+                                                key={star}
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, calificacionDesempeno: star })}
+                                                className="focus:outline-none"
+                                            >
+                                                <Star
+                                                    size={24}
+                                                    className={star <= formData.calificacionDesempeno ? "fill-amber-400 text-amber-400" : "text-gray-200"}
+                                                />
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'contacts' && (
+                        <div className="text-center py-12">
+                            <Plus size={48} className="mx-auto text-gray-300 mb-4" />
+                            <p className="text-gray-500">Funcionalidad de contactos y documentos se habilita tras guardar el perfil básico.</p>
+                        </div>
+                    )}
 
                     <div className="pt-4 flex justify-end gap-3 border-t">
                         <button type="button" onClick={onClose} className="px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 font-medium">Cancelar</button>

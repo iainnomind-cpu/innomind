@@ -11,8 +11,7 @@ interface AccountsPayableDetailProps {
 export default function AccountsPayableDetail({ payable, onBack }: AccountsPayableDetailProps) {
     const getStatusBadge = (payable: AccountsPayable) => {
         if (payable.status === 'paid') return <span className="px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-xs font-bold flex items-center gap-1.5"><CheckCircle size={14} /> Pagado</span>;
-        if (payable.status === 'overdue') return <span className="px-3 py-1.5 bg-red-100 text-red-700 rounded-full text-xs font-bold flex items-center gap-1.5"><AlertCircle size={14} /> Vencido</span>;
-        if (payable.status === 'scheduled') return <span className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-xs font-bold flex items-center gap-1.5"><Clock size={14} /> Programado</span>;
+        if (payable.status === 'cancelled') return <span className="px-3 py-1.5 bg-red-100 text-red-700 rounded-full text-xs font-bold flex items-center gap-1.5"><AlertCircle size={14} /> Cancelado</span>;
         return <span className="px-3 py-1.5 bg-amber-100 text-amber-700 rounded-full text-xs font-bold flex items-center gap-1.5"><Clock size={14} /> Pendiente</span>;
     };
 

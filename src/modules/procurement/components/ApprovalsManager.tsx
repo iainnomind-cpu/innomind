@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useProcurement } from '@/context/ProcurementContext';
-import { ShieldCheck, XCircle, Search, FileText, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, XCircle, Search, FileText, CheckCircle2, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -9,26 +9,36 @@ export default function ApprovalsManager() {
     const [searchTerm, setSearchTerm] = useState('');
 
     const pendingApprovals = purchaseOrders.filter(o =>
-        (o.status === 'pending_approval' || o.estado === 'PENDIENTE_APROBACION')
+        (o.estado === 'pending' || o.estado === 'sent')
     );
 
     const filteredApprovals = pendingApprovals.filter(order => {
-        const supplier = suppliers.find(s => s.id === (order.supplier_id || order.proveedorId));
-        const orderNo = order.order_number || order.numeroOrden || '';
+        const supplier = suppliers.find(s => s.id === (order.proveedor_id || order.proveedorId));
+        const orderNo = order.numero_orden || order.numeroOrden || '';
         return orderNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
             (supplier && supplier.nombreComercial.toLowerCase().includes(searchTerm.toLowerCase()));
     });
 
-    const handleApprove = async (id: string) => {
-        const comments = window.prompt('Comentarios de aprobación (Opcional):');
-        if (comments !== null) {
-            try {
-                await approvePurchaseOrder(id, comments);
-                alert("Orden aprobada exitosamente.");
-            } catch (error) {
-                console.error("Error approving order", error);
-                alert("Error al aprobar la orden.");
+    const handleApprove = async (orderId: string) => {
+        try {
+            // 1. Obtener la orden de la lista actual (ya mapeada por el contexto)
+            const order = purchaseOrders.find(o => o.id === orderId);
+            if (!order) throw new Error("Orden no encontrada.");
+
+            // 2. Validar que tenga precio real registrado
+            if (order.precio_real === null || order.precio_real === undefined || order.precio_real <= 0) {
+                alert("La orden no tiene un precio real registrado o es 0. Por favor, asegúrate de haber registrado el costo antes de intentar aprobar.");
+                return;
             }
+
+            // 3. Ejecutar aprobación centralizada (esto actualiza estado y crea CxP)
+            await approvePurchaseOrder(orderId, "Aprobación gerencial autorizada");
+            
+            alert("Orden aprobada y enviada a cuentas por pagar exitosamente.");
+            // Ya no es necesario recargar la página porque el contexto maneja el estado
+        } catch (error: any) {
+            console.error("Error approving order:", error);
+            alert("No se pudo aprobar la orden: " + (error.message || "Error desconocido"));
         }
     };
 
@@ -83,6 +93,7 @@ export default function ApprovalsManager() {
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Proveedor</th>
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Fecha Creación</th>
                                 <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Monto a Autorizar</th>
+                                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Evidencia</th>
                                 <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Acciones</th>
                             </tr>
                         </thead>
@@ -101,9 +112,10 @@ export default function ApprovalsManager() {
                                 </tr>
                             ) : (
                                 filteredApprovals.map(order => {
-                                    const supplier = suppliers.find(s => s.id === (order.supplier_id || order.proveedorId));
-                                    const amount = order.total_amount || order.montoTotal || 0;
-                                    const orderNo = order.order_number || order.numeroOrden || 'S/N';
+                                    const supplier = suppliers.find(s => s.id === (order.proveedor_id || order.proveedorId));
+                                    // Mostramos el precio_real como monto a autorizar para validación manual
+                                    const amount = order.precio_real || order.total_amount || order.montoTotal || 0;
+                                    const orderNo = order.numero_orden || order.numeroOrden || 'S/N';
                                     const date = order.created_at || order.fechaCreacion || new Date();
 
                                     return (
@@ -122,6 +134,20 @@ export default function ApprovalsManager() {
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <div className="font-bold text-gray-900 text-lg">${amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                {order.evidencia_url ? (
+                                                    <a
+                                                        href={order.evidencia_url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium text-sm"
+                                                    >
+                                                        <ExternalLink size={14} /> Ver Ticket
+                                                    </a>
+                                                ) : (
+                                                    <span className="text-gray-400 text-sm italic">S/E</span>
+                                                )}
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex justify-center gap-2">

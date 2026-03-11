@@ -18,23 +18,23 @@ export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
     return (
         <AuthProvider>
             <UserProvider>
-                <FinanceProvider>
+                <WorkspaceProvider>
                     <AccountsPayableProvider>
-                        <InventoryProvider>
-                            <ProcurementProvider>
-                                <WorkspaceProvider>
-                                    <AccountsReceivableProvider>
-                                        <CRMProvider>
+                        <AccountsReceivableProvider>
+                            <CRMProvider>
+                                <FinanceProvider>
+                                    <InventoryProvider>
+                                        <ProcurementProvider>
                                             <ModalProvider>
                                                 {children}
                                             </ModalProvider>
-                                        </CRMProvider>
-                                    </AccountsReceivableProvider>
-                                </WorkspaceProvider>
-                            </ProcurementProvider>
-                        </InventoryProvider>
+                                        </ProcurementProvider>
+                                    </InventoryProvider>
+                                </FinanceProvider>
+                            </CRMProvider>
+                        </AccountsReceivableProvider>
                     </AccountsPayableProvider>
-                </FinanceProvider>
+                </WorkspaceProvider>
             </UserProvider>
         </AuthProvider>
     );

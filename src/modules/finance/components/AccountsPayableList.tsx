@@ -31,16 +31,16 @@ export default function AccountsPayableList({ onSelectPayable, onAddPayment }: A
 
     const totalPendiente = payables.reduce((sum, p) => sum + Number(p.balance_due), 0);
     const totalVencido = payables
-        .filter(p => p.status === 'overdue' || (p.due_date && isPast(new Date(p.due_date)) && !isToday(new Date(p.due_date)) && p.balance_due > 0))
+        .filter(p => (p.due_date && isPast(new Date(p.due_date)) && !isToday(new Date(p.due_date)) && p.balance_due > 0))
         .reduce((sum, p) => sum + Number(p.balance_due), 0);
 
     const getStatusBadge = (payable: AccountsPayable) => {
         if (payable.status === 'paid') return <span className="px-2 py-1 bg-green-100 text-green-700 rounded-md text-xs font-medium flex items-center gap-1"><CheckCircle size={12} /> Pagado</span>;
 
-        const isVencido = payable.status === 'overdue' || (payable.due_date && isPast(new Date(payable.due_date)) && !isToday(new Date(payable.due_date)) && payable.balance_due > 0);
+        const isVencido = (payable.due_date && isPast(new Date(payable.due_date)) && !isToday(new Date(payable.due_date)) && payable.balance_due > 0);
         if (isVencido) return <span className="px-2 py-1 bg-red-100 text-red-700 rounded-md text-xs font-medium flex items-center gap-1"><AlertCircle size={12} /> Vencido</span>;
 
-        if (payable.status === 'scheduled') return <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-medium flex items-center gap-1"><Clock size={12} /> Programado</span>;
+        if (payable.status === 'cancelled') return <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-md text-xs font-medium flex items-center gap-1"><AlertCircle size={12} /> Cancelado</span>;
 
         return <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded-md text-xs font-medium flex items-center gap-1"><Clock size={12} /> Pendiente</span>;
     };
@@ -146,7 +146,7 @@ export default function AccountsPayableList({ onSelectPayable, onAddPayment }: A
                                             <div className="text-xs text-gray-500">{format(new Date(p.created_at), "dd MMM yyyy", { locale: es })}</div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className={`text-sm font-medium ${isPast(new Date(p.due_date)) && !isToday(new Date(p.due_date)) && p.balance_due > 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                                            <div className={`text-sm font-medium ${(isPast(new Date(p.due_date)) && !isToday(new Date(p.due_date)) && p.balance_due > 0) ? 'text-red-600' : 'text-gray-900'}`}>
                                                 {format(new Date(p.due_date), "dd MMM yyyy", { locale: es })}
                                             </div>
                                         </td>

@@ -291,42 +291,70 @@ export interface Supplier {
   nombreComercial: string;
   razonSocial?: string;
   rfc?: string;
+  direccionFiscal?: string;
+  pais?: string;
+  estado?: string;
+  ciudad?: string;
+  codigoPostal?: string;
   email?: string;
   telefono?: string;
+  categoria?: string;
+  tipoProveedor?: string;
+  moneda?: string;
   condicionesPago: number; // Días de crédito
+  tiempoEntregaPromedio?: number;
   calificacionDesempeno?: number; // 1 to 5
   notas?: string;
+  website?: string;
   activo: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export type PurchaseOrderStatus =
-  | 'draft'
-  | 'pending_approval'
-  | 'approved'
-  | 'rejected'
-  | 'received'
-  | 'cancelled';
+export interface SupplierContact {
+  id: string;
+  supplier_id: string;
+  nombre: string;
+  cargo?: string;
+  telefono?: string;
+  email?: string;
+  created_at: Date;
+}
+
+export interface SupplierDocument {
+  id: string;
+  supplier_id: string;
+  nombre_archivo: string;
+  tipo_documento: string;
+  file_url: string;
+  expires_at?: Date;
+  created_at: Date;
+}
+
+export type PurchaseOrderStatus = 'pending' | 'sent' | 'approved' | 'rejected';
 
 export interface PurchaseOrder {
   id: string;
   workspace_id: string;
-  supplier_id: string;
-  order_number: string;
-  status: PurchaseOrderStatus;
+  proveedor_id: string;
+  numero_orden: string;
+  estado: PurchaseOrderStatus;
   total_amount: number;
   currency: string;
+  payment_terms?: string;
+  estimated_delivery_date?: Date;
+  request_id?: string;
   notes?: string;
   created_by?: string;
   created_at: Date;
   approved_by?: string;
   approved_at?: Date;
+  precio_real?: number;
+  evidencia_url?: string;
   updated_at: Date;
   // Campos mapeados para UI legado si es necesario
   proveedorId?: string;
   numeroOrden?: string;
-  estado?: PurchaseOrderStatus;
   fechaCreacion?: Date;
   montoTotal?: number;
 }
@@ -335,9 +363,9 @@ export interface PurchaseOrderItem {
   id: string;
   purchase_order_id: string;
   product_id?: string;
-  quantity: number;
-  unit_price: number;
-  total_price: number;
+  descripcion: string;
+  cantidad_solicitada: number;
+  precio_unitario: number;
   created_at: Date;
 }
 
@@ -366,10 +394,55 @@ export interface WarehouseReceiptItem {
   receipt_id: string;
   product_id: string;
   quantity_received: number;
+  condition?: 'good' | 'damaged' | 'wrong_item';
+  notes?: string;
+}
+
+export interface PurchaseRequest {
+  id: string;
+  workspace_id: string;
+  product_id?: string;
+  title: string;
+  description?: string;
+  custom_item_name?: string;
+  quantity: number;
+  uom?: string;
+  reason?: string;
+  priority: 'baja' | 'normal' | 'alta' | 'urgente';
+  required_date?: Date;
+  estimated_cost?: number;
+  department?: string;
+  status: 'pending' | 'reviewing' | 'approved' | 'rejected' | 'converted' | 'ordered';
+  created_by: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface PurchaseBudget {
+  id: string;
+  workspace_id: string;
+  category: string;
+  period_date: Date;
+  limit_amount: number;
+  spent_amount: number;
+  created_at: Date;
+}
+
+export interface RecurringPurchase {
+  id: string;
+  workspace_id: string;
+  supplier_id?: string;
+  title: string;
+  frequency: 'weekly' | 'biweekly' | 'monthly';
+  next_run_date?: Date;
+  last_run_date?: Date;
+  items: any[];
+  total_estimated?: number;
+  active: boolean;
 }
 
 // --- CUENTAS POR PAGAR (Accounts Payable) ---
-export type AccountsPayableStatus = 'pending' | 'scheduled' | 'paid' | 'overdue';
+export type AccountsPayableStatus = 'pending' | 'paid' | 'cancelled';
 
 export interface AccountsPayable {
   id: string;
@@ -390,6 +463,13 @@ export interface AccountsPayable {
   supplier_type?: 'supplier' | 'employee' | 'company_expense';
   employee_id?: string;
   reference_id?: string;
+  // User requested aliases for clarity
+  workspace?: string;
+  proveedor_id?: string;
+  purchase_order_id?: string;
+  numero_referencia?: string;
+  monto?: number;
+  estado?: AccountsPayableStatus;
 }
 
 export interface AccountsPayablePayment {
