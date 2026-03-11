@@ -3,14 +3,13 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from './AuthContext';
 import { useUsers } from './UserContext';
 import { useWorkspace } from './WorkspaceContext';
+import { validateWorkspace } from '@/lib/supabaseWorkspaceClient';
 
 import {
     ChargeNote,
     ChargeNoteItem,
     ChargeNotePayment,
-    ChargeNoteStatus,
     BankMovement,
-    ProspectData
 } from '@/types';
 
 interface AccountsReceivableContextType {
@@ -26,7 +25,7 @@ interface AccountsReceivableContextType {
     fetchBankMovements: () => Promise<void>;
     importBankMovements: (movements: Omit<BankMovement, 'id' | 'workspace_id' | 'imported_at' | 'matched_payment_id'>[]) => Promise<void>;
     reconcileMovement: (movementId: string, paymentId: string) => Promise<void>;
-    ignoreMovement: (movementId: string) => Promise<void>; // Or unmatch
+    ignoreMovement: (movementId: string) => Promise<void>;
 
     selectedNote: ChargeNote | null;
     setSelectedNote: (note: ChargeNote | null) => void;
@@ -39,35 +38,27 @@ const AccountsReceivableContext = createContext<AccountsReceivableContextType | 
 export const AccountsReceivableProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { user: authUser } = useAuth();
     const { companyProfile, isLoadingProfile } = useUsers();
-    const { activeSpace } = useWorkspace();
+    const { workspace } = useWorkspace();
 
     const [chargeNotes, setChargeNotes] = useState<ChargeNote[]>([]);
     const [bankMovements, setBankMovements] = useState<BankMovement[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedNote, setSelectedNote] = useState<ChargeNote | null>(null);
 
-    const getTenantId = useCallback(() => {
-        if (companyProfile) {
-            return typeof companyProfile === 'object' ? companyProfile.id : (companyProfile as any);
-        }
-        return null;
-    }, [companyProfile]);
-
     const fetchChargeNotes = useCallback(async () => {
-        const tenantId = getTenantId();
+        const tenantId = workspace?.id;
         if (!tenantId || !authUser) return;
 
         setIsLoading(true);
         try {
-            // Fetch charge notes with client data
             const { data: notesData, error: notesError } = await supabase
                 .from('charge_notes')
                 .select(`
-          *,
-          prospect:prospects(id, nombre, correo, empresa),
-          items:charge_note_items(*),
-          payments:charge_note_payments(*)
-        `)
+                  *,
+                  prospect:prospects(id, nombre, correo, empresa),
+                  items:charge_note_items(*),
+                  payments:charge_note_payments(*)
+                `)
                 .eq('workspace_id', tenantId)
                 .order('created_at', { ascending: false });
 
@@ -75,8 +66,6 @@ export const AccountsReceivableProvider: React.FC<{ children: React.ReactNode }>
 
             if (notesData) {
                 setChargeNotes(notesData as unknown as ChargeNote[]);
-
-                // Update selected note if it's currently open
                 if (selectedNote) {
                     const updated = notesData.find(n => n.id === selectedNote.id);
                     if (updated) setSelectedNote(updated as unknown as ChargeNote);
@@ -87,10 +76,10 @@ export const AccountsReceivableProvider: React.FC<{ children: React.ReactNode }>
         } finally {
             setIsLoading(false);
         }
-    }, [authUser, getTenantId, selectedNote]);
+    }, [authUser, workspace?.id, selectedNote]);
 
     const fetchBankMovements = useCallback(async () => {
-        const tenantId = getTenantId();
+        const tenantId = workspace?.id;
         if (!tenantId || !authUser) return;
 
         try {
@@ -105,10 +94,10 @@ export const AccountsReceivableProvider: React.FC<{ children: React.ReactNode }>
         } catch (error) {
             console.error('Error fetching bank movements:', error);
         }
-    }, [authUser, getTenantId]);
+    }, [authUser, workspace?.id]);
 
     useEffect(() => {
-        if (authUser && !isLoadingProfile && getTenantId()) {
+        if (authUser && !isLoadingProfile && workspace?.id) {
             fetchChargeNotes();
             fetchBankMovements();
         } else if (!authUser) {
@@ -116,18 +105,16 @@ export const AccountsReceivableProvider: React.FC<{ children: React.ReactNode }>
             setBankMovements([]);
             setIsLoading(false);
         }
-    }, [authUser, isLoadingProfile, getTenantId, fetchChargeNotes, fetchBankMovements]);
+    }, [authUser, isLoadingProfile, workspace?.id, fetchChargeNotes, fetchBankMovements]);
 
     const getChargeNoteById = (id: string) => {
         return chargeNotes.find(note => note.id === id);
     };
 
     const addChargeNote = async (data: Partial<ChargeNote>, items: Omit<ChargeNoteItem, 'id' | 'charge_note_id'>[]) => {
-        const tenantId = getTenantId();
-        if (!tenantId) throw new Error("No active workspace");
+        const tenantId = validateWorkspace(workspace?.id);
 
         try {
-            // Call RPC to handle client_id resolution safely ignoring RLS client constraints
             const { data: noteId, error: noteError } = await supabase.rpc('create_manual_charge_note', {
                 p_workspace_id: tenantId,
                 p_prospect_id: data.prospect_id,
@@ -140,11 +127,11 @@ export const AccountsReceivableProvider: React.FC<{ children: React.ReactNode }>
 
             if (noteError) throw noteError;
 
-            // Insert items
             if (noteId && items.length > 0) {
                 const itemsToInsert = items.map(item => ({
                     ...item,
-                    charge_note_id: noteId
+                    charge_note_id: noteId,
+                    workspace_id: tenantId
                 }));
 
                 const { error: itemsError } = await supabase
@@ -155,8 +142,6 @@ export const AccountsReceivableProvider: React.FC<{ children: React.ReactNode }>
             }
 
             await fetchChargeNotes();
-
-            // To return full object to UI without querying immediately, we just return a partial or fetch it
             return getChargeNoteById(noteId) || null;
 
         } catch (error) {
@@ -166,11 +151,9 @@ export const AccountsReceivableProvider: React.FC<{ children: React.ReactNode }>
     };
 
     const addPayment = async (paymentData: Omit<ChargeNotePayment, 'id' | 'created_at'>) => {
-        const tenantId = getTenantId();
-        if (!tenantId) throw new Error("No active workspace");
+        const tenantId = validateWorkspace(workspace?.id);
 
         try {
-            // Registrar el pago histórico
             const { error: paymentError } = await supabase
                 .from('charge_note_payments')
                 .insert({
@@ -180,13 +163,11 @@ export const AccountsReceivableProvider: React.FC<{ children: React.ReactNode }>
 
             if (paymentError) throw paymentError;
 
-            // Actualizar la nota de cargo explícitamente a estado Pagado
             const { error: noteError } = await supabase
                 .from('charge_notes')
                 .update({
                     status: 'paid',
                     balance_due: 0,
-                    // Idealmente sumamos al paid_amount anterior, pero como es liquidación total en el UI:
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', paymentData.charge_note_id)
@@ -203,8 +184,7 @@ export const AccountsReceivableProvider: React.FC<{ children: React.ReactNode }>
     };
 
     const importBankMovements = async (movements: Omit<BankMovement, 'id' | 'workspace_id' | 'imported_at' | 'matched_payment_id'>[]) => {
-        const tenantId = getTenantId();
-        if (!tenantId) throw new Error("No active workspace");
+        const tenantId = validateWorkspace(workspace?.id);
 
         try {
             const movementsToInsert = movements.map(m => ({
@@ -226,8 +206,7 @@ export const AccountsReceivableProvider: React.FC<{ children: React.ReactNode }>
     };
 
     const reconcileMovement = async (movementId: string, paymentId: string) => {
-        const tenantId = getTenantId();
-        if (!tenantId) return;
+        const tenantId = validateWorkspace(workspace?.id);
 
         try {
             const { error } = await supabase
@@ -248,10 +227,7 @@ export const AccountsReceivableProvider: React.FC<{ children: React.ReactNode }>
     };
 
     const ignoreMovement = async (movementId: string) => {
-        // A simplified ignore: just mark it reconciled to a dummy ID or leave it handling as deleted
-        // For this implementation, we'll just delete the unneeded movement
-        const tenantId = getTenantId();
-        if (!tenantId) return;
+        const tenantId = validateWorkspace(workspace?.id);
 
         try {
             const { error } = await supabase
@@ -271,9 +247,9 @@ export const AccountsReceivableProvider: React.FC<{ children: React.ReactNode }>
 
     const sendReceiptEmail = async (email: string, clientName: string, noteNumber: string, amount: number, paymentDate: string, pdfBase64: string) => {
         try {
-            const companyName = typeof companyProfile === 'object' ? companyProfile.nombre_empresa : 'Nuestra Empresa';
+            const companyName = typeof companyProfile === 'object' ? (companyProfile as any).nombre_empresa : 'Nuestra Empresa';
 
-            const { data, error } = await supabase.functions.invoke('send-receipt', {
+            const { error } = await supabase.functions.invoke('send-receipt', {
                 body: {
                     email,
                     clientName,

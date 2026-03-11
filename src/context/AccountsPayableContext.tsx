@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { supabase } from '@/lib/supabase';
 import { useAuth } from './AuthContext';
 import { useUsers } from './UserContext';
+import { useWorkspace } from './WorkspaceContext';
+import { validateWorkspace } from '@/lib/supabaseWorkspaceClient';
 import { AccountsPayable, AccountsPayablePayment, AccountsPayableStatus } from '@/types';
 
 interface AccountsPayableContextType {
@@ -18,20 +20,14 @@ const AccountsPayableContext = createContext<AccountsPayableContextType | undefi
 
 export const AccountsPayableProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { user: authUser } = useAuth();
-    const { companyProfile, isLoadingProfile } = useUsers();
+    const { isLoadingProfile } = useUsers();
+    const { workspace } = useWorkspace();
 
     const [payables, setPayables] = useState<AccountsPayable[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    const getTenantId = useCallback(() => {
-        if (companyProfile) {
-            return typeof companyProfile === 'object' ? companyProfile.id : (companyProfile as any);
-        }
-        return null;
-    }, [companyProfile]);
-
     const fetchPayables = useCallback(async () => {
-        const tenantId = getTenantId();
+        const tenantId = workspace?.id;
         if (!tenantId || !authUser) return;
 
         setIsLoading(true);
@@ -49,24 +45,23 @@ export const AccountsPayableProvider: React.FC<{ children: React.ReactNode }> = 
         } finally {
             setIsLoading(false);
         }
-    }, [authUser, getTenantId]);
+    }, [authUser, workspace?.id]);
 
     useEffect(() => {
-        if (authUser && !isLoadingProfile && getTenantId()) {
+        if (authUser && !isLoadingProfile && workspace?.id) {
             fetchPayables();
         } else if (!authUser) {
             setPayables([]);
             setIsLoading(false);
         }
-    }, [authUser, isLoadingProfile, getTenantId, fetchPayables]);
+    }, [authUser, isLoadingProfile, workspace?.id, fetchPayables]);
 
     const getPayableById = (id: string) => {
         return payables.find(p => p.id === id);
     };
 
     const addPayable = async (data: Omit<AccountsPayable, 'id' | 'created_at' | 'balance_due' | 'status'>) => {
-        const tenantId = getTenantId();
-        if (!tenantId) throw new Error("No active workspace");
+        const tenantId = validateWorkspace(workspace?.id);
 
         try {
             const { data: newPayable, error } = await supabase
@@ -74,17 +69,25 @@ export const AccountsPayableProvider: React.FC<{ children: React.ReactNode }> = 
                 .insert({
                     ...data,
                     workspace_id: tenantId,
+                    workspace: tenantId, // User requested alias
                     balance_due: data.amount,
                     status: 'pending',
-                    created_by: authUser?.id
+                    estado: 'pending', // User requested alias
+                    created_by: authUser?.id,
+                    // Map other user requested fields if present in data
+                    proveedor_id: data.supplier_id || data.proveedor_id,
+                    purchase_order_id: data.purchase_order_id,
+                    numero_referencia: data.payment_reference || data.numero_referencia,
+                    monto: data.amount || data.monto
                 })
                 .select('*, supplier:suppliers(*)')
                 .single();
 
             if (error) throw error;
             if (newPayable) {
-                setPayables(prev => [...prev, newPayable as unknown as AccountsPayable]);
-                return newPayable as unknown as AccountsPayable;
+                const mapped = newPayable as unknown as AccountsPayable;
+                setPayables(prev => [...prev, mapped]);
+                return mapped;
             }
             return null;
         } catch (error) {
@@ -94,17 +97,15 @@ export const AccountsPayableProvider: React.FC<{ children: React.ReactNode }> = 
     };
 
     const addPayment = async (paymentData: Omit<AccountsPayablePayment, 'id' | 'created_at'>, evidenceFile?: File) => {
-        const tenantId = getTenantId();
-        if (!tenantId) throw new Error("No active workspace");
+        const tenantId = validateWorkspace(workspace?.id);
 
         try {
             let evidenceUrl = paymentData.evidence_file_url;
 
-            // Upload evidence if provided
             if (evidenceFile) {
                 const fileExt = evidenceFile.name.split('.').pop();
                 const fileName = `${tenantId}/${paymentData.account_payable_id}/${Date.now()}.${fileExt}`;
-                const { data: uploadData, error: uploadError } = await supabase.storage
+                const { error: uploadError } = await supabase.storage
                     .from('payment-evidence')
                     .upload(fileName, evidenceFile);
 
@@ -117,7 +118,6 @@ export const AccountsPayableProvider: React.FC<{ children: React.ReactNode }> = 
                 evidenceUrl = urlData.publicUrl;
             }
 
-            // 1. Register payment
             const { error: paymentError } = await supabase
                 .from('accounts_payable_payments')
                 .insert({
@@ -129,7 +129,6 @@ export const AccountsPayableProvider: React.FC<{ children: React.ReactNode }> = 
 
             if (paymentError) throw paymentError;
 
-            // 2. Update payable
             const targetPayable = payables.find(p => p.id === paymentData.account_payable_id);
             if (!targetPayable) return;
 
@@ -142,9 +141,11 @@ export const AccountsPayableProvider: React.FC<{ children: React.ReactNode }> = 
                 .update({
                     balance_due: newBalance,
                     status: newStatus,
-                    paid_at: paidAt
+                    paid_at: paidAt,
+                    updated_at: new Date().toISOString()
                 })
-                .eq('id', targetPayable.id);
+                .eq('id', targetPayable.id)
+                .eq('workspace_id', tenantId);
 
             if (updateError) throw updateError;
 
@@ -156,11 +157,13 @@ export const AccountsPayableProvider: React.FC<{ children: React.ReactNode }> = 
     };
 
     const updatePayableStatus = async (id: string, status: AccountsPayableStatus) => {
+        const tenantId = validateWorkspace(workspace?.id);
         try {
             const { error } = await supabase
                 .from('accounts_payable')
-                .update({ status })
-                .eq('id', id);
+                .update({ status, updated_at: new Date().toISOString() })
+                .eq('id', id)
+                .eq('workspace_id', tenantId);
 
             if (error) throw error;
             setPayables(prev => prev.map(p => p.id === id ? { ...p, status } : p));

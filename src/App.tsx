@@ -80,11 +80,13 @@ function App() {
             {/* Rutas de Finanzas y Tesorería */}
             <Route path="finance/*" element={<FinanceLayout />} />
 
-            {/* Rutas de Compras y Proveedores */}
-            <Route path="procurement/*" element={<ProcurementLayout />} />
-
             {/* Rutas de Workspace (Nodo) */}
             <Route path="workspace/*" element={<WorkspaceLayout />} />
+          </Route>
+
+          {/* Módulo de Compras (Ruta Raíz /compras) */}
+          <Route path="/compras/*" element={<Layout />}>
+            <Route path="*" element={<ProcurementLayout />} />
           </Route>
         </Route>
       </Routes>

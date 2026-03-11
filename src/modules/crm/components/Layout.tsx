@@ -62,13 +62,16 @@ export default function Layout() {
               ? location.pathname.includes('prospectos') && currentSearch.includes('tab=clientes')
               : isProspectosBase
                 ? location.pathname.includes('prospectos') && !currentSearch.includes('tab=clientes')
-                : location.pathname.includes(item.id);
+                : item.id === 'procurement'
+                  ? location.pathname.includes('/compras')
+                  : location.pathname.includes(item.id);
 
             return (
               <button
                 key={item.id}
                 onClick={() => {
-                  navigate(`/crm/${item.id}`);
+                  const path = item.id === 'procurement' ? '/compras' : `/crm/${item.id}`;
+                  navigate(path);
                   setSidebarOpen(false);
                 }}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${isActive

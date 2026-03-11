@@ -26,8 +26,9 @@ export function useTreasuryIntelligence() {
 
         // Helper to get adjusted date/amount based on scenario
         const getAdjustedAR = (note: ChargeNote) => {
+            if (!note || !note.due_date) return null;
             let dueDate = startOfDay(new Date(note.due_date));
-            let amount = note.balance_due;
+            let amount = note.balance_due || 0;
 
             if (simulatedReceivableOverrides[note.id]) {
                 const ov = simulatedReceivableOverrides[note.id];
@@ -45,8 +46,9 @@ export function useTreasuryIntelligence() {
         };
 
         const getAdjustedAP = (payable: AccountsPayable) => {
+            if (!payable || !payable.due_date) return null;
             let dueDate = startOfDay(new Date(payable.due_date));
-            let amount = payable.balance_due;
+            let amount = payable.balance_due || 0;
 
             if (simulatedPayableOverrides[payable.id]) {
                 const ov = simulatedPayableOverrides[payable.id];
@@ -60,7 +62,6 @@ export function useTreasuryIntelligence() {
             return { dueDate, amount };
         };
 
-        // Recalculate daily for 90 days
         let rollingBalance = initialBalance;
 
         for (let i = 0; i <= 90; i++) {
@@ -79,7 +80,7 @@ export function useTreasuryIntelligence() {
 
             // 2. AP Outflows
             (payables || []).forEach(payable => {
-                if (!payable || payable.status === 'paid') return;
+                if (!payable || payable.status === 'paid' || payable.status === 'cancelled') return;
                 const adj = getAdjustedAP(payable);
                 if (adj && isSameDay(adj.dueDate, currentDate)) {
                     dayOutflow += adj.amount;
@@ -89,9 +90,6 @@ export function useTreasuryIntelligence() {
             // 3. Recurring Expenses
             (recurringExpenses || []).forEach(rec => {
                 if (!rec || !rec.active) return;
-                // Simple logic: if frequency matches day of period
-                // For monthly: rec.day_of_period matches currentDate.getDate()
-                // For weekly: rec.day_of_period matches currentDate.getDay() (1-7)
                 let isDue = false;
                 if (rec.frequency === 'monthly') {
                     if (currentDate.getDate() === rec.day_of_period) isDue = true;
@@ -119,11 +117,13 @@ export function useTreasuryIntelligence() {
         return points;
     }, [initialBalance, chargeNotes, payables, recurringExpenses, scenario, simulatedPayableOverrides, simulatedReceivableOverrides]);
 
-    // Traffic Light Logic
     const trafficLight = useMemo(() => {
+        if (!projection || projection.length === 0) return { status: 'green', daysToDeficit: null, deficitAmount: 0, deficitDate: null };
+
         const firstDeficitPoint = projection.find(p => p.balance < 0);
+        const today = new Date();
         const daysToDeficit = firstDeficitPoint
-            ? Math.ceil((firstDeficitPoint.date.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+            ? Math.ceil((firstDeficitPoint.date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
             : 91;
 
         let status: 'green' | 'yellow' | 'red' = 'green';

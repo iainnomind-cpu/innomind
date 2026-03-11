@@ -1,26 +1,24 @@
 import { useState } from 'react';
 import { useProcurement } from '@/context/ProcurementContext';
 import { PackageOpen, Search, CheckCircle, ArrowRight, ShieldAlert, Check } from 'lucide-react';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { useInventory } from '@/context/InventoryContext';
 
 export default function MerchandiseReceptionManager() {
-    const { purchaseOrders, suppliers, purchaseOrderItems, registerReception } = useProcurement();
-    const { locations, registerMovement } = useInventory();
+    const { purchaseOrders, suppliers, purchaseOrderItems } = useProcurement();
+    const { locations } = useInventory();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
 
-    // Solo órdenes que pueden recibir mercancía (Approved o Received si aceptamos parcial)
-    const receivableStatus = ['approved', 'received'];
+    // Solo órdenes que pueden recibir mercancía (Approved)
+    const receivableStatus = ['approved'];
 
     const receivableOrders = purchaseOrders.filter(o =>
-        receivableStatus.includes(o.status || o.estado || '')
+        receivableStatus.includes(o.estado || '')
     );
 
     const filteredOrders = receivableOrders.filter(order => {
-        const supplier = suppliers.find(s => s.id === (order.supplier_id || order.proveedorId));
-        const orderNo = order.order_number || order.numeroOrden || '';
+        const supplier = suppliers.find(s => s.id === (order.proveedor_id || order.proveedorId));
+        const orderNo = order.numero_orden || order.numeroOrden || '';
         return orderNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
             (supplier && supplier.nombreComercial.toLowerCase().includes(searchTerm.toLowerCase()));
     });
@@ -73,18 +71,16 @@ export default function MerchandiseReceptionManager() {
                                     </tr>
                                 ) : (
                                     filteredOrders.map(order => {
-                                        const supplier = suppliers.find(s => s.id === (order.supplier_id || order.proveedorId));
-                                        const status = order.status || order.estado || '';
-                                        const orderNo = order.order_number || order.numeroOrden || '';
+                                        const supplier = suppliers.find(s => s.id === (order.proveedor_id || order.proveedorId));
+                                        const orderNo = order.numero_orden || order.numeroOrden || '';
 
                                         return (
                                             <tr key={order.id} className="hover:bg-emerald-50/50 transition-colors">
                                                 <td className="px-6 py-4 font-bold text-gray-900">{orderNo}</td>
                                                 <td className="px-6 py-4 text-gray-600">{supplier?.nombreComercial || 'Desconocido'}</td>
                                                 <td className="px-6 py-4">
-                                                    <span className={`px-2 py-1 rounded-md text-xs font-medium ${status === 'received' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
-                                                        }`}>
-                                                        {status.replace('_', ' ').toUpperCase()}
+                                                    <span className="px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-700">
+                                                        APROBADA
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
@@ -176,7 +172,7 @@ function ReceptionForm({ order, items, supplier, locations, onBack, onSuccess }:
                         tipoMovimiento: 'ENTRADA_COMPRA',
                         cantidad: ri.recibiendo,
                         costoUnitario: ri.unitPrice,
-                        notas: `Recepción de OC: ${order.order_number || order.numeroOrden}`,
+                        notas: `Recepción de OC: ${order.numero_orden || order.numeroOrden}`,
                         referenceId: order.id
                     });
                 }
@@ -201,7 +197,7 @@ function ReceptionForm({ order, items, supplier, locations, onBack, onSuccess }:
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
                 <div className="flex flex-col md:flex-row justify-between items-start mb-6 pb-6 border-b border-gray-100 gap-4">
                     <div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-1">Recepción Ingreso de {order.order_number || order.numeroOrden}</h3>
+                        <h3 className="text-xl font-bold text-gray-900 mb-1">Recepción Ingreso de {order.numero_orden || order.numeroOrden}</h3>
                         <p className="text-gray-600">Proveedor: <span className="font-semibold">{supplier?.nombreComercial || 'Desconocido'}</span></p>
                     </div>
                     <div className="w-full md:w-64">
@@ -249,7 +245,7 @@ function ReceptionForm({ order, items, supplier, locations, onBack, onSuccess }:
                                             {ri.product_id ? (
                                                 <CheckCircle className="mx-auto text-emerald-500" size={18} />
                                             ) : (
-                                                <ShieldAlert className="mx-auto text-amber-500" size={18} title="Gasto sin inventariar" />
+                                                <ShieldAlert className="mx-auto text-amber-500" size={18} />
                                             )}
                                         </td>
                                     </tr>

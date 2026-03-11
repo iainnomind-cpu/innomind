@@ -1,53 +1,100 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useProcurement } from '@/context/ProcurementContext';
 import { Search, Plus, ShoppingCart, Clock, CheckCircle, XCircle, FileText, Filter } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import PurchaseOrderForm from './PurchaseOrderForm';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 
 export default function PurchaseOrdersManager() {
+    const navigate = useNavigate();
     const { purchaseOrders, suppliers, updatePurchaseOrderStatus } = useProcurement();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [isFormOpen, setIsFormOpen] = useState(false);
 
     const filteredOrders = purchaseOrders.filter(order => {
-        const orderNumber = order.order_number || order.numeroOrden || '';
+        const orderNumber = order.numero_orden || order.numeroOrden || '';
         const matchesSearch = orderNumber.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesStatus = statusFilter === 'ALL' || order.status === statusFilter || order.estado === statusFilter;
+        const matchesStatus = statusFilter === 'ALL' || order.estado === statusFilter;
         return matchesSearch && matchesStatus;
     });
 
-    const getStatusBadge = (status: string) => {
-        switch (status.toLowerCase()) {
-            case 'draft':
-            case 'borrador':
-                return <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-md text-xs font-medium flex items-center gap-1"><FileText size={12} /> Borrador</span>;
-            case 'pending_approval':
-            case 'pendiente_aprobacion':
-                return <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded-md text-xs font-medium flex items-center gap-1"><Clock size={12} /> Por Aprobar</span>;
+    const getStatusBadge = (estado: string) => {
+        switch (estado?.toLowerCase()) {
+            case 'pending':
+                return <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded-md text-xs font-medium flex items-center gap-1"><Clock size={12} /> Pendiente</span>;
+            case 'sent':
+                return <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-medium flex items-center gap-1"><FileText size={12} /> Enviada</span>;
             case 'approved':
-            case 'aprobada':
-                return <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-medium flex items-center gap-1"><CheckCircle size={12} /> Aprobada</span>;
+                return <span className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded-md text-xs font-medium flex items-center gap-1"><CheckCircle size={12} /> Aprobada</span>;
             case 'received':
-            case 'completada':
                 return <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-md text-xs font-medium flex items-center gap-1"><CheckCircle size={12} /> Recibida</span>;
-            case 'rejected':
             case 'cancelled':
-            case 'cancelada':
                 return <span className="px-2 py-1 bg-red-100 text-red-700 rounded-md text-xs font-medium flex items-center gap-1"><XCircle size={12} /> Cancelada</span>;
-            default: return <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-md text-xs font-medium">{status}</span>;
+            default: return <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-md text-xs font-medium">{estado}</span>;
         }
     };
 
     const handleSendToApproval = async (id: string) => {
         if (window.confirm('¿Enviar esta orden a revisión gerencial?')) {
             try {
-                await updatePurchaseOrderStatus(id, 'pending_approval');
+                await updatePurchaseOrderStatus(id, 'pending');
             } catch (error) {
                 console.error("Error updating status", error);
             }
         }
+    };
+
+    const generatePDF = (order: any) => {
+        const doc = new jsPDF();
+        const supplier = suppliers.find(s => s.id === order.supplier_id);
+
+        // Header
+        doc.setFontSize(22);
+        doc.setTextColor(37, 99, 235);
+        doc.text('INNOMIND ERP', 105, 20, { align: 'center' });
+
+        doc.setFontSize(16);
+        doc.setTextColor(0, 0, 0);
+        doc.text('ORDEN DE COMPRA', 105, 30, { align: 'center' });
+
+        doc.setFontSize(10);
+        doc.text(`Folio: ${order.numero_orden}`, 150, 45);
+        doc.text(`Fecha: ${format(new Date(order.created_at), 'dd/MM/yyyy')}`, 150, 50);
+
+        // Supplier Info
+        doc.setFontSize(12);
+        doc.text('PROVEEDOR:', 15, 60);
+        doc.setFontSize(10);
+        doc.text(supplier?.razonSocial || supplier?.nombreComercial || 'N/A', 15, 65);
+        doc.text(`RFC: ${supplier?.rfc || 'N/A'}`, 15, 70);
+        doc.text(supplier?.direccionFiscal || '', 15, 75);
+
+        // Table
+        const tableData = order.items?.map((item: any) => [
+            item.product_id?.slice(0, 8) || 'S/N',
+            item.description || 'Consulta sistema',
+            item.quantity,
+            `$${item.unit_price.toLocaleString()}`,
+            `$${item.total_price.toLocaleString()}`
+        ]) || [];
+
+        (doc as any).autoTable({
+            startY: 85,
+            head: [['COD', 'DESCRIPCIÓN', 'CANT', 'P. UNIT', 'TOTAL']],
+            body: tableData,
+            theme: 'grid',
+            headStyles: { fillStyle: [37, 99, 235] }
+        });
+
+        // Totals
+        const finalY = (doc as any).lastAutoTable.result.finalY;
+        doc.text(`TOTAL: $${order.total_amount.toLocaleString()}`, 150, finalY + 10);
+
+        doc.save(`OC_${order.numero_orden}.pdf`);
     };
 
     return (
@@ -90,10 +137,11 @@ export default function PurchaseOrdersManager() {
                         className="w-full sm:w-48 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
                     >
                         <option value="ALL">Todos los Estados</option>
-                        <option value="draft">Borrador</option>
-                        <option value="pending_approval">Por Aprobar</option>
-                        <option value="approved">Aprobadas</option>
-                        <option value="received">Recibidas</option>
+                        <option value="pending">Pendiente</option>
+                        <option value="sent">Enviada</option>
+                        <option value="approved">Aprobada</option>
+                        <option value="received">Recibida</option>
+                        <option value="cancelled">Cancelada</option>
                     </select>
                 </div>
             </div>
@@ -119,11 +167,11 @@ export default function PurchaseOrdersManager() {
                                 </tr>
                             ) : (
                                 filteredOrders.map((order: any) => {
-                                    const supplier = suppliers.find(s => s.id === (order.supplier_id || order.proveedorId));
+                                    const supplier = suppliers.find(s => s.id === (order.proveedor_id || order.proveedorId));
                                     const amount = order.total_amount || order.montoTotal || 0;
-                                    const orderNo = order.order_number || order.numeroOrden || 'S/N';
+                                    const orderNo = order.numero_orden || order.numeroOrden || 'S/N';
                                     const date = order.created_at || order.fechaCreacion || new Date();
-                                    const status = order.status || order.estado || 'draft';
+                                    const estado = order.estado || 'pending';
 
                                     return (
                                         <tr key={order.id} className="hover:bg-gray-50 transition-colors">
@@ -140,11 +188,11 @@ export default function PurchaseOrdersManager() {
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex justify-center">
-                                                    {getStatusBadge(status)}
+                                                    {getStatusBadge(estado)}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-right space-x-2">
-                                                {status === 'draft' && (
+                                                {estado === 'pending' && (
                                                     <button
                                                         onClick={() => handleSendToApproval(order.id)}
                                                         className="text-sm text-blue-600 hover:text-blue-800 font-medium"
@@ -152,7 +200,26 @@ export default function PurchaseOrdersManager() {
                                                         Solicitar VoBo
                                                     </button>
                                                 )}
-                                                <button className="text-sm text-gray-400 hover:text-gray-600 font-medium">Ver</button>
+                                                {estado === 'approved' && (
+                                                    <button
+                                                        onClick={() => generatePDF(order)}
+                                                        className="text-sm text-emerald-600 hover:text-emerald-800 font-medium"
+                                                    >
+                                                        PDF
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={() => navigate(`/compras/ordenes/${order.id}`)}
+                                                    className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                                                >
+                                                    Editar
+                                                </button>
+                                                <button
+                                                    onClick={() => navigate(`/compras/ordenes/${order.id}`)}
+                                                    className="text-sm text-gray-400 hover:text-gray-600 font-medium"
+                                                >
+                                                    Ver
+                                                </button>
                                             </td>
                                         </tr>
                                     );
