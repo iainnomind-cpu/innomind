@@ -26,7 +26,7 @@ import { es } from 'date-fns/locale';
 export default function PurchaseOrderDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { suppliers } = useProcurement();
+    const { suppliers, refreshProcurementData } = useProcurement();
 
     const [order, setOrder] = useState<any>(null);
     const [items, setItems] = useState<any[]>([]);
@@ -93,14 +93,14 @@ export default function PurchaseOrderDetail() {
         }));
     };
 
-    const handleSaveOrder = async () => {
-        if (!order || !id) return;
+    const handleSaveOrder = async (): Promise<boolean> => {
+        if (!order || !id) return false;
         setSaving(true);
         try {
             // Calculate new totals
             const subtotal = items.reduce((acc, item) => acc + (item.total_linea || 0), 0);
             const impuestos = subtotal * 0.16;
-            const monto_total = subtotal + impuestos;
+            const total_amount = subtotal + impuestos;
 
             // Update items in DB
             for (const item of items) {
@@ -120,18 +120,20 @@ export default function PurchaseOrderDetail() {
                 .update({
                     subtotal,
                     impuestos,
-                    monto_total,
-                    precio_real: order.precio_real
+                    total_amount
                 })
                 .eq('id', id);
 
             if (orderError) throw orderError;
 
-            setOrder((prev: any) => ({ ...prev, subtotal, impuestos, monto_total }));
+            setOrder((prev: any) => ({ ...prev, subtotal, impuestos, total_amount, montoTotal: total_amount }));
             alert("Cambios guardados exitosamente.");
+            refreshProcurementData();
+            return true;
         } catch (err: any) {
             console.error("Error saving order:", err);
             alert("Error al guardar: " + err.message);
+            return false;
         } finally {
             setSaving(false);
         }
@@ -177,19 +179,26 @@ export default function PurchaseOrderDetail() {
     };
 
     const handleSendToReview = async () => {
-        if (!id || !order.precio_real || !order.evidencia_url) return;
+        if (!id || !order.evidencia_url) {
+            alert("Error: Es obligatorio cargar la evidencia de compra antes de enviarla a revisión.");
+            return;
+        }
+
+        const saved = await handleSaveOrder();
+        if (!saved) return;
 
         try {
             const { error } = await supabase.from('purchase_orders')
                 .update({
-                    estado: 'sent',
+                    estado: 'pending_review',
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', id);
 
             if (error) throw error;
-            setOrder((prev: any) => ({ ...prev, estado: 'sent' }));
+            setOrder((prev: any) => ({ ...prev, estado: 'pending_review' }));
             alert("Orden enviada a revisión gerencial.");
+            refreshProcurementData();
         } catch (err: any) {
             alert("Error al enviar a revisión: " + err.message);
         }
@@ -204,8 +213,8 @@ export default function PurchaseOrderDetail() {
                 return <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium flex items-center gap-1.5"><CheckCircle size={14} /> Aprobada</span>;
             case 'received':
                 return <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium flex items-center gap-1.5"><Truck size={14} /> Recibida</span>;
-            case 'sent':
-                return <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium flex items-center gap-1.5"><FileText size={14} /> Enviada</span>;
+            case 'pending_review':
+                return <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium flex items-center gap-1.5"><FileText size={14} /> En Revisión</span>;
             case 'cancelled':
                 return <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium flex items-center gap-1.5"><XCircle size={14} /> Cancelada</span>;
             default:
@@ -240,7 +249,7 @@ export default function PurchaseOrderDetail() {
     }
 
     const supplier = suppliers.find(s => s.id === (order.proveedor_id || order.proveedorId));
-    const canSendToReview = order.precio_real > 0 && order.evidencia_url && order.estado === 'pending';
+    const canSendToReview = order.evidencia_url && order.estado === 'pending';
 
     return (
         <div className="min-h-screen bg-slate-50 pb-12">
@@ -344,25 +353,10 @@ export default function PurchaseOrderDetail() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
                             <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                                <AlertCircle className="text-blue-500" size={18} /> Costo Real y Comprobante
+                                <AlertCircle className="text-blue-500" size={18} /> Comprobante
                             </h3>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-xs font-semibold text-slate-400 uppercase mb-2">Precio Real de Compra (Monto Final)</label>
-                                    <div className="relative">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
-                                        <input
-                                            type="number"
-                                            value={order.precio_real || ''}
-                                            onChange={(e) => setOrder({ ...order, precio_real: parseFloat(e.target.value) || 0 })}
-                                            placeholder="0.00"
-                                            className="w-full pl-7 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-lg text-slate-900 transition-all"
-                                        />
-                                    </div>
-                                    <p className="mt-2 text-[10px] text-slate-400 italic">* Registre el monto exacto pagado al proveedor según factura.</p>
-                                </div>
-
-                                <div className="pt-4 border-t border-slate-100">
                                     <label className="block text-xs font-semibold text-slate-400 uppercase mb-3 text-center">Evidencia de Compra</label>
 
                                     {order.evidencia_url ? (
@@ -414,16 +408,10 @@ export default function PurchaseOrderDetail() {
                                     <Clock className="text-slate-400" size={18} /> Gestión de Aprobación
                                 </h4>
                                 <p className="text-slate-400 text-sm mb-6">
-                                    Para aprobar la orden es necesario registrar el **Precio Real** y adjuntar la **Evidencia** de la compra realizada.
+                                    Para enviar la orden a revisión es obligatorio adjuntar el **Comprobante** de compra.
                                 </p>
 
                                 <div className="space-y-3">
-                                    <div className="flex items-center gap-3">
-                                        <div className={`p-1 rounded-full ${order.precio_real > 0 ? 'bg-emerald-500' : 'bg-slate-700'}`}>
-                                            <CheckCircle size={14} className="text-white" />
-                                        </div>
-                                        <span className={`text-sm ${order.precio_real > 0 ? 'text-white' : 'text-slate-500'}`}>Importe Real registrado</span>
-                                    </div>
                                     <div className="flex items-center gap-3">
                                         <div className={`p-1 rounded-full ${order.evidencia_url ? 'bg-emerald-500' : 'bg-slate-700'}`}>
                                             <CheckCircle size={14} className="text-white" />
@@ -446,7 +434,7 @@ export default function PurchaseOrderDetail() {
                                     Enviar a Revisión
                                 </button>
                                 <p className="text-center text-xs text-slate-400 mt-3 font-medium">
-                                    * Se requiere precio real y evidencia para enviar
+                                    * Se requiere comprobante para enviar
                                 </p>
                             </div>
                         </div>

@@ -331,7 +331,7 @@ export interface SupplierDocument {
   created_at: Date;
 }
 
-export type PurchaseOrderStatus = 'pending' | 'sent' | 'approved' | 'rejected';
+export type PurchaseOrderStatus = 'pending' | 'pending_review' | 'approved' | 'rejected';
 
 export interface PurchaseOrder {
   id: string;
@@ -349,7 +349,6 @@ export interface PurchaseOrder {
   created_at: Date;
   approved_by?: string;
   approved_at?: Date;
-  precio_real?: number;
   evidencia_url?: string;
   updated_at: Date;
   // Campos mapeados para UI legado si es necesario
@@ -410,7 +409,6 @@ export interface PurchaseRequest {
   reason?: string;
   priority: 'baja' | 'normal' | 'alta' | 'urgente';
   required_date?: Date;
-  estimated_cost?: number;
   department?: string;
   status: 'pending' | 'reviewing' | 'approved' | 'rejected' | 'converted' | 'ordered';
   created_by: string;
@@ -470,11 +468,15 @@ export interface AccountsPayable {
   numero_referencia?: string;
   monto?: number;
   estado?: AccountsPayableStatus;
+  
+  // Added for handling standalone payments mapped to AccountsPayable interface
+  account_payable_id?: string;
+  evidence_file_url?: string;
 }
 
 export interface AccountsPayablePayment {
-  id: string;
-  account_payable_id: string;
+  account_payable_id?: string;
+  purchase_order_id?: string;
   workspace_id: string;
   payment_date: Date;
   amount: number;

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
-import { ArrowLeft, Clock, CheckCircle2, XCircle, Info, Tag, DollarSign, Calendar } from 'lucide-react';
+import { ArrowLeft, Clock, CheckCircle2, XCircle, Info, Tag, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -111,10 +111,6 @@ export default function PurchaseRequestDetail() {
                                 <div className="flex justify-between items-center">
                                     <span className="text-sm text-gray-500 flex items-center gap-2"><Tag size={16} /> Cantidad</span>
                                     <span className="font-bold text-gray-900">{request.quantity} {request.uom}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm text-gray-500 flex items-center gap-2"><DollarSign size={16} /> Costo Est.</span>
-                                    <span className="font-bold text-gray-900">${(request.estimated_cost || 0).toLocaleString()}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="text-sm text-gray-500 flex items-center gap-2"><Calendar size={16} /> Fecha Requerida</span>

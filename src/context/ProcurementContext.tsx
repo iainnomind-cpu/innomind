@@ -3,7 +3,6 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from './AuthContext';
 import { useWorkspace } from './WorkspaceContext';
 import { useUsers } from './UserContext';
-import { useAccountsPayable } from './AccountsPayableContext';
 import { validateWorkspace } from '@/lib/supabaseWorkspaceClient';
 import {
     Supplier,
@@ -37,6 +36,7 @@ interface ProcurementContextType {
     updatePurchaseOrderStatus: (id: string, status: PurchaseOrderStatus, notes?: string) => Promise<any>;
     approvePurchaseOrder: (id: string, comments: string) => Promise<any>;
     rejectPurchaseOrder: (id: string, comments: string) => Promise<any>;
+    deletePurchaseOrder: (id: string) => Promise<any>;
 
     // Receptions
     registerReception: (reception: Partial<WarehouseReceipt>, itemsReceived: { product_id: string, quantity_received: number, condition?: any, notes?: string }[]) => Promise<any>;
@@ -44,6 +44,7 @@ interface ProcurementContextType {
     // Requests
     addPurchaseRequest: (request: Partial<PurchaseRequest>) => Promise<any>;
     updatePurchaseRequest: (id: string, updates: Partial<PurchaseRequest>) => Promise<any>;
+    deletePurchaseRequest: (id: string) => Promise<any>;
     convertRequestToOrder: (request: PurchaseRequest, supplierId: string) => Promise<any>;
 
     // Budgets
@@ -56,7 +57,6 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const { user: authUser } = useAuth();
     const { workspace } = useWorkspace();
     const { isLoadingProfile } = useUsers();
-    const { addPayable } = useAccountsPayable();
 
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
@@ -110,7 +110,6 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
         approved_at: row.approved_at ? new Date(row.approved_at) : undefined,
         payment_terms: row.payment_terms,
         estimated_delivery_date: row.estimated_delivery_date ? new Date(row.estimated_delivery_date) : undefined,
-        precio_real: row.precio_real ? Number(row.precio_real) : undefined,
         evidencia_url: row.evidencia_url,
         updated_at: new Date(row.updated_at),
         // Legado UI (Mantenido para compatibilidad temporal)
@@ -149,7 +148,6 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
         description: row.description,
         custom_item_name: row.custom_item_name,
         quantity: Number(row.quantity),
-        estimated_cost: Number(row.estimated_cost),
         uom: row.uom,
         reason: row.reason,
         priority: row.priority as any,
@@ -378,27 +376,18 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
         const mappedOrder = mapOrder(data);
         setPurchaseOrders(prev => prev.map(o => o.id === id ? mappedOrder : o));
 
-        // Create Account Payable automatically
+        // Create Payment record for the approved Purchase Order automatically
         try {
-            const supplier = suppliers.find(s => s.id === (data.proveedor_id));
-            const amount = mappedOrder.precio_real && mappedOrder.precio_real > 0 ? mappedOrder.precio_real : mappedOrder.total_amount;
-
-            await addPayable({
+            await supabase.from('accounts_payable_payments').insert([{
                 workspace_id: workspaceId,
-                workspace: workspaceId, // Alias
-                supplier_id: data.proveedor_id,
-                proveedor_id: data.proveedor_id, // Alias
-                purchase_order_id: id, // Critical relation
-                concept: `Orden de compra #${mappedOrder.numero_orden}`,
-                numero_referencia: mappedOrder.numero_orden, // Alias
-                amount: amount,
-                monto: amount, // Alias
-                due_date: supplier?.condicionesPago ?
-                    new Date(Date.now() + (supplier.condicionesPago * 24 * 60 * 60 * 1000)) :
-                    new Date()
-            });
-        } catch (financeError) {
-            console.error("Caution: Account Payable auto-generation failed during approval", financeError);
+                purchase_order_id: id,
+                amount: mappedOrder.total_amount || 0,
+                payment_method: 'Por Definir',
+                notes: `Pago automático generado por aprobación de OC #${mappedOrder.numero_orden}`,
+                created_by: authUser?.id
+            }]);
+        } catch (paymentError) {
+            console.error("Caution: Purchase Order Payment auto-generation failed during approval", paymentError);
         }
 
         return data;
@@ -465,6 +454,17 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
         return receiptData;
     };
 
+    const deletePurchaseOrder = async (id: string) => {
+        const workspaceId = validateWorkspace(workspace?.id);
+        const { error } = await supabase.from('purchase_orders')
+            .delete()
+            .eq('id', id)
+            .eq('workspace_id', workspaceId);
+
+        if (error) throw error;
+        setPurchaseOrders(prev => prev.filter(o => o.id !== id));
+    };
+
     const addPurchaseRequest = async (request: Partial<PurchaseRequest>) => {
         const workspaceId = validateWorkspace(workspace?.id);
         const { data, error } = await supabase.from('purchase_requests').insert([{
@@ -475,7 +475,6 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
             custom_item_name: request.custom_item_name,
             quantity: request.quantity,
             uom: request.uom,
-            estimated_cost: request.estimated_cost,
             reason: request.reason,
             priority: request.priority || 'normal',
             required_date: request.required_date,
@@ -502,6 +501,17 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
         return data;
     };
 
+    const deletePurchaseRequest = async (id: string) => {
+        const workspaceId = validateWorkspace(workspace?.id);
+        const { error } = await supabase.from('purchase_requests')
+            .delete()
+            .eq('id', id)
+            .eq('workspace_id', workspaceId);
+
+        if (error) throw error;
+        setPurchaseRequests(prev => prev.filter(r => r.id !== id));
+    };
+
     const convertRequestToOrder = async (request: PurchaseRequest, supplierId: string) => {
         const workspaceId = validateWorkspace(workspace?.id);
 
@@ -509,12 +519,9 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
         if (!request.id) throw new Error("ID de solicitud faltante");
         if (!request.workspace_id) throw new Error("Workspace ID de la solicitud faltante");
         if (!supplierId) throw new Error("Debe seleccionar un proveedor antes de crear la Orden de Compra");
-        if (request.estimated_cost === undefined || request.estimated_cost === null) {
-            throw new Error("La solicitud debe tener un costo estimado para generar una OC");
-        }
 
         const orderNumber = generateOrderNumber();
-        const totalAmount = (request.quantity || 0) * (request.estimated_cost || 0);
+        const totalAmount = 0; // Se definirá al editar la orden de compra
 
         // 1. Create Purchase Order
         const { data: orderData, error: orderError } = await supabase.from('purchase_orders').insert([{
@@ -543,8 +550,8 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
             product_id: request.product_id,
             descripcion: request.title || request.custom_item_name || 'Item sin descripción',
             cantidad_solicitada: request.quantity || 1,
-            precio_unitario: request.estimated_cost || 0,
-            total_linea: (request.quantity || 1) * (request.estimated_cost || 0)
+            precio_unitario: 0,
+            total_linea: 0
         }];
 
         console.log("Items a insertar:", itemsToInsert);
@@ -598,9 +605,11 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
             updatePurchaseOrderStatus,
             approvePurchaseOrder,
             rejectPurchaseOrder,
+            deletePurchaseOrder,
             registerReception,
             addPurchaseRequest,
             updatePurchaseRequest,
+            deletePurchaseRequest,
             convertRequestToOrder,
             getBudgetStatus
         }}>

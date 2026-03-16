@@ -14,10 +14,10 @@ import {
     XCircle,
     Tag,
     ShoppingCart,
-    DollarSign,
     Info,
     Building2,
-    ArrowRight
+    ArrowRight,
+    Trash2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -29,6 +29,7 @@ export default function PurchaseRequestsManager() {
         purchaseRequests,
         refreshProcurementData,
         updatePurchaseRequest,
+        deletePurchaseRequest,
         convertRequestToOrder
     } = useProcurement();
     const { workspace } = useWorkspace();
@@ -101,7 +102,6 @@ export default function PurchaseRequestsManager() {
                 description: formData.description,
                 quantity: formData.quantity === "" ? 0 : Number(formData.quantity),
                 uom: formData.uom,
-                estimated_cost: formData.estimated_cost === "" ? 0 : Number(formData.estimated_cost),
                 required_date: formData.required_date,
                 department: formData.department,
                 priority: formData.priority,
@@ -169,12 +169,22 @@ export default function PurchaseRequestsManager() {
             {/* List */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredRequests.map(req => (
-                    <RequestCard
-                        key={req.id}
-                        request={req}
-                        onConvert={() => handleOpenConvertModal(req)}
-                        onUpdate={(status) => updatePurchaseRequest(req.id, { status })}
-                    />
+                        <RequestCard
+                            key={req.id}
+                            request={req}
+                            onConvert={() => handleOpenConvertModal(req)}
+                            onUpdate={(status) => updatePurchaseRequest(req.id, { status })}
+                            onDelete={async () => {
+                                if (window.confirm('¿Estás seguro de que deseas eliminar esta solicitud de compra? Esta acción no se puede deshacer.')) {
+                                    try {
+                                        await deletePurchaseRequest(req.id);
+                                    } catch (error) {
+                                        console.error(error);
+                                        alert("Error al eliminar la solicitud.");
+                                    }
+                                }
+                            }}
+                        />
                 ))}
 
                 {filteredRequests.length === 0 && (
@@ -204,10 +214,11 @@ export default function PurchaseRequestsManager() {
     );
 }
 
-function RequestCard({ request, onConvert, onUpdate }: {
+function RequestCard({ request, onConvert, onUpdate, onDelete }: {
     request: PurchaseRequest,
     onConvert: () => void,
-    onUpdate: (status: any) => void
+    onUpdate: (status: any) => void,
+    onDelete: () => void
 }) {
     const priorityColors = {
         baja: 'bg-gray-100 text-gray-600',
@@ -250,10 +261,6 @@ function RequestCard({ request, onConvert, onUpdate }: {
                         <span>{request.quantity} {request.uom}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <DollarSign size={16} className="text-gray-400" />
-                        <span>${request.estimated_cost || 0}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
                         <Clock size={16} className="text-gray-400" />
                         <span>{format(request.required_date ? new Date(request.required_date) : new Date(), 'dd MMM', { locale: es })}</span>
                     </div>
@@ -281,6 +288,13 @@ function RequestCard({ request, onConvert, onUpdate }: {
                         >
                             <XCircle size={20} />
                         </button>
+                        <button
+                            onClick={onDelete}
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
+                            title="Eliminar"
+                        >
+                            <Trash2 size={20} />
+                        </button>
                     </div>
                 )}
                 {request.status === 'approved' && (
@@ -289,6 +303,15 @@ function RequestCard({ request, onConvert, onUpdate }: {
                         className="flex items-center gap-2 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-blue-700 transition"
                     >
                         <Plus size={16} /> Crear OC
+                    </button>
+                )}
+                {request.status !== 'pending' && (
+                    <button
+                        onClick={onDelete}
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
+                        title="Eliminar"
+                    >
+                        <Trash2 size={18} />
                     </button>
                 )}
                 <div className="text-[10px] text-gray-400 font-medium ml-auto">
@@ -307,8 +330,7 @@ function NewRequestModal({ onClose, onSave }: { onClose: () => void, onSave: (da
         uom: 'pza',
         priority: 'normal',
         required_date: format(new Date(), 'yyyy-MM-dd'),
-        department: '',
-        estimated_cost: '' as string | number
+        department: ''
     });
 
     const validateForm = () => {
@@ -386,16 +408,6 @@ function NewRequestModal({ onClose, onSave }: { onClose: () => void, onSave: (da
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-1">Costo Estimado (Opcional)</label>
-                            <input
-                                type="number"
-                                value={formData.estimated_cost ?? ""}
-                                onChange={(e) => setFormData({ ...formData, estimated_cost: e.target.value === "" ? "" : Number(e.target.value) })}
-                                className="w-full px-4 py-2 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-                                placeholder="0.00"
-                            />
-                        </div>
-                        <div>
                             <label className="block text-sm font-bold text-gray-700 mb-1">Departamento</label>
                             <input
                                 type="text"
@@ -405,9 +417,6 @@ function NewRequestModal({ onClose, onSave }: { onClose: () => void, onSave: (da
                                 placeholder="Ventas, IT..."
                             />
                         </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-bold text-gray-700 mb-1">Prioridad</label>
                             <select
@@ -421,6 +430,9 @@ function NewRequestModal({ onClose, onSave }: { onClose: () => void, onSave: (da
                                 <option value="urgente">Urgente</option>
                             </select>
                         </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4">
                         <div>
                             <label className="block text-sm font-bold text-gray-700 mb-1">Fecha Requerida *</label>
                             <input

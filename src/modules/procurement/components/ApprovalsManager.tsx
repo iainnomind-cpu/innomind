@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { useProcurement } from '@/context/ProcurementContext';
-import { ShieldCheck, XCircle, Search, FileText, CheckCircle2, ExternalLink } from 'lucide-react';
+import { ShieldCheck, XCircle, Search, FileText, CheckCircle2, ExternalLink, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 export default function ApprovalsManager() {
-    const { purchaseOrders, suppliers, approvePurchaseOrder, rejectPurchaseOrder } = useProcurement();
+    const { purchaseOrders, suppliers, approvePurchaseOrder, rejectPurchaseOrder, deletePurchaseOrder } = useProcurement();
     const [searchTerm, setSearchTerm] = useState('');
 
     const pendingApprovals = purchaseOrders.filter(o =>
-        (o.estado === 'pending' || o.estado === 'sent')
+        (o.estado === 'pending' || o.estado === 'pending_review')
     );
 
     const filteredApprovals = pendingApprovals.filter(order => {
@@ -25,13 +25,7 @@ export default function ApprovalsManager() {
             const order = purchaseOrders.find(o => o.id === orderId);
             if (!order) throw new Error("Orden no encontrada.");
 
-            // 2. Validar que tenga precio real registrado
-            if (order.precio_real === null || order.precio_real === undefined || order.precio_real <= 0) {
-                alert("La orden no tiene un precio real registrado o es 0. Por favor, asegúrate de haber registrado el costo antes de intentar aprobar.");
-                return;
-            }
-
-            // 3. Ejecutar aprobación centralizada (esto actualiza estado y crea CxP)
+            // 2. Ejecutar aprobación centralizada (esto actualiza estado y crea CxP)
             await approvePurchaseOrder(orderId, "Aprobación gerencial autorizada");
             
             alert("Orden aprobada y enviada a cuentas por pagar exitosamente.");
@@ -113,8 +107,8 @@ export default function ApprovalsManager() {
                             ) : (
                                 filteredApprovals.map(order => {
                                     const supplier = suppliers.find(s => s.id === (order.proveedor_id || order.proveedorId));
-                                    // Mostramos el precio_real como monto a autorizar para validación manual
-                                    const amount = order.precio_real || order.total_amount || order.montoTotal || 0;
+                                    // Monto total de la orden original
+                                    const amount = order.total_amount || order.montoTotal || 0;
                                     const orderNo = order.numero_orden || order.numeroOrden || 'S/N';
                                     const date = order.created_at || order.fechaCreacion || new Date();
 
@@ -162,6 +156,22 @@ export default function ApprovalsManager() {
                                                         className="px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg text-sm font-medium flex items-center gap-1 transition-colors"
                                                     >
                                                         <XCircle size={16} /> Rechazar
+                                                    </button>
+                                                    <button
+                                                        onClick={async () => {
+                                                            if (window.confirm('¿Estás seguro de que deseas eliminar esta orden de compra pendiente de aprobación? Esta acción no se puede deshacer.')) {
+                                                                try {
+                                                                    await deletePurchaseOrder(order.id);
+                                                                } catch (error) {
+                                                                    console.error(error);
+                                                                    alert("Error al eliminar la orden de compra.");
+                                                                }
+                                                            }
+                                                        }}
+                                                        className="px-2 py-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors flex items-center"
+                                                        title="Eliminar orden por completo"
+                                                    >
+                                                        <Trash2 size={16} />
                                                     </button>
                                                 </div>
                                             </td>

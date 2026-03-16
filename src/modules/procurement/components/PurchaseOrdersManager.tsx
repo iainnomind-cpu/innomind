@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProcurement } from '@/context/ProcurementContext';
-import { Search, Plus, ShoppingCart, Clock, CheckCircle, XCircle, FileText, Filter } from 'lucide-react';
+import { Search, Plus, ShoppingCart, Clock, CheckCircle, XCircle, FileText, Filter, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import PurchaseOrderForm from './PurchaseOrderForm';
@@ -10,7 +10,7 @@ import 'jspdf-autotable';
 
 export default function PurchaseOrdersManager() {
     const navigate = useNavigate();
-    const { purchaseOrders, suppliers, updatePurchaseOrderStatus } = useProcurement();
+    const { purchaseOrders, suppliers, updatePurchaseOrderStatus, deletePurchaseOrder } = useProcurement();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -26,8 +26,8 @@ export default function PurchaseOrdersManager() {
         switch (estado?.toLowerCase()) {
             case 'pending':
                 return <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded-md text-xs font-medium flex items-center gap-1"><Clock size={12} /> Pendiente</span>;
-            case 'sent':
-                return <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-medium flex items-center gap-1"><FileText size={12} /> Enviada</span>;
+            case 'pending_review':
+                return <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-medium flex items-center gap-1"><FileText size={12} /> En Revisión</span>;
             case 'approved':
                 return <span className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded-md text-xs font-medium flex items-center gap-1"><CheckCircle size={12} /> Aprobada</span>;
             case 'received':
@@ -219,6 +219,22 @@ export default function PurchaseOrdersManager() {
                                                     className="text-sm text-gray-400 hover:text-gray-600 font-medium"
                                                 >
                                                     Ver
+                                                </button>
+                                                <button
+                                                    onClick={async () => {
+                                                        if (window.confirm('¿Estás seguro de que deseas eliminar esta orden de compra? Se eliminarán también los items relacionados.')) {
+                                                            try {
+                                                                await deletePurchaseOrder(order.id);
+                                                            } catch (error) {
+                                                                console.error(error);
+                                                                alert("Error al eliminar la orden de compra.");
+                                                            }
+                                                        }
+                                                    }}
+                                                    className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition inline-flex items-center justify-center align-middle"
+                                                    title="Eliminar"
+                                                >
+                                                    <Trash2 size={16} />
                                                 </button>
                                             </td>
                                         </tr>
