@@ -30,6 +30,7 @@ import FinanceLayout from '@/modules/finance/FinanceLayout';
 import ProcurementLayout from '@/modules/procurement/ProcurementLayout';
 import WorkspaceLayout from '@/modules/workspace/WorkspaceLayout';
 import Login from './components/auth/Login';
+import ResetPassword from './components/auth/ResetPassword';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
 import { AppProviders } from './components/providers/AppProviders';
@@ -49,6 +50,7 @@ function App() {
 
         {/* Rutas del CRM */}
         <Route path="/crm/login" element={<Login />} />
+        <Route path="/crm/reset-password" element={<ResetPassword />} />
 
         <Route element={<ProtectedRoute />}>
           <Route path="/crm" element={<Layout />}>
