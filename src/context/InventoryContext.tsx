@@ -95,9 +95,9 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setIsLoadingInventory(true);
         try {
             const [prodRes, locRes, movRes] = await Promise.all([
-                supabase.from('products').select('*').eq('workspace_id', workspaceId).order('nombre', { ascending: true }),
-                supabase.from('inventory_locations').select('*').eq('workspace_id', workspaceId).order('nombre', { ascending: true }),
-                supabase.from('inventory_movements').select('*').eq('workspace_id', workspaceId).order('fecha_movimiento', { ascending: false })
+                supabase.from('products').select('*').eq('workspace', workspaceId).order('nombre', { ascending: true }),
+                supabase.from('inventory_locations').select('*').eq('workspace', workspaceId).order('nombre', { ascending: true }),
+                supabase.from('inventory_movements').select('*').eq('workspace', workspaceId).order('fecha_movimiento', { ascending: false })
             ]);
 
             if (prodRes.data) setProducts(prodRes.data.map(mapProductFromDB));
@@ -133,7 +133,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             track_inventory: productData.trackInventory,
             es_paquete_servicios: productData.esPaqueteServicios,
             activo: productData.activo,
-            workspace_id: workspaceId
+            workspace: workspaceId
         };
         const { data, error } = await supabase.from('products').insert(payload).select().single();
         if (error) throw error;
@@ -158,7 +158,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         const { error } = await supabase.from('products')
             .update(payload)
             .eq('id', id)
-            .eq('workspace_id', workspaceId);
+            .eq('workspace', workspaceId);
 
         if (error) throw error;
         setProducts(prev => prev.map(p => p.id === id ? { ...p, ...data } : p));
@@ -169,7 +169,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         const { error } = await supabase.from('products')
             .delete()
             .eq('id', id)
-            .eq('workspace_id', workspaceId);
+            .eq('workspace', workspaceId);
 
         if (error) throw error;
         setProducts(prev => prev.filter(p => p.id !== id));
@@ -183,7 +183,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             direccion: location.direccion,
             tipo: location.tipo,
             activo: location.activo,
-            workspace_id: workspaceId
+            workspace: workspaceId
         };
         const { data, error } = await supabase.from('inventory_locations').insert(payload).select().single();
         if (error) throw error;
@@ -201,7 +201,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         const { error } = await supabase.from('inventory_locations')
             .update(payload)
             .eq('id', id)
-            .eq('workspace_id', workspaceId);
+            .eq('workspace', workspaceId);
 
         if (error) throw error;
         setLocations(prev => prev.map(l => l.id === id ? { ...l, ...data } : l));
@@ -212,7 +212,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         const { error } = await supabase.from('inventory_locations')
             .delete()
             .eq('id', id)
-            .eq('workspace_id', workspaceId);
+            .eq('workspace', workspaceId);
 
         if (error) throw error;
         setLocations(prev => prev.filter(l => l.id !== id));
@@ -230,7 +230,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             notas: movement.notas,
             reference_id: movement.referenceId,
             user_id: authUser?.id,
-            workspace_id: workspaceId
+            workspace: workspaceId
         };
         const { data, error } = await supabase.from('inventory_movements').insert(payload).select().single();
         if (error) throw error;

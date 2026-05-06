@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Plus, Save, Trash2, Edit2, MapPin } from 'lucide-react';
+import { X, Plus, Save, Trash2, Edit2, MapPin, Loader2 } from 'lucide-react';
 import { useInventory } from '@/context/InventoryContext';
 import { InventoryLocation } from '@/types';
 
@@ -18,6 +18,14 @@ export default function LocationSettingsModal({ onClose }: LocationSettingsModal
         activo: true
     });
 
+    const [isLoading, setIsLoading] = useState(false);
+    const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
+    const showToast = (type: 'success' | 'error', text: string) => {
+        setToastMessage({ type, text });
+        setTimeout(() => setToastMessage(null), 3000);
+    };
+
     // For adding a new location
     const [isAdding, setIsAdding] = useState(false);
 
@@ -33,33 +41,62 @@ export default function LocationSettingsModal({ onClose }: LocationSettingsModal
     };
 
     const handleSave = async () => {
-        if (!formData.nombre.trim()) return;
-
-        if (isAdding) {
-            await addLocation({
-                nombre: formData.nombre,
-                direccion: formData.direccion,
-                tipo: formData.tipo,
-                activo: formData.activo
-            });
-            setIsAdding(false);
-        } else if (editingId) {
-            await updateLocation(editingId, {
-                nombre: formData.nombre,
-                direccion: formData.direccion,
-                tipo: formData.tipo,
-                activo: formData.activo
-            });
-            setEditingId(null);
+        if (!formData.nombre.trim()) {
+            showToast('error', 'El nombre del almacén es obligatorio');
+            return;
         }
 
-        // Reset form
-        setFormData({ nombre: '', direccion: '', tipo: 'Principal', activo: true });
+        setIsLoading(true);
+
+        try {
+            if (isAdding) {
+                await addLocation({
+                    nombre: formData.nombre,
+                    direccion: formData.direccion,
+                    tipo: formData.tipo,
+                    activo: formData.activo
+                });
+                showToast('success', 'Almacén creado exitosamente');
+                setIsAdding(false);
+            } else if (editingId) {
+                await updateLocation(editingId, {
+                    nombre: formData.nombre,
+                    direccion: formData.direccion,
+                    tipo: formData.tipo,
+                    activo: formData.activo
+                });
+                showToast('success', 'Almacén actualizado exitosamente');
+                setEditingId(null);
+            }
+
+            // Reset form
+            setFormData({ nombre: '', direccion: '', tipo: 'Principal', activo: true });
+        } catch (error: any) {
+            console.error("Error saving location", error);
+            if (error?.code === '42501') {
+                showToast('error', 'Error 403: No tienes permisos en este workspace.');
+            } else if (error?.code === '23505') {
+                 showToast('error', 'Ya existe un almacén con este nombre.');
+            } else {
+                showToast('error', error?.message || 'Ocurrió un error al guardar el almacén');
+            }
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleDelete = async (id: string) => {
         if (confirm('¿Estás seguro de eliminar este almacén? Podría afectar los movimientos registrados en él.')) {
-            await deleteLocation(id);
+            setIsLoading(true);
+            try {
+                await deleteLocation(id);
+                showToast('success', 'Almacén eliminado exitosamente');
+            } catch (error: any) {
+                console.error("Error deleting location", error);
+                showToast('error', error?.message || 'Ocurrió un error al eliminar el almacén');
+            } finally {
+                setIsLoading(false);
+            }
         }
     };
 
@@ -76,7 +113,12 @@ export default function LocationSettingsModal({ onClose }: LocationSettingsModal
                     </button>
                 </div>
 
-                <div className="p-6 overflow-y-auto flex-1 bg-gray-50">
+                <div className="p-6 overflow-y-auto flex-1 bg-gray-50 relative">
+                    {toastMessage && (
+                        <div className={`absolute top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-lg shadow-lg text-white font-medium z-10 ${toastMessage.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+                            {toastMessage.text}
+                        </div>
+                    )}
                     {/* List of current locations */}
                     <div className="space-y-4 mb-6">
                         <div className="flex justify-between items-center mb-4">
@@ -180,10 +222,11 @@ export default function LocationSettingsModal({ onClose }: LocationSettingsModal
                                         </button>
                                         <button
                                             onClick={handleSave}
-                                            disabled={!formData.nombre.trim()}
+                                            disabled={!formData.nombre.trim() || isLoading}
                                             className="px-4 py-1.5 bg-blue-600 text-white font-medium hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
                                         >
-                                            <Save size={16} /> Guardar
+                                            {isLoading ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} 
+                                            {isLoading ? 'Guardando...' : 'Guardar'}
                                         </button>
                                     </div>
                                 </div>
