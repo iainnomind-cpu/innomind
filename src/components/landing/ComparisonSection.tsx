@@ -33,7 +33,7 @@ export default function ComparisonSection() {
                         </div>
 
                         <ul className="space-y-4 mb-8 flex-grow relative z-10">
-                            <ListItem text="Implementación rápida (30 días)" />
+                            <ListItem text="Acceso inmediato" />
                             <ListItem text="Suscripción mensual desde $XXX" />
                             <ListItem text="Actualizaciones automáticas incluidas" />
                             <ListItem text="Soporte técnico 24/7" />

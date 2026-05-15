@@ -48,9 +48,6 @@ export default function LogisticsPage() {
                                     >
                                         Solicitar Cotización
                                     </button>
-                                    <button className="px-8 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-white font-bold rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2">
-                                        Ver Demo en Vivo <ArrowRight className="w-5 h-5" />
-                                    </button>
                                 </div>
                             </div>
 
@@ -73,8 +70,8 @@ export default function LogisticsPage() {
                                                 <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Facturas Perdidas</div>
                                             </div>
                                             <div>
-                                                <div className="text-4xl font-extrabold text-slate-800 dark:text-white mb-2">72h</div>
-                                                <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Implementación</div>
+                                                <div className="text-4xl font-extrabold text-slate-800 dark:text-white mb-2">3M</div>
+                                                <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Implementación Max.</div>
                                             </div>
                                         </div>
 
@@ -269,9 +266,6 @@ export default function LogisticsPage() {
                                 className="px-8 py-4 bg-teal-500 hover:bg-teal-600 text-white font-bold rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5"
                             >
                                 Solicitar Cotización
-                            </button>
-                            <button className="px-8 py-4 bg-transparent text-white border-2 border-white/20 hover:border-white/40 hover:bg-white/5 font-bold rounded-xl transition-all">
-                                Ver Demo en Vivo
                             </button>
                         </div>
                     </div>

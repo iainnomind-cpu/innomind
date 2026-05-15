@@ -48,9 +48,6 @@ export default function HealthPage() {
                                     >
                                         Solicitar Cotización
                                     </button>
-                                    <button className="px-8 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-white font-bold rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2">
-                                        Ver Demo en Vivo <ArrowRight className="w-5 h-5" />
-                                    </button>
                                 </div>
                             </div>
 
@@ -73,8 +70,8 @@ export default function HealthPage() {
                                                 <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Historial Centralizado</div>
                                             </div>
                                             <div>
-                                                <div className="text-4xl font-extrabold text-slate-800 dark:text-white mb-2">72h</div>
-                                                <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Implementación</div>
+                                                <div className="text-4xl font-extrabold text-slate-800 dark:text-white mb-2">3M</div>
+                                                <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Implementación Max.</div>
                                             </div>
                                         </div>
 
@@ -259,7 +256,7 @@ export default function HealthPage() {
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-10 text-rose-100 font-medium text-lg">
                             <span className="flex items-center gap-2"><CheckCircle2 className="w-5 h-5 text-rose-400" /> Agenda inteligente + historial digital</span>
                             <span className="hidden sm:inline text-rose-400/50">•</span>
-                            <span className="flex items-center gap-2"><CheckCircle2 className="w-5 h-5 text-rose-400" /> Implementación en menos de 72 horas</span>
+                            <span className="flex items-center gap-2"><CheckCircle2 className="w-5 h-5 text-rose-400" /> Implementación en máximo 3 meses</span>
                         </div>
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -268,9 +265,6 @@ export default function HealthPage() {
                                 className="px-8 py-4 bg-white text-rose-900 hover:bg-rose-50 font-bold rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5"
                             >
                                 Solicitar Cotización
-                            </button>
-                            <button className="px-8 py-4 bg-transparent text-white border-2 border-white/20 hover:border-white/40 hover:bg-white/5 font-bold rounded-xl transition-all">
-                                Ver Demo en Vivo
                             </button>
                         </div>
                     </div>
