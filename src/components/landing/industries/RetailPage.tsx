@@ -44,7 +44,7 @@ export default function RetailPage() {
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                   <button
-                    onClick={openDemoModal}
+                    onClick={() => openDemoModal('ERP Retail')}
                     className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/25 transition-all transform hover:-translate-y-0.5"
                   >
                     Solicitar Cotización
@@ -267,7 +267,7 @@ export default function RetailPage() {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
-                onClick={openDemoModal}
+                onClick={() => openDemoModal('ERP Retail')}
                 className="px-8 py-4 bg-white text-blue-900 hover:bg-blue-50 font-bold rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5"
               >
                 Solicitar Cotización

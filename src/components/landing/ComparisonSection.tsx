@@ -76,7 +76,7 @@ export default function ComparisonSection() {
                         </ul>
 
                         <div className="mt-auto pt-6 border-t border-white/10 relative z-10">
-                            <button onClick={openDemoModal} className="w-full mb-3 bg-white text-slate-900 hover:bg-slate-100 font-bold py-3 px-6 rounded-lg transition-colors shadow-lg">
+                            <button onClick={() => openDemoModal('Desarrollo a Medida')} className="w-full mb-3 bg-white text-slate-900 hover:bg-slate-100 font-bold py-3 px-6 rounded-lg transition-colors shadow-lg">
                                 Solicitar Cotización
                             </button>
                             <a href="/casos-exito" className="block text-center text-sm font-semibold text-slate-400 hover:text-white transition-colors flex items-center justify-center gap-1">

@@ -4,7 +4,7 @@ import { useModal } from '../../context/ModalContext';
 import { supabase } from '@/lib/supabase';
 
 export default function DemoRequestModal() {
-    const { isDemoModalOpen, closeDemoModal } = useModal();
+    const { isDemoModalOpen, closeDemoModal, serviceOfInterest } = useModal();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [apiError, setApiError] = useState<string | null>(null);
@@ -12,6 +12,7 @@ export default function DemoRequestModal() {
     const [fullName, setFullName] = useState('');
     const [companyName, setCompanyName] = useState('');
     const [phone, setPhone] = useState('');
+    const [industry, setIndustry] = useState('');
 
     const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
 
@@ -21,11 +22,11 @@ export default function DemoRequestModal() {
         setTouched(prev => ({ ...prev, [field]: true }));
     };
 
-    const isFormValid = fullName.trim() !== '' && companyName.trim() !== '' && phone.trim() !== '';
+    const isFormValid = fullName.trim() !== '' && companyName.trim() !== '' && phone.trim() !== '' && industry.trim() !== '';
 
     const handleSubmit = async () => {
         if (!isFormValid) {
-            setTouched({ fullName: true, companyName: true, phone: true });
+            setTouched({ fullName: true, companyName: true, phone: true, industry: true });
             return;
         }
 
@@ -34,7 +35,7 @@ export default function DemoRequestModal() {
 
         try {
             // Log to console for debugging
-            console.log("Submitting Demo Request to finapp CRM:", { fullName, companyName, phone });
+            console.log("Submitting Demo Request to finapp CRM:", { fullName, companyName, phone, industry, serviceOfInterest });
             
             // Enviar datos al CRM (finapp) usando su URL y Anon Key
             const finappSupabaseUrl = 'https://mndkjjxtuqizpvkjnnde.supabase.co';
@@ -52,6 +53,8 @@ export default function DemoRequestModal() {
                     full_name: fullName,
                     company_name: companyName,
                     phone: phone,
+                    industry: industry,
+                    service_of_interest: serviceOfInterest || 'General',
                     status: 'nuevo',
                     created_at: new Date().toISOString()
                 })
@@ -69,6 +72,7 @@ export default function DemoRequestModal() {
                 setFullName('');
                 setCompanyName('');
                 setPhone('');
+                setIndustry('');
                 setTouched({});
             }, 3000);
         } catch (error: any) {
@@ -171,6 +175,24 @@ export default function DemoRequestModal() {
                                             }`}
                                     />
                                     {touched.phone && !phone.trim() && <p className="text-xs text-red-500 font-medium">El teléfono es obligatorio</p>}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">
+                                        Giro del Negocio <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        placeholder="Ej. Retail, Manufactura, Servicios, etc."
+                                        value={industry}
+                                        onChange={(e) => setIndustry(e.target.value)}
+                                        onBlur={() => handleBlur('industry')}
+                                        className={`w-full px-4 py-3 rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 outline-none transition-all ${touched.industry && !industry.trim()
+                                            ? 'border-red-500 focus:ring-2 focus:ring-red-200'
+                                            : 'border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                                            }`}
+                                    />
+                                    {touched.industry && !industry.trim() && <p className="text-xs text-red-500 font-medium">El giro del negocio es obligatorio</p>}
                                 </div>
                                 
                                 {apiError && (

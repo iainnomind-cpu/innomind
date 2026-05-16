@@ -82,7 +82,7 @@ export default function ChatbotSection() {
                         </div>
 
                         <div className="mt-auto pt-6 border-t border-white/10 relative z-10">
-                            <button onClick={openDemoModal} className="w-full mb-3 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-lg shadow-green-600/20">
+                            <button onClick={() => openDemoModal('Chatbots con IA')} className="w-full mb-3 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-lg shadow-green-600/20">
                                 Solicitar Cotización
                             </button>
                         </div>
@@ -137,7 +137,7 @@ export default function ChatbotSection() {
                         </div>
 
                         <div className="mt-auto pt-6 border-t border-white/10 relative z-10">
-                            <button onClick={openDemoModal} className="w-full mb-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-lg shadow-emerald-600/20">
+                            <button onClick={() => openDemoModal('Mensajería Masiva por WhatsApp')} className="w-full mb-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-lg shadow-emerald-600/20">
                                 Solicitar Cotización
                             </button>
                         </div>
@@ -158,7 +158,7 @@ export default function ChatbotSection() {
                                 Cada conversación del chatbot y cada respuesta a tus campañas masivas se registra automáticamente en el CRM de Innomind. Leads calificados, historial de interacciones y seguimiento comercial — sin datos dispersos.
                             </p>
                         </div>
-                        <button onClick={openDemoModal} className="flex-shrink-0 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-colors shadow-lg shadow-green-600/20 flex items-center gap-2">
+                        <button onClick={() => openDemoModal('Integración CRM y Chatbots')} className="flex-shrink-0 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-colors shadow-lg shadow-green-600/20 flex items-center gap-2">
                             Solicitar Info <ArrowRight size={16} />
                         </button>
                     </div>

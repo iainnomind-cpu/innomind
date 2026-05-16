@@ -43,7 +43,7 @@ export default function ServicesPage() {
 
                                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                                     <button
-                                        onClick={openDemoModal}
+                                        onClick={() => openDemoModal('ERP Servicios')}
                                         className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/25 transition-all transform hover:-translate-y-0.5"
                                     >
                                         Solicitar Cotización
@@ -262,7 +262,7 @@ export default function ServicesPage() {
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             <button
-                                onClick={openDemoModal}
+                                onClick={() => openDemoModal('ERP Servicios')}
                                 className="px-8 py-4 bg-white text-indigo-900 hover:bg-indigo-50 font-bold rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5"
                             >
                                 Solicitar Cotización

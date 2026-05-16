@@ -43,7 +43,7 @@ export default function EducationPage() {
 
                                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                                     <button
-                                        onClick={openDemoModal}
+                                        onClick={() => openDemoModal('ERP Educación')}
                                         className="px-8 py-4 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-violet-500/25 transition-all transform hover:-translate-y-0.5"
                                     >
                                         Solicitar Cotización
@@ -262,7 +262,7 @@ export default function EducationPage() {
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             <button
-                                onClick={openDemoModal}
+                                onClick={() => openDemoModal('ERP Educación')}
                                 className="px-8 py-4 bg-white text-violet-900 hover:bg-violet-50 font-bold rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5"
                             >
                                 Solicitar Cotización

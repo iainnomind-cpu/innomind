@@ -53,7 +53,7 @@ export default function Hero() {
                             <button onClick={openFreeTrial} className="h-14 px-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold shadow-lg shadow-blue-600/20 transition-all hover:scale-105 flex items-center justify-center gap-2">
                                 Comenzar Prueba Gratuita <ArrowRight size={20} />
                             </button>
-                            <button onClick={openDemoModal} className="h-14 px-8 rounded-lg glass-panel hover:bg-white/10 text-white text-lg font-bold border border-white/20 transition-all flex items-center justify-center gap-2 group">
+                            <button onClick={() => openDemoModal('Plataforma General')} className="h-14 px-8 rounded-lg glass-panel hover:bg-white/10 text-white text-lg font-bold border border-white/20 transition-all flex items-center justify-center gap-2 group">
                                 <Play size={20} className="fill-current text-white group-hover:scale-110 transition-transform" />
                                 Ver Demo
                             </button>

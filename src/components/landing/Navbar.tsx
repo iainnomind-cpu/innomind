@@ -99,7 +99,7 @@ export default function Navbar() {
                 </div>
                 <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg">
                   <button onClick={openFreeTrial} className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-4 rounded-lg shadow transition-all hover:scale-105">Comenzar Prueba Gratuita</button>
-                  <button onClick={openDemoModal} className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1">
+                  <button onClick={() => openDemoModal('Ver Demo General')} className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1">
                     Ver Demo <ChevronRight size={14} />
                   </button>
                 </div>
@@ -151,7 +151,7 @@ export default function Navbar() {
                     <SimpleLink icon={<GraduationCap size={18} />} title="Educación" href="/industrias/educacion" />
                   </div>
                   <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
-                    <button onClick={openDemoModal} className="block w-full text-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition-colors">
+                    <button onClick={() => openDemoModal('Cotización General')} className="block w-full text-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition-colors">
                       Solicitar Cotización
                     </button>
                   </div>

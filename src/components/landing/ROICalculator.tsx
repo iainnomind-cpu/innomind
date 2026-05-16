@@ -170,7 +170,7 @@ export default function ROICalculator() {
 
                             {result && (
                                 <div className="mt-8 pt-6 border-t border-white/10 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10">
-                                    <button onClick={openDemoModal} className="w-full bg-white text-slate-900 hover:bg-slate-100 font-bold py-3 rounded-lg transition-colors flex items-center justify-center gap-2">
+                                    <button onClick={() => openDemoModal('Análisis Detallado ROI')} className="w-full bg-white text-slate-900 hover:bg-slate-100 font-bold py-3 rounded-lg transition-colors flex items-center justify-center gap-2">
                                         Solicitar Análisis Detallado <ArrowRight size={18} />
                                     </button>
                                 </div>

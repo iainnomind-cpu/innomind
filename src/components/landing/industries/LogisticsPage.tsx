@@ -43,7 +43,7 @@ export default function LogisticsPage() {
 
                                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                                     <button
-                                        onClick={openDemoModal}
+                                        onClick={() => openDemoModal('ERP Logística')}
                                         className="px-8 py-4 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white font-bold rounded-xl shadow-lg shadow-teal-500/25 transition-all transform hover:-translate-y-0.5"
                                     >
                                         Solicitar Cotización
@@ -262,7 +262,7 @@ export default function LogisticsPage() {
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             <button
-                                onClick={openDemoModal}
+                                onClick={() => openDemoModal('ERP Logística')}
                                 className="px-8 py-4 bg-teal-500 hover:bg-teal-600 text-white font-bold rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5"
                             >
                                 Solicitar Cotización

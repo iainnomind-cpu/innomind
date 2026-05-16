@@ -43,7 +43,7 @@ export default function ManufacturePage() {
 
                                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                                     <button
-                                        onClick={openDemoModal}
+                                        onClick={() => openDemoModal('ERP Manufactura')}
                                         className="px-8 py-4 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white font-bold rounded-xl shadow-lg shadow-orange-500/25 transition-all transform hover:-translate-y-0.5"
                                     >
                                         Solicitar Cotización
@@ -262,7 +262,7 @@ export default function ManufacturePage() {
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             <button
-                                onClick={openDemoModal}
+                                onClick={() => openDemoModal('ERP Manufactura')}
                                 className="px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5"
                             >
                                 Solicitar Cotización
