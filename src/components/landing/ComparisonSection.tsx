@@ -4,7 +4,7 @@ import { Rocket, Settings, Check, ArrowRight } from 'lucide-react';
 import { useModal } from '../../context/ModalContext';
 
 export default function ComparisonSection() {
-    const { openFreeTrial } = useModal();
+    const { openFreeTrial, openDemoModal } = useModal();
     return (
         <section className="py-24 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -13,7 +13,7 @@ export default function ComparisonSection() {
                         ¿Qué modalidad es para ti?
                     </h2>
                     <p className="text-lg text-slate-600 dark:text-slate-400">
-                        Innomind es su socio de transformación digital. Elija entre nuestra plataforma SaaS lista para implementar en días, o un ERP diseñado completamente a la medida de sus procesos únicos. Ambas opciones incluyen CRM, gestión de proyectos e inteligencia artificial integrada.
+                        Innomind es su socio de transformación digital. Elija entre nuestra plataforma SaaS lista para implementar en días, o un desarrollo completamente a la medida de sus procesos únicos. Ambas opciones incluyen <strong>Corē</strong> (ERP-CRM unificado), <strong>Trak</strong> (gestión de proyectos) y herramientas de Inteligencia Artificial integrada.
                     </p>
                 </div>
 
@@ -76,7 +76,7 @@ export default function ComparisonSection() {
                         </ul>
 
                         <div className="mt-auto pt-6 border-t border-white/10 relative z-10">
-                            <button className="w-full mb-3 bg-white text-slate-900 hover:bg-slate-100 font-bold py-3 px-6 rounded-lg transition-colors shadow-lg">
+                            <button onClick={openDemoModal} className="w-full mb-3 bg-white text-slate-900 hover:bg-slate-100 font-bold py-3 px-6 rounded-lg transition-colors shadow-lg">
                                 Solicitar Cotización
                             </button>
                             <a href="/casos-exito" className="block text-center text-sm font-semibold text-slate-400 hover:text-white transition-colors flex items-center justify-center gap-1">

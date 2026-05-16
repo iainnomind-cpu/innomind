@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 
 export default function EducationPage() {
-    const { openFreeTrial } = useModal();
+    const { openFreeTrial, openDemoModal } = useModal();
 
     return (
         <div className="font-display bg-white dark:bg-slate-900 text-slate-900 dark:text-white antialiased selection:bg-violet-600 selection:text-white min-h-screen flex flex-col">
@@ -43,7 +43,7 @@ export default function EducationPage() {
 
                                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                                     <button
-                                        onClick={openFreeTrial}
+                                        onClick={openDemoModal}
                                         className="px-8 py-4 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-violet-500/25 transition-all transform hover:-translate-y-0.5"
                                     >
                                         Solicitar Cotización
@@ -234,7 +234,7 @@ export default function EducationPage() {
                             {[
                                 "CRM de Admisiones", "Seguimiento de Leads", "Control de Pagos",
                                 "Gestión de Alumnos", "Finanzas", "Calendario",
-                                "Planes de Pago / MSI"
+                                "Planes de Pago / MSI", "Chatbot IA", "Mensajería Masiva"
                             ].map((module, idx) => (
                                 <div key={idx} className="px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full text-slate-700 dark:text-slate-200 font-semibold shadow-sm hover:border-violet-500 hover:text-violet-600 dark:hover:text-violet-400 transition-colors cursor-default">
                                     {module}
@@ -262,7 +262,7 @@ export default function EducationPage() {
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             <button
-                                onClick={openFreeTrial}
+                                onClick={openDemoModal}
                                 className="px-8 py-4 bg-white text-violet-900 hover:bg-violet-50 font-bold rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5"
                             >
                                 Solicitar Cotización

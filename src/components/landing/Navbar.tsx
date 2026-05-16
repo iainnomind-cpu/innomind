@@ -8,13 +8,14 @@ import {
   Rocket, Lightbulb, LifeBuoy,
   FileText, BookOpen, Video, Files,
   Star, TrendingUp, Calculator,
-  HelpCircle, MessageCircle, Phone
+  HelpCircle, MessageCircle, Phone,
+  Bot, Send
 } from 'lucide-react';
 import { useModal } from '../../context/ModalContext';
 import { useAuth } from '@/context/AuthContext';
 
 export default function Navbar() {
-  const { openFreeTrial } = useModal();
+  const { openFreeTrial, openDemoModal } = useModal();
   const { session } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -72,35 +73,35 @@ export default function Navbar() {
                 </div>
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <DropdownLink
-                    icon={<LayoutGrid className="text-blue-500" />}
-                    title="CRM Innomind"
-                    desc="Gestión completa de clientes y ventas"
-                    href="/plataforma/crm"
+                    icon={<Database className="text-blue-500" />}
+                    title="Corē"
+                    desc="ERP y CRM unificado en una plataforma"
+                    href="/plataforma/core"
                   />
                   <DropdownLink
                     icon={<BarChart3 className="text-purple-500" />}
-                    title="Project Tracker"
-                    desc="Seguimiento de proyectos en tiempo real"
-                    href="/plataforma/project-tracker"
+                    title="Trak"
+                    desc="Seguimiento de proyectos y tareas"
+                    href="/plataforma/trak"
                   />
                   <DropdownLink
-                    icon={<Database className="text-green-500" />}
-                    title="ERP Estándar"
-                    desc="Planificación de recursos empresariales"
-                    href="/plataforma/erp"
+                    icon={<Bot className="text-emerald-500" />}
+                    title="Chatbots con IA"
+                    desc="Atención automatizada 24/7"
+                    href="/plataforma/chatbots"
                   />
                   <DropdownLink
-                    icon={<Layers className="text-orange-500" />}
-                    title="Suite Completa"
-                    desc="Todas las herramientas integradas"
-                    href="/plataforma/suite"
+                    icon={<Send className="text-green-500" />}
+                    title="Mensajería Masiva"
+                    desc="Campañas masivas por WhatsApp"
+                    href="/plataforma/mensajeria"
                   />
                 </div>
                 <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg">
                   <button onClick={openFreeTrial} className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-4 rounded-lg shadow transition-all hover:scale-105">Comenzar Prueba Gratuita</button>
-                  <a href="/demo" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1">
+                  <button onClick={openDemoModal} className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1">
                     Ver Demo <ChevronRight size={14} />
-                  </a>
+                  </button>
                 </div>
               </div>
             </NavItem>
@@ -150,9 +151,9 @@ export default function Navbar() {
                     <SimpleLink icon={<GraduationCap size={18} />} title="Educación" href="/industrias/educacion" />
                   </div>
                   <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
-                    <a href="/cotizacion" className="block w-full text-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition-colors">
+                    <button onClick={openDemoModal} className="block w-full text-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition-colors">
                       Solicitar Cotización
-                    </a>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -192,6 +193,18 @@ export default function Navbar() {
                     title="Soporte 24/7"
                     desc="Asistencia técnica siempre disponible"
                     href="/servicios/soporte"
+                  />
+                  <DropdownLink
+                    icon={<Bot className="text-emerald-500" />}
+                    title="Chatbots con IA"
+                    desc="Atención automatizada 24/7 con IA"
+                    href="/servicios/chatbots"
+                  />
+                  <DropdownLink
+                    icon={<Send className="text-green-500" />}
+                    title="Mensajería Masiva"
+                    desc="Campañas masivas por WhatsApp"
+                    href="/servicios/mensajeria-masiva"
                   />
                 </div>
                 <div className="text-right">
@@ -277,10 +290,10 @@ export default function Navbar() {
           <div className="p-4 space-y-2">
             <MobileNavItem title="PLATAFORMA" isOpen={activeDropdown === 'PLATAFORMA'} onClick={() => toggleDropdown('PLATAFORMA')}>
               <div className="pl-4 space-y-2 py-2">
-                <MobileLink href="/plataforma/crm" title="CRM Innomind" />
-                <MobileLink href="/plataforma/project-tracker" title="Project Tracker" />
-                <MobileLink href="/plataforma/erp" title="ERP Estándar" />
-                <MobileLink href="/plataforma/suite" title="Suite Completa" />
+                <MobileLink href="/plataforma/core" title="Corē (ERP-CRM)" />
+                <MobileLink href="/plataforma/trak" title="Trak" />
+                <MobileLink href="/plataforma/chatbots" title="Chatbots con IA" />
+                <MobileLink href="/plataforma/mensajeria" title="Mensajería Masiva WhatsApp" />
               </div>
             </MobileNavItem>
 
@@ -311,6 +324,8 @@ export default function Navbar() {
                 <MobileLink href="/servicios/migracion" title="Migración" />
                 <MobileLink href="/servicios/consultoria" title="Consultoría Estratégica" />
                 <MobileLink href="/servicios/soporte" title="Soporte 24/7" />
+                <MobileLink href="/servicios/chatbots" title="Chatbots con IA" />
+                <MobileLink href="/servicios/mensajeria-masiva" title="Mensajería Masiva WhatsApp" />
               </div>
             </MobileNavItem>
 

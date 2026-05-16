@@ -7,6 +7,7 @@ import LogisticsPage from './components/landing/industries/LogisticsPage';
 import HealthPage from './components/landing/industries/HealthPage';
 import EducationPage from './components/landing/industries/EducationPage';
 import FreeTrialModal from './components/ui/FreeTrialModal';
+import DemoRequestModal from './components/ui/DemoRequestModal';
 import Layout from '@/modules/crm/components/Layout';
 import Dashboard from '@/modules/crm/components/Dashboard';
 import Embudo from '@/modules/crm/components/Embudo';
@@ -39,6 +40,7 @@ function App() {
   return (
     <AppProviders>
       <FreeTrialModal />
+      <DemoRequestModal />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/industrias/retail" element={<RetailPage />} />

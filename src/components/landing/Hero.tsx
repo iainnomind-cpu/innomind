@@ -4,7 +4,7 @@ import { Play, ArrowRight, CheckCircle2, TrendingUp, Activity, Brain, DollarSign
 import { useModal } from '../../context/ModalContext';
 
 export default function Hero() {
-    const { openFreeTrial } = useModal();
+    const { openFreeTrial, openDemoModal } = useModal();
     return (
         <div className="relative w-full min-h-[calc(100vh-80px)] flex items-center overflow-hidden mesh-gradient-bg pt-20">
             {/* Background Effects */}
@@ -36,7 +36,7 @@ export default function Hero() {
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white leading-[1.1] tracking-tight">
                             <span className="block mb-2">Automatice su Empresa con Innomind</span>
                             <span className="block text-2xl md:text-3xl font-bold text-slate-300 mb-4">
-                                Plataforma SaaS lista para usar o ERP a la medida de su negocio
+                                Plataforma SaaS lista para usar o desarrollo a la medida de su negocio
                             </span>
                             <span className="block text-xl md:text-2xl font-medium text-slate-400">
                                 📊 Reducción promedio de costos operativos: <span className="font-bold text-white">40%</span>
@@ -45,7 +45,7 @@ export default function Hero() {
 
                         {/* Description */}
                         <p className="text-lg md:text-xl text-slate-400 font-medium leading-relaxed max-w-lg mx-auto lg:mx-0">
-                            Integre ERP, CRM e IA en una sola plataforma. Obtenga insights predictivos y automatice flujos de trabajo complejos. Disponible en modalidad SaaS o desarrollo a la medida.
+                            Descubra <strong>Corē</strong> (nuestro ERP-CRM unificado), <strong>Trak</strong> (gestión de proyectos), chatbots con IA y mensajería masiva por WhatsApp en un solo ecosistema. Obtenga insights predictivos y automatice flujos de trabajo complejos.
                         </p>
 
                         {/* CTAs */}
@@ -53,7 +53,7 @@ export default function Hero() {
                             <button onClick={openFreeTrial} className="h-14 px-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold shadow-lg shadow-blue-600/20 transition-all hover:scale-105 flex items-center justify-center gap-2">
                                 Comenzar Prueba Gratuita <ArrowRight size={20} />
                             </button>
-                            <button className="h-14 px-8 rounded-lg glass-panel hover:bg-white/10 text-white text-lg font-bold border border-white/20 transition-all flex items-center justify-center gap-2 group">
+                            <button onClick={openDemoModal} className="h-14 px-8 rounded-lg glass-panel hover:bg-white/10 text-white text-lg font-bold border border-white/20 transition-all flex items-center justify-center gap-2 group">
                                 <Play size={20} className="fill-current text-white group-hover:scale-110 transition-transform" />
                                 Ver Demo
                             </button>
