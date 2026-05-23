@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Lightbulb, X, Sparkles, TrendingUp } from 'lucide-react';
+import { FEATURES } from '@/config/features';
 
 interface TriggerRule {
     id: string;
@@ -104,7 +105,12 @@ export function SmartTriggerToast({
             primaryActionLabel: 'Activar Prospectos',
             secondaryActionLabel: 'Omitir'
         }
-    ];
+    ].filter(r => {
+        if (r.id === 'rule-compras' && !FEATURES.enableCompras) return false;
+        if (r.id === 'rule-nodo' && !FEATURES.enableNodo) return false;
+        if (r.id === 'rule-inventario' && !FEATURES.enableCompras) return false;
+        return true;
+    });
 
     useEffect(() => {
         if (!lastAddedModule) return;

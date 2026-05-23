@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Sparkles, ArrowRight, Check, Bot, Loader2, ChevronRight, X } from 'lucide-react';
+import { FEATURES } from '@/config/features';
 
 interface AIRecommendationWizardProps {
     onApplyRecommendation: (modules: string[]) => void;
@@ -90,7 +91,9 @@ export function AIRecommendationWizard({ onApplyRecommendation, onCancel }: AIRe
         // Rule 2: Inventario
         if (ans2 === "Sí" || ans2 === "A veces") {
             selectedModules.add("Inventario");
-            selectedModules.add("Compras");
+            if (FEATURES.enableCompras) {
+                selectedModules.add("Compras");
+            }
         }
 
         // Rule 3: Proceso Ventas
@@ -100,7 +103,9 @@ export function AIRecommendationWizard({ onApplyRecommendation, onCancel }: AIRe
 
         // Rule 4: Equipo
         if (ans4 === "6 a 20 personas" || ans4 === "Más de 20") {
-            selectedModules.add("Nodo");
+            if (FEATURES.enableNodo) {
+                selectedModules.add("Nodo");
+            }
         }
 
         // Justification & Type Logic (Simplified)
@@ -153,18 +158,21 @@ Módulos individuales:
 - Calendario
 
 🟢 Gestión Financiera
-(Finanzas: Ingresos, Egresos, Reportes | Compras: Órdenes, Proveedores)
+(Finanzas: Ingresos, Egresos, Reportes${FEATURES.enableCompras ? ' | Compras: Órdenes, Proveedores' : ''})
 
 Módulos individuales:
 - Finanzas
-- Compras
+${FEATURES.enableCompras ? '- Compras' : ''}
 
 🟣 Gestión Operativa
-(Inventario: Productos, Stock, Movimientos | Nodo: Conversaciones, Bandeja, Mi Día, Tareas Globales, Notas)
+(Inventario: Productos, Stock, Movimientos${FEATURES.enableNodo ? ' | Nodo: Conversaciones, Bandeja, Mi Día, Tareas Globales, Notas' : ''})
 
 Módulos individuales:
 - Inventario
-- Nodo
+${FEATURES.enableNodo ? '- Nodo' : ''}
+
+${!FEATURES.enableCompras ? 'NOTA CRÍTICA: El módulo "Compras" está temporalmente desactivado y NO PUEDE ser recomendado. No lo incluyas bajo ningún motivo en la respuesta.' : ''}
+${!FEATURES.enableNodo ? 'NOTA CRÍTICA: El módulo "Nodo" está temporalmente desactivado y NO PUEDE ser recomendado. No lo incluyas bajo ningún motivo en la respuesta.' : ''}
 
 Respuestas del negocio:
 - Reto principal: ${answers[0]}
@@ -195,10 +203,10 @@ REGLAS DE DECISIÓN:
   Inventario.
 
 - Si menciona desorden financiero, falta de control de gastos o flujo de efectivo → incluir:
-  Finanzas y Compras.
+  Finanzas${FEATURES.enableCompras ? ' y Compras' : ''}.
 
 - Si el equipo es mayor a 3 personas o menciona problemas de organización interna → incluir:
-  Nodo.
+  ${FEATURES.enableNodo ? 'Nodo.' : 'únicamente los otros módulos indicados (el módulo Nodo está deshabilitado).'}
 
 - Si existen múltiples problemas → combinar módulos Comerciales + Financieros + Operativos según corresponda.
 

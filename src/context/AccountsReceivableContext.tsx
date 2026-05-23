@@ -11,6 +11,7 @@ import {
     ChargeNotePayment,
     BankMovement,
 } from '@/types';
+export type { ChargeNote, BankMovement };
 
 interface AccountsReceivableContextType {
     chargeNotes: ChargeNote[];
@@ -107,6 +108,44 @@ export const AccountsReceivableProvider: React.FC<{ children: React.ReactNode }>
         }
     }, [authUser, isLoadingProfile, workspace?.id, fetchChargeNotes, fetchBankMovements]);
 
+    useEffect(() => {
+        const tenantId = workspace?.id;
+        if (!tenantId || !authUser) return;
+
+        let timer: any = null;
+        const debouncedRefresh = () => {
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(() => {
+                fetchChargeNotes();
+                fetchBankMovements();
+            }, 500);
+        };
+
+        const channel = supabase
+            .channel(`ar-changes-${tenantId}`)
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'charge_notes', filter: `workspace_id=eq.${tenantId}` },
+                () => debouncedRefresh()
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'charge_note_items' },
+                () => debouncedRefresh()
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'charge_note_payments', filter: `workspace_id=eq.${tenantId}` },
+                () => debouncedRefresh()
+            )
+            .subscribe();
+
+        return () => {
+            if (timer) clearTimeout(timer);
+            supabase.removeChannel(channel);
+        };
+    }, [authUser, workspace?.id, fetchChargeNotes, fetchBankMovements]);
+
     const getChargeNoteById = (id: string) => {
         return chargeNotes.find(note => note.id === id);
     };
@@ -130,8 +169,7 @@ export const AccountsReceivableProvider: React.FC<{ children: React.ReactNode }>
             if (noteId && items.length > 0) {
                 const itemsToInsert = items.map(item => ({
                     ...item,
-                    charge_note_id: noteId,
-                    workspace_id: tenantId
+                    charge_note_id: noteId
                 }));
 
                 const { error: itemsError } = await supabase

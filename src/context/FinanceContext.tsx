@@ -5,6 +5,7 @@ import { useAuth } from './AuthContext';
 import { useWorkspace } from './WorkspaceContext';
 import { useUsers } from './UserContext';
 import { validateWorkspace } from '@/lib/supabaseWorkspaceClient';
+import { useAccountsPayable } from './AccountsPayableContext';
 
 interface FinanceContextType {
     accounts: FinanceAccount[];
@@ -49,8 +50,77 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const { user: authUser } = useAuth();
     const { workspace } = useWorkspace();
     const { isLoadingProfile } = useUsers();
+    const { fetchPayables } = useAccountsPayable();
 
     const [isLoadingFinance, setIsLoadingFinance] = useState(true);
+
+    const generateAccountsPayableForExpense = async (expense: Expense, workspaceId: string) => {
+        const isApproved = ['approved', 'accepted', 'confirmed', 'paid'].includes(expense.status.toLowerCase());
+        if (!isApproved) return;
+
+        try {
+            // Prevent duplicates
+            const { data: existingPayable, error: checkError } = await supabase
+                .from('accounts_payable')
+                .select('id')
+                .eq('reference_id', expense.id)
+                .eq('workspace_id', workspaceId)
+                .maybeSingle();
+
+            if (checkError) {
+                console.error('Error checking existing accounts_payable:', checkError);
+                return;
+            }
+
+            if (!existingPayable) {
+                const supplier_type = expense.paid_by === 'employee' ? 'employee' : 'company_expense';
+                const concept = expense.paid_by === 'employee'
+                    ? `Reembolso de gasto: ${expense.description || expense.category || 'Sin descripción'}`
+                    : `Pago de gasto directo: ${expense.description || expense.category || 'Sin descripción'}`;
+                
+                const notes = expense.paid_by === 'employee'
+                    ? `Generado automáticamente (Reembolso) desde Gastos ID: ${expense.id}`
+                    : `Generado automáticamente (Gasto Directo) desde Gastos ID: ${expense.id}`;
+
+                const payablePayload = {
+                    workspace_id: workspaceId,
+                    workspace: workspaceId, // User requested alias
+                    supplier_type,
+                    supplier_id: null,
+                    employee_id: expense.paid_by === 'employee' ? expense.employee_id : null,
+                    concept,
+                    amount: expense.amount,
+                    monto: expense.amount, // User requested alias
+                    balance_due: expense.amount,
+                    due_date: expense.expense_date instanceof Date 
+                        ? expense.expense_date.toISOString().split('T')[0] 
+                        : new Date(expense.expense_date).toISOString().split('T')[0],
+                    status: 'pending',
+                    estado: 'pending', // User requested alias
+                    notes,
+                    reference_id: expense.id,
+                    created_by: authUser?.id
+                };
+
+                const { error: insertError } = await supabase
+                    .from('accounts_payable')
+                    .insert(payablePayload);
+
+                if (insertError) {
+                    console.error('Error auto-generating accounts_payable:', insertError);
+                } else {
+                    // Refresh payables context in UI
+                    await fetchPayables();
+                }
+            } else {
+                // If it already exists (e.g. generated automatically by the DB trigger),
+                // we must refresh the accounts_payable context to show it in the UI immediately.
+                await fetchPayables();
+            }
+        } catch (error) {
+            console.error('Error in generateAccountsPayableForExpense:', error);
+        }
+    };
     const [accounts, setAccounts] = useState<FinanceAccount[]>([]);
     const [documents, setDocuments] = useState<FinanceDocument[]>([]);
     const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -65,7 +135,11 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         saldoInicial: Number(row.saldo_inicial),
         saldoActual: Number(row.saldo_actual),
         activo: row.activo,
-        updatedAt: new Date(row.updated_at)
+        updatedAt: new Date(row.updated_at),
+        bank_name: row.bank_name || (row.tipo === 'CAJA_CHICA' ? 'Caja Física' : 'Banco General'),
+        account_alias: row.account_alias || row.nombre,
+        last_four_digits: row.last_four_digits || '0000',
+        account_subtype: row.account_subtype || (row.tipo === 'CAJA_CHICA' ? 'Caja Chica' : 'Corriente')
     });
 
     const mapDocument = (row: any): FinanceDocument => ({
@@ -144,11 +218,11 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setIsLoadingFinance(true);
         try {
             const [accRes, docRes, expRes, recurringRes, payRes] = await Promise.all([
-                supabase.from('finance_accounts').select('*').eq('workspace_id', workspaceId).order('nombre'),
-                supabase.from('finance_documents').select('*').eq('workspace_id', workspaceId).order('created_at', { ascending: false }),
+                supabase.from('finance_accounts').select('*').eq('workspace', workspaceId).order('nombre'),
+                supabase.from('finance_documents').select('*').eq('workspace', workspaceId).order('created_at', { ascending: false }),
                 supabase.from('expenses').select('*').eq('workspace_id', workspaceId).order('expense_date', { ascending: false }),
                 supabase.from('recurring_expenses').select('*').eq('workspace_id', workspaceId).order('concept'),
-                supabase.from('finance_payments').select('*').eq('workspace_id', workspaceId).order('fecha_pago', { ascending: false })
+                supabase.from('finance_payments').select('*').eq('workspace', workspaceId).order('fecha_pago', { ascending: false })
             ]);
 
             if (accRes.data) setAccounts(accRes.data.map(mapAccount));
@@ -168,6 +242,58 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
             refreshFinanceData();
         }
     }, [authUser, workspace?.id, isLoadingProfile]);
+
+    useEffect(() => {
+        const tenantId = workspace?.id;
+        if (!tenantId || !authUser) return;
+
+        let timer: any = null;
+        const debouncedRefresh = () => {
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(() => {
+                refreshFinanceData();
+            }, 500);
+        };
+
+        const channel = supabase
+            .channel(`finance-changes-${tenantId}`)
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'finance_accounts', filter: `workspace=eq.${tenantId}` },
+                () => debouncedRefresh()
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'finance_documents', filter: `workspace=eq.${tenantId}` },
+                () => debouncedRefresh()
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'expenses', filter: `workspace_id=eq.${tenantId}` },
+                () => debouncedRefresh()
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'recurring_expenses', filter: `workspace_id=eq.${tenantId}` },
+                () => debouncedRefresh()
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'finance_payments', filter: `workspace=eq.${tenantId}` },
+                () => debouncedRefresh()
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'treasury_movements', filter: `workspace_id=eq.${tenantId}` },
+                () => debouncedRefresh()
+            )
+            .subscribe();
+
+        return () => {
+            if (timer) clearTimeout(timer);
+            supabase.removeChannel(channel);
+        };
+    }, [authUser, workspace?.id]);
 
     // Recurring Expenses
     const addRecurringExpense = async (data: Omit<RecurringExpense, 'id' | 'created_at' | 'workspace_id'>) => {
@@ -210,7 +336,11 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
             saldo_inicial: acc.saldoInicial,
             saldo_actual: acc.saldoInicial,
             activo: acc.activo,
-            workspace_id: workspaceId
+            workspace: workspaceId,
+            bank_name: acc.bank_name || null,
+            account_alias: acc.account_alias || null,
+            last_four_digits: acc.last_four_digits || null,
+            account_subtype: acc.account_subtype || null
         };
         const { data, error } = await supabase.from('finance_accounts').insert(payload).select().single();
         if (error) throw error;
@@ -229,7 +359,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
             const { error } = await supabase.from('finance_accounts')
                 .update(payload)
                 .eq('id', id)
-                .eq('workspace_id', workspaceId);
+                .eq('workspace', workspaceId);
             if (error) throw error;
             refreshFinanceData();
         }
@@ -254,7 +384,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
             concepto: doc.concepto,
             evidencia_url: doc.evidenciaUrl,
             created_by: authUser?.id,
-            workspace_id: workspaceId
+            workspace: workspaceId
         };
 
         const { data, error } = await supabase.from('finance_documents').insert(payload).select().single();
@@ -269,7 +399,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const { error } = await supabase.from('finance_documents')
             .update({ estado })
             .eq('id', id)
-            .eq('workspace_id', workspaceId);
+            .eq('workspace', workspaceId);
         if (error) throw error;
         setDocuments(prev => prev.map(d => d.id === id ? { ...d, estado } : d));
     };
@@ -288,18 +418,41 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         if (error) throw error;
         const newExp = mapExpense(data);
         setExpenses(prev => [newExp, ...prev]);
+
+        // Preventative check if status of newExp is approved/accepted/confirmed
+        if (['approved', 'accepted', 'confirmed', 'paid'].includes(newExp.status.toLowerCase())) {
+            await generateAccountsPayableForExpense(newExp, workspaceId);
+        }
+
         return newExp;
     };
 
     const updateExpenseStatus = async (id: string, status: Expense['status']) => {
         const workspaceId = validateWorkspace(workspace?.id);
+        
+        // Find the current expense in state before state becomes updated asynchronously
+        const currentExpense = expenses.find(e => e.id === id);
+        if (!currentExpense) {
+            console.error(`Expense not found in current context state for id: ${id}`);
+            return;
+        }
+
+        const mergedExpense = { ...currentExpense, status };
+
         const { error } = await supabase.from('expenses')
             .update({ status })
             .eq('id', id)
             .eq('workspace_id', workspaceId);
         if (error) throw error;
 
+        // Update the local React state for expenses
         setExpenses(prev => prev.map(e => e.id === id ? { ...e, status } : e));
+
+        // Generate accounts payable or refetch it if generated by DB trigger
+        if (['approved', 'accepted', 'confirmed', 'paid'].includes(status.toLowerCase())) {
+            await generateAccountsPayableForExpense(mergedExpense, workspaceId);
+        }
+
         if (status === 'approved') {
             setTimeout(() => refreshFinanceData(), 500);
         }
@@ -318,13 +471,13 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
             comprobante_url: payment.comprobanteUrl,
             notas: payment.notas,
             created_by: authUser?.id,
-            workspace_id: workspaceId
+            workspace: workspaceId
         };
 
         const targetDoc = documents.find(d => d.id === payment.documentId);
         if (!targetDoc) return;
 
-        const { data: pData, error: pError } = await supabase.from('finance_payments').insert(payload).select().single();
+        const { error: pError } = await supabase.from('finance_payments').insert(payload).select().single();
         if (pError) throw pError;
 
         const newSaldo = Math.max(0, targetDoc.saldoPendiente - payment.monto);
@@ -333,7 +486,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         await supabase.from('finance_documents')
             .update({ saldo_pendiente: newSaldo, estado: newState })
             .eq('id', targetDoc.id)
-            .eq('workspace_id', workspaceId);
+            .eq('workspace', workspaceId);
 
         if (payment.accountId) {
             const targetAcc = accounts.find(a => a.id === payment.accountId);
@@ -346,7 +499,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 await supabase.from('finance_accounts')
                     .update({ saldo_actual: newAccBalance })
                     .eq('id', targetAcc.id)
-                    .eq('workspace_id', workspaceId);
+                    .eq('workspace', workspaceId);
             }
         }
         refreshFinanceData();
@@ -357,80 +510,47 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const targetAcc = accounts.find(a => a.id === accountId);
         if (!targetAcc) throw new Error("Account not found");
 
-        const delta = type === 'aumentar' ? amount : -amount;
-        const newBalance = (targetAcc.saldoActual || 0) + delta;
-
-        const { error: accError } = await supabase.from('finance_accounts')
-            .update({ saldo_actual: newBalance })
-            .eq('id', accountId)
-            .eq('workspace_id', workspaceId);
-        if (accError) throw accError;
-
-        const { error: movError } = await supabase.from('bank_movements').insert({
-            workspace_id: workspaceId,
-            account_id: accountId,
-            movement_type: 'adjustment',
-            amount: amount,
-            description: reason,
-            movement_date: new Date().toISOString().split('T')[0],
-            created_by: authUser?.id
+        const { error } = await supabase.rpc('create_treasury_movement', {
+            p_workspace_id: workspaceId,
+            p_account_id: accountId,
+            p_movement_type: 'adjustment',
+            p_amount: amount,
+            p_description: reason,
+            p_direction: type === 'aumentar' ? 'in' : 'out',
+            p_category: 'adjustment',
+            p_source_module: 'treasury',
+            p_reference_id: null,
+            p_user_id: authUser?.id
         });
-        if (movError) throw movError;
 
+        if (error) throw error;
         await refreshFinanceData();
     };
 
     const transferBetweenAccounts = async (sourceId: string, targetId: string, amount: number, description: string) => {
         const workspaceId = validateWorkspace(workspace?.id);
-        const sourceAcc = accounts.find(a => a.id === sourceId);
-        const targetAcc = accounts.find(a => a.id === targetId);
-        if (!sourceAcc || !targetAcc) throw new Error("Source or target account not found");
+        
+        const { error } = await supabase.rpc('transfer_between_accounts_v2', {
+            p_workspace_id: workspaceId,
+            p_source_id: sourceId,
+            p_target_id: targetId,
+            p_amount: amount,
+            p_description: description,
+            p_user_id: authUser?.id
+        });
 
-        await supabase.from('finance_accounts')
-            .update({ saldo_actual: (sourceAcc.saldoActual || 0) - amount })
-            .eq('id', sourceId)
-            .eq('workspace_id', workspaceId);
-
-        await supabase.from('finance_accounts')
-            .update({ saldo_actual: (targetAcc.saldoActual || 0) + amount })
-            .eq('id', targetId)
-            .eq('workspace_id', workspaceId);
-
-        const movements = [
-            {
-                workspace_id: workspaceId,
-                account_id: sourceId,
-                movement_type: 'transfer_out',
-                amount: amount,
-                description: `Transferencia a ${targetAcc.nombre}: ${description}`,
-                movement_date: new Date().toISOString().split('T')[0],
-                created_by: authUser?.id
-            },
-            {
-                workspace_id: workspaceId,
-                account_id: targetId,
-                movement_type: 'transfer_in',
-                amount: amount,
-                description: `Transferencia desde ${sourceAcc.nombre}: ${description}`,
-                movement_date: new Date().toISOString().split('T')[0],
-                created_by: authUser?.id
-            }
-        ];
-
-        const { error: movError } = await supabase.from('bank_movements').insert(movements);
-        if (movError) throw movError;
-
+        if (error) throw error;
         await refreshFinanceData();
     };
 
-    const getAccountMovements = async (accountId: string): Promise<BankMovement[]> => {
+    const getAccountMovements = async (accountId: string): Promise<any[]> => {
         const workspaceId = validateWorkspace(workspace?.id);
         const { data, error } = await supabase
-            .from('bank_movements')
+            .from('treasury_movements')
             .select('*')
             .eq('account_id', accountId)
             .eq('workspace_id', workspaceId)
-            .order('movement_date', { ascending: false });
+            .order('created_at', { ascending: false });
 
         if (error) throw error;
 
@@ -438,14 +558,16 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
             id: row.id,
             workspace_id: row.workspace_id,
             account_id: row.account_id,
-            movement_date: row.movement_date,
+            movement_date: row.created_at ? row.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+            created_at: row.created_at,
             movement_type: row.movement_type as TreasuryMovementType,
             amount: Number(row.amount),
             description: row.description,
-            reference: row.reference,
-            created_by: row.created_by,
-            matched_payment_id: row.matched_payment_id,
-            imported_at: row.imported_at
+            direction: row.direction,
+            category: row.category,
+            source_module: row.source_module,
+            balance_after: row.balance_after ? Number(row.balance_after) : null,
+            created_by: row.created_by
         }));
     };
 

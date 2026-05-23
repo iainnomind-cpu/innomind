@@ -34,7 +34,7 @@ export const AccountsPayableProvider: React.FC<{ children: React.ReactNode }> = 
         try {
             const { data, error } = await supabase
                 .from('accounts_payable')
-                .select('*, supplier:suppliers(*)')
+                .select('*, supplier:suppliers!supplier_id(*)')
                 .eq('workspace_id', tenantId)
                 .order('due_date', { ascending: true });
 
@@ -55,6 +55,38 @@ export const AccountsPayableProvider: React.FC<{ children: React.ReactNode }> = 
             setIsLoading(false);
         }
     }, [authUser, isLoadingProfile, workspace?.id, fetchPayables]);
+
+    useEffect(() => {
+        const tenantId = workspace?.id;
+        if (!tenantId || !authUser) return;
+
+        let timer: any = null;
+        const debouncedRefresh = () => {
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(() => {
+                fetchPayables();
+            }, 500);
+        };
+
+        const channel = supabase
+            .channel(`ap-changes-${tenantId}`)
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'accounts_payable', filter: `workspace_id=eq.${tenantId}` },
+                () => debouncedRefresh()
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'accounts_payable_payments', filter: `workspace_id=eq.${tenantId}` },
+                () => debouncedRefresh()
+            )
+            .subscribe();
+
+        return () => {
+            if (timer) clearTimeout(timer);
+            supabase.removeChannel(channel);
+        };
+    }, [authUser, workspace?.id, fetchPayables]);
 
     const getPayableById = (id: string) => {
         return payables.find(p => p.id === id);
@@ -80,7 +112,7 @@ export const AccountsPayableProvider: React.FC<{ children: React.ReactNode }> = 
                     numero_referencia: data.payment_reference || data.numero_referencia,
                     monto: data.amount || data.monto
                 })
-                .select('*, supplier:suppliers(*)')
+                .select('*, supplier:suppliers!supplier_id(*)')
                 .single();
 
             if (error) throw error;
@@ -141,13 +173,21 @@ export const AccountsPayableProvider: React.FC<{ children: React.ReactNode }> = 
                 .update({
                     balance_due: newBalance,
                     status: newStatus,
-                    paid_at: paidAt,
-                    updated_at: new Date().toISOString()
+                    estado: newStatus,
+                    paid_at: paidAt
                 })
                 .eq('id', targetPayable.id)
                 .eq('workspace_id', tenantId);
 
             if (updateError) throw updateError;
+
+            if (newStatus === 'paid' && targetPayable.reference_id) {
+                await supabase
+                    .from('expenses')
+                    .update({ status: 'paid' })
+                    .eq('id', targetPayable.reference_id)
+                    .eq('workspace_id', tenantId);
+            }
 
             await fetchPayables();
         } catch (error) {
@@ -161,12 +201,23 @@ export const AccountsPayableProvider: React.FC<{ children: React.ReactNode }> = 
         try {
             const { error } = await supabase
                 .from('accounts_payable')
-                .update({ status, updated_at: new Date().toISOString() })
+                .update({ status, estado: status })
                 .eq('id', id)
                 .eq('workspace_id', tenantId);
 
             if (error) throw error;
             setPayables(prev => prev.map(p => p.id === id ? { ...p, status } : p));
+
+            if (status === 'paid') {
+                const payable = payables.find(p => p.id === id);
+                if (payable && payable.reference_id) {
+                    await supabase
+                        .from('expenses')
+                        .update({ status: 'paid' })
+                        .eq('id', payable.reference_id)
+                        .eq('workspace_id', tenantId);
+                }
+            }
         } catch (error) {
             console.error('Error updating status:', error);
             throw error;

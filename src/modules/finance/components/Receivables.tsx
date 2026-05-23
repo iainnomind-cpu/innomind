@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { AccountsReceivableProvider } from '@/context/AccountsReceivableContext';
 import ChargeNoteList from './accounts-receivable/ChargeNoteList';
 import BankReconciliationView from './accounts-receivable/BankReconciliationView';

@@ -32,6 +32,7 @@ import WorkspaceLayout from '@/modules/workspace/WorkspaceLayout';
 import Login from './components/auth/Login';
 import ResetPassword from './components/auth/ResetPassword';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import { FEATURES } from '@/config/features';
 
 import { AppProviders } from './components/providers/AppProviders';
 
@@ -83,11 +84,11 @@ function App() {
             <Route path="finance/*" element={<FinanceLayout />} />
 
             {/* Rutas de Workspace (Nodo) */}
-            <Route path="workspace/*" element={<WorkspaceLayout />} />
+            <Route path="workspace/*" element={FEATURES.enableNodo ? <WorkspaceLayout /> : <Navigate to="/crm/dashboard" replace />} />
           </Route>
 
           {/* Módulo de Compras (Ruta Raíz /compras) */}
-          <Route path="/compras/*" element={<Layout />}>
+          <Route path="/compras/*" element={FEATURES.enableCompras ? <Layout /> : <Navigate to="/crm/dashboard" replace />}>
             <Route path="*" element={<ProcurementLayout />} />
           </Route>
         </Route>

@@ -10,6 +10,7 @@ import {
     SpaceType,
     WorkspaceNote
 } from '@/types';
+import { FEATURES } from '@/config/features';
 
 interface WorkspaceContextType {
     spaces: WorkspaceSpace[];
@@ -111,6 +112,15 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             const workspaceId = companyData.id;
             setWorkspace({ id: workspaceId });
 
+            // Short-circuit queries to nonexistent tables if Nodo is deactivated
+            if (!FEATURES.enableNodo) {
+                setSpaces([]);
+                setTasks([]);
+                setNotes([]);
+                setActiveSpace(null);
+                return;
+            }
+
             const [spacesRes, tasksRes, notesRes] = await Promise.all([
                 supabase.from('workspace_spaces').select('*').eq('workspace_id', workspaceId).order('created_at', { ascending: true }),
                 supabase.from('workspace_tasks').select('*').eq('workspace_id', workspaceId).order('created_at', { ascending: false }),
@@ -136,6 +146,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
 
     useEffect(() => {
+        if (!FEATURES.enableNodo) return; // Short-circuit if Nodo is deactivated
         if (!authUser || !activeSpace || !workspace?.id) return;
 
         const fetchMessages = async () => {
@@ -184,6 +195,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }, [authUser, isLoadingProfile]);
 
     const createSpace = async (name: string, type: SpaceType, isPrivate = false, linkedObjectType?: string, linkedObjectId?: string) => {
+        if (!FEATURES.enableNodo) return null;
         const workspaceId = validateWorkspace(workspace?.id);
         const { data, error } = await supabase.from('workspace_spaces').insert([{
             workspace_id: workspaceId,
@@ -210,6 +222,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
 
     const sendMessage = async (content: string, spaceId: string, parentId?: string) => {
+        if (!FEATURES.enableNodo) return;
         const workspaceId = validateWorkspace(workspace?.id);
         const { error } = await supabase.from('workspace_messages').insert([{
             workspace_id: workspaceId,
@@ -222,6 +235,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
 
     const createTaskFromMessage = async (messageId: string, title: string, description?: string, assignedTo?: string, dueDate?: Date) => {
+        if (!FEATURES.enableNodo) return;
         const workspaceId = validateWorkspace(workspace?.id);
         if (!activeSpace) return;
 
@@ -248,6 +262,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
 
     const createNote = async (title: string, spaceId: string, contentJson?: string) => {
+        if (!FEATURES.enableNodo) return null;
         const workspaceId = validateWorkspace(workspace?.id);
         const { data, error } = await supabase.from('workspace_notes').insert([{
             workspace_id: workspaceId,
@@ -264,6 +279,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
 
     const updateNote = async (noteId: string, title?: string, contentJson?: string) => {
+        if (!FEATURES.enableNodo) return;
         const workspaceId = validateWorkspace(workspace?.id);
         const updates: any = { updated_at: new Date().toISOString() };
         if (title !== undefined) updates.title = title;
@@ -279,6 +295,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
 
     const deleteNote = async (noteId: string) => {
+        if (!FEATURES.enableNodo) return;
         const workspaceId = validateWorkspace(workspace?.id);
         const { error } = await supabase.from('workspace_notes')
             .delete()

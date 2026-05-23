@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { useAccountsPayable } from '@/context/AccountsPayableContext';
+import { useFinance } from '@/context/FinanceContext';
 import { AccountsPayable } from '@/types';
 import { X, CreditCard, Upload, FileText, Loader2, AlertCircle } from 'lucide-react';
 
@@ -10,6 +11,7 @@ interface PayablePaymentModalProps {
 
 export default function PayablePaymentModal({ payable, onClose }: PayablePaymentModalProps) {
     const { addPayment } = useAccountsPayable();
+    const { refreshFinanceData } = useFinance();
 
     const [amount, setAmount] = useState(payable.balance_due);
     const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
@@ -51,6 +53,12 @@ export default function PayablePaymentModal({ payable, onClose }: PayablePayment
                 reference_number: reference,
                 workspace_id: payable.workspace_id
             }, evidenceFile || undefined);
+
+            try {
+                await refreshFinanceData();
+            } catch (fErr) {
+                console.error("Failed to refresh finance data:", fErr);
+            }
 
             onClose();
         } catch (err: any) {

@@ -67,7 +67,8 @@ CREATE TABLE IF NOT EXISTS public.prospects (
   fecha_contacto timestamptz DEFAULT now(),
   tamano_empresa text,
   user_id uuid REFERENCES auth.users(id),
-  created_at timestamptz DEFAULT now()
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
 );
 ALTER TABLE public.prospects ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Workspace isolation for prospects" 
@@ -94,7 +95,9 @@ CREATE TABLE IF NOT EXISTS public.quotes (
   notas_adicionales text,
   terminos_condiciones text,
   user_id uuid REFERENCES auth.users(id),
-  items jsonb DEFAULT '[]'::jsonb -- items de la cotización guardados como JSON para simplificar
+  items jsonb DEFAULT '[]'::jsonb, -- items de la cotización guardados como JSON para simplificar
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
 );
 ALTER TABLE public.quotes ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Workspace isolation for quotes" 
@@ -124,11 +127,22 @@ USING (workspace = get_current_workspace());
 -- Esto evita que el front-end pueda manipular o corromper a qué workspace van sus datos
 CREATE OR REPLACE FUNCTION set_workspace_on_insert()
 RETURNS TRIGGER AS $$
+DECLARE
+  v_current_ws text;
 BEGIN
   -- Forza el workspace a la fila insertada desde los datos del usuario logueado
-  NEW.workspace := get_current_workspace();
-  -- Para tablas que guarden user_id de auditoria:
-  -- IF to_jsonb(NEW) ? 'user_id' THEN NEW.user_id := auth.uid(); END IF;
+  v_current_ws := get_current_workspace();
+
+  -- Si la tabla destino contiene la columna 'workspace', asignar el valor
+  IF to_jsonb(NEW) ? 'workspace' THEN
+    NEW.workspace := v_current_ws;
+  END IF;
+
+  -- Si la tabla destino contiene la columna 'workspace_id', asignar el UUID convertido
+  IF to_jsonb(NEW) ? 'workspace_id' THEN
+    NEW.workspace_id := v_current_ws::uuid;
+  END IF;
+
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -152,3 +166,20 @@ FOR EACH ROW EXECUTE FUNCTION set_workspace_on_insert();
 CREATE TRIGGER set_company_profiles_workspace
 BEFORE INSERT ON public.company_profiles
 FOR EACH ROW EXECUTE FUNCTION set_workspace_on_insert();
+
+-- Trigger de updated_at para prospects y quotes
+CREATE OR REPLACE FUNCTION handle_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_prospects_updated_at
+BEFORE UPDATE ON public.prospects
+FOR EACH ROW EXECUTE FUNCTION handle_updated_at();
+
+CREATE TRIGGER update_quotes_updated_at
+BEFORE UPDATE ON public.quotes
+FOR EACH ROW EXECUTE FUNCTION handle_updated_at();

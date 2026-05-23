@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { ChargeNote, useAccountsReceivable } from '@/context/AccountsReceivableContext';
-import { ArrowLeft, Download, Mail, DollarSign, FileText, CheckCircle, AlertCircle, Clock } from 'lucide-react';
+import { ArrowLeft, Download, Mail, DollarSign, FileText } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
@@ -180,7 +180,7 @@ export default function ChargeNoteDetail({ onBack, onOpenPayment }: ChargeNoteDe
                                 </tr>
                             </thead>
                             <tbody>
-                                {selectedNote.items?.map((item, idx) => (
+                                {selectedNote.items?.map((item: any, idx: number) => (
                                     <tr key={idx} className="border-b border-gray-100">
                                         <td className="py-4 px-2">
                                             <p className="font-medium text-gray-900">{item.item_name}</p>
@@ -232,7 +232,7 @@ export default function ChargeNoteDetail({ onBack, onOpenPayment }: ChargeNoteDe
                             </p>
                         ) : (
                             <div className="space-y-4">
-                                {selectedNote.payments.map((p, idx) => (
+                                {selectedNote.payments.map((p: any, idx: number) => (
                                     <div key={idx} className="bg-gray-50 border border-gray-100 p-4 rounded-lg relative overflow-hidden">
                                         <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
                                         <div className="flex justify-between items-start mb-2">

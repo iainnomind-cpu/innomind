@@ -1,6 +1,6 @@
 import React, { useState, useRef, useMemo } from 'react';
-import { useAccountsReceivable, BankMovement } from '@/context/AccountsReceivableContext';
-import { Upload, FileDown, CheckCircle, RefreshCw, XCircle, AlertTriangle } from 'lucide-react';
+import { useAccountsReceivable } from '@/context/AccountsReceivableContext';
+import { Upload, FileDown, CheckCircle, RefreshCw, AlertTriangle } from 'lucide-react';
 import { differenceInDays, parseISO } from 'date-fns';
 
 export default function BankReconciliationView() {
@@ -11,7 +11,7 @@ export default function BankReconciliationView() {
     // Flatten all payments across all charge notes for matching
     const allPayments = useMemo(() => {
         return chargeNotes.flatMap(cn =>
-            (cn.payments || []).map(p => ({
+            (cn.payments || []).map((p: any) => ({
                 ...p,
                 note_number: cn.note_number,
                 client_name: cn.prospect?.nombre

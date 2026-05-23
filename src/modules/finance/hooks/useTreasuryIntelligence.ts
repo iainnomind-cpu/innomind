@@ -2,154 +2,122 @@ import { useMemo, useState } from 'react';
 import { useFinance } from '@/context/FinanceContext';
 import { useAccountsPayable } from '@/context/AccountsPayableContext';
 import { useAccountsReceivable } from '@/context/AccountsReceivableContext';
-import { TreasuryProjectionPoint, TreasuryScenario, AccountsPayable, ChargeNote } from '@/types';
-import { addDays, isSameDay, startOfDay } from 'date-fns';
+import { TreasuryScenario } from '@/types';
+import { addDays, startOfDay } from 'date-fns';
+import { supabase } from '@/lib/supabase';
+import { FinancialEngine } from '../services/FinancialEngine';
+import { AdvisorEngine } from '../services/AdvisorEngine';
 
 export function useTreasuryIntelligence() {
     const { accounts, recurringExpenses } = useFinance();
-    const { payables } = useAccountsPayable();
-    const { chargeNotes } = useAccountsReceivable();
+    const { payables, fetchPayables } = useAccountsPayable();
+    const { chargeNotes, fetchChargeNotes } = useAccountsReceivable();
 
-    const [scenario, setScenario] = useState<TreasuryScenario>('realistic');
+    const [scenario, setScenario] = useState<TreasuryScenario>('conservador');
+    const [isApplyingOverrides, setIsApplyingOverrides] = useState(false);
 
-    // Simulations (Local temporary state for "What if")
-    const [simulatedPayableOverrides, setSimulatedPayableOverrides] = useState<Record<string, { dueDate?: Date, excluded?: boolean }>>({});
-    const [simulatedReceivableOverrides, setSimulatedReceivableOverrides] = useState<Record<string, { dueDate?: Date, excluded?: boolean }>>({});
+    // Simulations (Local temporary state for "What if" - matches FinancialEngine signatures)
+    const [simulatedPayableOverrides, setSimulatedPayableOverrides] = useState<Record<string, { newDueDate?: Date; excluded?: boolean }>>({});
+    const [simulatedReceivableOverrides, setSimulatedReceivableOverrides] = useState<Record<string, { newDueDate?: Date; accelerated?: boolean; excluded?: boolean }>>({});
 
     const initialBalance = useMemo(() => {
         return (accounts || []).reduce((sum, acc) => sum + (acc.saldoActual || 0), 0);
     }, [accounts]);
 
+    const customerScoring = useMemo(() => {
+        return AdvisorEngine.calculateCustomerScoring(chargeNotes || []);
+    }, [chargeNotes]);
+
     const projection = useMemo(() => {
-        const points: TreasuryProjectionPoint[] = [];
-        const today = startOfDay(new Date());
+        return FinancialEngine.calculateProjection(
+            initialBalance,
+            chargeNotes || [],
+            payables || [],
+            recurringExpenses || [],
+            scenario,
+            simulatedPayableOverrides,
+            simulatedReceivableOverrides,
+            customerScoring
+        );
+    }, [
+        initialBalance,
+        chargeNotes,
+        payables,
+        recurringExpenses,
+        scenario,
+        simulatedPayableOverrides,
+        simulatedReceivableOverrides,
+        customerScoring
+    ]);
 
-        // Helper to get adjusted date/amount based on scenario
-        const getAdjustedAR = (note: ChargeNote) => {
-            if (!note || !note.due_date) return null;
-            let dueDate = startOfDay(new Date(note.due_date));
-            let amount = note.balance_due || 0;
+    const burnRate = useMemo(() => {
+        if (!projection || projection.length === 0) return 0;
+        const totalOutflow = projection.reduce((sum, pt) => sum + pt.outflow, 0);
+        return totalOutflow / projection.length;
+    }, [projection]);
 
-            if (simulatedReceivableOverrides[note.id]) {
-                const ov = simulatedReceivableOverrides[note.id];
-                if (ov.excluded) return null;
-                if (ov.dueDate) dueDate = startOfDay(ov.dueDate);
-            }
-
-            if (scenario === 'optimistic') {
-                dueDate = addDays(dueDate, -3); // Collect 3 days earlier
-            } else if (scenario === 'pessimistic') {
-                dueDate = addDays(dueDate, 7); // 7 days delay
-                amount = amount * 0.95; // 5% risk of non-payment or costs
-            }
-            return { dueDate, amount };
-        };
-
-        const getAdjustedAP = (payable: AccountsPayable) => {
-            if (!payable || !payable.due_date) return null;
-            let dueDate = startOfDay(new Date(payable.due_date));
-            let amount = payable.balance_due || 0;
-
-            if (simulatedPayableOverrides[payable.id]) {
-                const ov = simulatedPayableOverrides[payable.id];
-                if (ov.excluded) return null;
-                if (ov.dueDate) dueDate = startOfDay(ov.dueDate);
-            }
-
-            if (scenario === 'pessimistic') {
-                amount = amount * 1.05; // 5% unexpected cost increase
-            }
-            return { dueDate, amount };
-        };
-
-        let rollingBalance = initialBalance;
-
-        for (let i = 0; i <= 90; i++) {
-            const currentDate = addDays(today, i);
-            let dayInflow = 0;
-            let dayOutflow = 0;
-
-            // 1. AR Inflows
-            (chargeNotes || []).forEach(note => {
-                if (!note || note.status === 'paid' || note.status === 'cancelled') return;
-                const adj = getAdjustedAR(note);
-                if (adj && isSameDay(adj.dueDate, currentDate)) {
-                    dayInflow += adj.amount;
-                }
-            });
-
-            // 2. AP Outflows
-            (payables || []).forEach(payable => {
-                if (!payable || payable.status === 'paid' || payable.status === 'cancelled') return;
-                const adj = getAdjustedAP(payable);
-                if (adj && isSameDay(adj.dueDate, currentDate)) {
-                    dayOutflow += adj.amount;
-                }
-            });
-
-            // 3. Recurring Expenses
-            (recurringExpenses || []).forEach(rec => {
-                if (!rec || !rec.active) return;
-                let isDue = false;
-                if (rec.frequency === 'monthly') {
-                    if (currentDate.getDate() === rec.day_of_period) isDue = true;
-                } else if (rec.frequency === 'weekly') {
-                    if (currentDate.getDay() === (rec.day_of_period % 7)) isDue = true;
-                }
-
-                if (isDue) {
-                    let amount = rec.amount || 0;
-                    if (scenario === 'pessimistic') amount *= 1.1; // 10% inflation/extra costs
-                    dayOutflow += amount;
-                }
-            });
-
-            rollingBalance = rollingBalance + dayInflow - dayOutflow;
-
-            points.push({
-                date: currentDate,
-                balance: rollingBalance,
-                inflow: dayInflow,
-                outflow: dayOutflow
-            });
+    const runwayDays = useMemo(() => {
+        const firstDeficitIndex = projection.findIndex(p => p.balance < 0);
+        if (firstDeficitIndex !== -1) {
+            return firstDeficitIndex; // index corresponds to the day number from today (0-90)
         }
-
-        return points;
-    }, [initialBalance, chargeNotes, payables, recurringExpenses, scenario, simulatedPayableOverrides, simulatedReceivableOverrides]);
+        if (burnRate <= 0) return 999;
+        const estimated = Math.floor(initialBalance / burnRate);
+        return estimated > 90 ? estimated : 90;
+    }, [projection, initialBalance, burnRate]);
 
     const trafficLight = useMemo(() => {
-        if (!projection || projection.length === 0) return { status: 'green', daysToDeficit: null, deficitAmount: 0, deficitDate: null };
+        let status: 'green' | 'yellow' | 'red' = 'green';
+        if (runwayDays < 30) {
+            status = 'red';
+        } else if (runwayDays <= 90) {
+            status = 'yellow';
+        }
 
         const firstDeficitPoint = projection.find(p => p.balance < 0);
-        const today = new Date();
-        const daysToDeficit = firstDeficitPoint
-            ? Math.ceil((firstDeficitPoint.date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-            : 91;
-
-        let status: 'green' | 'yellow' | 'red' = 'green';
-        if (daysToDeficit <= 30) status = 'red';
-        else if (daysToDeficit <= 90) status = 'yellow';
 
         return {
             status,
-            daysToDeficit: firstDeficitPoint ? daysToDeficit : null,
+            daysToDeficit: firstDeficitPoint ? runwayDays : null,
             deficitAmount: firstDeficitPoint ? Math.abs(firstDeficitPoint.balance) : 0,
-            deficitDate: firstDeficitPoint ? firstDeficitPoint.date : null
+            deficitDate: firstDeficitPoint ? firstDeficitPoint.date : null,
+            runwayDays,
+            burnRate
         };
-    }, [projection]);
+    }, [projection, runwayDays, burnRate]);
 
-    const simulatePayable = (id: string, dueDate?: Date, excluded?: boolean) => {
-        setSimulatedPayableOverrides(prev => ({
-            ...prev,
-            [id]: { dueDate, excluded }
-        }));
+    const cfoAlert = useMemo(() => {
+        return AdvisorEngine.generateCFOAlerts(
+            projection,
+            payables || [],
+            chargeNotes || [],
+            customerScoring,
+            -5000 // umbral de seguridad
+        );
+    }, [projection, payables, chargeNotes, customerScoring]);
+
+    const simulatePayable = (id: string, newDueDate?: Date, excluded?: boolean) => {
+        setSimulatedPayableOverrides(prev => {
+            const next = { ...prev };
+            if (newDueDate === undefined && excluded === undefined) {
+                delete next[id];
+            } else {
+                next[id] = { newDueDate, excluded };
+            }
+            return next;
+        });
     };
 
-    const simulateReceivable = (id: string, dueDate?: Date, excluded?: boolean) => {
-        setSimulatedReceivableOverrides(prev => ({
-            ...prev,
-            [id]: { dueDate, excluded }
-        }));
+    const simulateReceivable = (id: string, newDueDate?: Date, accelerated?: boolean, excluded?: boolean) => {
+        setSimulatedReceivableOverrides(prev => {
+            const next = { ...prev };
+            if (newDueDate === undefined && accelerated === undefined && excluded === undefined) {
+                delete next[id];
+            } else {
+                next[id] = { newDueDate, accelerated, excluded };
+            }
+            return next;
+        });
     };
 
     const resetSimulations = () => {
@@ -157,16 +125,72 @@ export function useTreasuryIntelligence() {
         setSimulatedReceivableOverrides({});
     };
 
+    const applySimulatedOverridesInDB = async () => {
+        setIsApplyingOverrides(true);
+        try {
+            // Actualizar accounts_payable en Supabase
+            const payablePromises = Object.entries(simulatedPayableOverrides).map(async ([id, override]) => {
+                if (override.newDueDate) {
+                    const { error } = await supabase
+                        .from('accounts_payable')
+                        .update({ due_date: override.newDueDate.toISOString().split('T')[0] })
+                        .eq('id', id);
+                    if (error) throw error;
+                }
+            });
+
+            // Actualizar charge_notes (CxC) en Supabase
+            const receivablePromises = Object.entries(simulatedReceivableOverrides).map(async ([id, override]) => {
+                let targetDate: Date | null = null;
+                if (override.accelerated) {
+                    targetDate = addDays(startOfDay(new Date()), 1);
+                } else if (override.newDueDate) {
+                    targetDate = override.newDueDate;
+                }
+
+                if (targetDate) {
+                    const { error } = await supabase
+                        .from('charge_notes')
+                        .update({ 
+                            due_date: targetDate.toISOString().split('T')[0],
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', id);
+                    if (error) throw error;
+                }
+            });
+
+            await Promise.all([...payablePromises, ...receivablePromises]);
+            
+            // Refrescar contextos
+            await Promise.all([
+                fetchPayables ? fetchPayables() : Promise.resolve(),
+                fetchChargeNotes ? fetchChargeNotes() : Promise.resolve()
+            ]);
+
+            resetSimulations();
+        } catch (error) {
+            console.error('Error applying simulated overrides to DB:', error);
+            throw error;
+        } finally {
+            setIsApplyingOverrides(false);
+        }
+    };
+
     return {
         projection,
         scenario,
         setScenario,
         trafficLight,
+        cfoAlert,
+        customerScoring,
         simulatePayable,
         simulateReceivable,
         resetSimulations,
         initialBalance,
         simulatedPayableOverrides,
-        simulatedReceivableOverrides
+        simulatedReceivableOverrides,
+        applySimulatedOverridesInDB,
+        isApplyingOverrides
     };
 }
