@@ -242,7 +242,6 @@ export default function Navbar() {
                   <div>
                     <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4">Ayuda</h3>
                     <div className="space-y-3">
-                      <SimpleLink icon={<HelpCircle size={16} />} title="Centro de Ayuda" href="/ayuda" />
                       <SimpleLink icon={<MessageCircle size={16} />} title="FAQ" href="/faq" />
                       <SimpleLink icon={<Phone size={16} />} title="Contactar Soporte" href="/soporte" />
                     </div>
@@ -259,9 +258,19 @@ export default function Navbar() {
           {/* Buttons */}
           <div className="hidden lg:flex items-center gap-4">
             {session ? (
-              <a href="/crm/dashboard" className="text-sm font-bold text-slate-700 dark:text-white hover:text-blue-600 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-blue-600 transition-all">
-                Ir al CRM
-              </a>
+              <div className="relative group">
+                <button className="text-sm font-bold text-slate-700 dark:text-white hover:text-blue-600 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-blue-600 transition-all flex items-center gap-2">
+                  Mis Plataformas <ChevronDown size={14} />
+                </button>
+                <div className="absolute top-full right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-100 dark:border-slate-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all overflow-hidden">
+                  <a href="/crm/dashboard" className="flex items-center gap-3 px-4 py-3 text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700/50 border-b border-slate-100 dark:border-slate-700 text-blue-600">
+                    <Database size={16} /> Corē (ERP/CRM)
+                  </a>
+                  <a href="/trak" className="flex items-center gap-3 px-4 py-3 text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700/50 text-purple-600">
+                    <BarChart3 size={16} /> Trak (Proyectos)
+                  </a>
+                </div>
+              </div>
             ) : (
               <a href="/crm/login" className="text-sm font-bold text-slate-700 dark:text-white hover:text-blue-600 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-blue-600 transition-all">
                 Login
@@ -336,6 +345,7 @@ export default function Navbar() {
                 <MobileLink href="/webinars" title="Webinars" />
                 <MobileLink href="/casos-exito" title="Casos de Éxito" />
                 <MobileLink href="/calculadora-roi" title="Calculadora ROI" />
+                <MobileLink href="/faq" title="Preguntas Frecuentes" />
                 <MobileLink href="/soporte" title="Ayuda y Soporte" />
               </div>
             </MobileNavItem>
@@ -346,9 +356,14 @@ export default function Navbar() {
 
             <div className="pt-4 space-y-3">
               {session ? (
-                <a href="/crm/dashboard" className="block w-full text-center py-3 px-4 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-white font-bold">
-                  Ir al CRM
-                </a>
+                <div className="space-y-2">
+                  <a href="/crm/dashboard" className="flex items-center justify-center gap-2 w-full text-center py-3 px-4 border border-blue-200 dark:border-blue-900/50 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-700 dark:text-blue-400 font-bold">
+                    <Database size={16} /> Corē (ERP)
+                  </a>
+                  <a href="/trak" className="flex items-center justify-center gap-2 w-full text-center py-3 px-4 border border-purple-200 dark:border-purple-900/50 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-purple-700 dark:text-purple-400 font-bold">
+                    <BarChart3 size={16} /> Trak (Proyectos)
+                  </a>
+                </div>
               ) : (
                 <a href="/crm/login" className="block w-full text-center py-3 px-4 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-white font-bold">
                   Login

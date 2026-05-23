@@ -27,14 +27,14 @@ export default function ComparisonSection() {
                                 <Rocket size={32} />
                             </div>
                             <div>
-                                <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Plataforma SaaS</h3>
-                                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Lista para usar</p>
+                                <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Corē & Trak</h3>
+                                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Suscripción mensual</p>
                             </div>
                         </div>
 
                         <ul className="space-y-4 mb-8 flex-grow relative z-10">
                             <ListItem text="Acceso inmediato" />
-                            <ListItem text="Suscripción mensual desde $XXX" />
+                            <ListItem text="Suscripción mensual de $299 MXN" />
                             <ListItem text="Actualizaciones automáticas incluidas" />
                             <ListItem text="Soporte técnico 24/7" />
                             <ListItem text="Sin costos de infraestructura" />
@@ -69,7 +69,7 @@ export default function ComparisonSection() {
                         <ul className="space-y-4 mb-8 flex-grow relative z-10">
                             <ListItem text="100% adaptado a sus procesos" dark />
                             <ListItem text="Propiedad total del código" dark />
-                            <ListItem text="Sin límites de usuarios" dark />
+                            <ListItem text="Precio en dependencia del sistema y sus módulos" dark />
                             <ListItem text="Integraciones con cualquier sistema" dark />
                             <ListItem text="Control completo de datos" dark />
                             <ListItem text="Escalabilidad ilimitada" dark />

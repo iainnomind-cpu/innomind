@@ -113,7 +113,7 @@ export default function Dashboard() {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ estado, percent }) => `${estado} (${(percent * 100).toFixed(0)}%)`}
+                  label={({ estado, percent }: any) => `${estado} (${((percent || 0) * 100).toFixed(0)}%)`}
                   outerRadius={100}
                   fill="#8884d8"
                   dataKey="cantidad"

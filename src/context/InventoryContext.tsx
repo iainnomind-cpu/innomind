@@ -14,7 +14,7 @@ interface InventoryContextType {
     refreshInventoryData: () => Promise<void>;
 
     // Product Master Actions
-    addProduct: (product: Omit<Product, 'id' | 'seguimientos' | 'cotizaciones' | 'tareas'>) => Promise<void>;
+    addProduct: (product: Omit<Product, 'id'>) => Promise<void>;
     updateProduct: (id: string, data: Partial<Product>) => Promise<void>;
     deleteProduct: (id: string) => Promise<void>;
 
@@ -54,10 +54,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         unidad: row.unidad_medida,
         stockMinimo: row.stock_minimo,
         trackInventory: row.track_inventory,
-        esPaqueteServicios: row.es_paquete_servicios,
-        seguimientos: [],
-        cotizaciones: [],
-        tareas: []
+        esPaqueteServicios: row.es_paquete_servicios
     });
 
     const mapLocationFromDB = (row: any): InventoryLocation => ({
@@ -118,7 +115,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }, [authUser, workspace?.id, isLoadingProfile]);
 
     // PRODUCTS
-    const addProduct = async (productData: Omit<Product, 'id' | 'seguimientos' | 'cotizaciones' | 'tareas'>) => {
+    const addProduct = async (productData: Omit<Product, 'id'>) => {
         const workspaceId = validateWorkspace(workspace?.id);
         const payload = {
             codigo: productData.codigo,

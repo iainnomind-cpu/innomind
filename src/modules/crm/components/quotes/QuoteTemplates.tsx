@@ -70,7 +70,7 @@ const QuoteTemplates: React.FC = () => {
                         {/* Info */}
                         <div className="space-y-2 mb-4 text-sm">
                             <div className="flex justify-between">
-                                <span className="text-gray-600">{(template.items || []).length} ítems • Creado por {template.creadoPor}</span>
+                                <span className="text-gray-600">{(template.items || []).length} ítems • Creado por {template.created_by}</span>
                             </div>
                         </div>
 

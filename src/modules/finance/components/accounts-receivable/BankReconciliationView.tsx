@@ -1,5 +1,6 @@
 import React, { useState, useRef, useMemo } from 'react';
-import { useAccountsReceivable, BankMovement } from '@/context/AccountsReceivableContext';
+import { useAccountsReceivable } from '@/context/AccountsReceivableContext';
+import { BankMovement } from '@/types';
 import { Upload, FileDown, CheckCircle, RefreshCw, XCircle, AlertTriangle } from 'lucide-react';
 import { differenceInDays, parseISO } from 'date-fns';
 

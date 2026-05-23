@@ -92,7 +92,7 @@ export default function DemoRequestModal() {
             ></div>
 
             {/* Modal Container */}
-            <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col transition-all duration-300">
+            <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col animate-in fade-in zoom-in-95 duration-200 transition-all duration-300 max-h-[90vh] overflow-hidden">
                 {/* Header */}
                 <div className="px-6 pt-5 pb-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white">Solicitar Demo</h2>
@@ -105,7 +105,7 @@ export default function DemoRequestModal() {
                 </div>
 
                 {/* Body */}
-                <div className="px-6 py-6 space-y-4">
+                <div className="px-6 py-6 space-y-4 overflow-y-auto flex-1">
                     {successMessage ? (
                         <div className="text-center py-8 space-y-4 animate-in fade-in zoom-in-95">
                             <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-4">

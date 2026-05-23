@@ -6,8 +6,27 @@ import ManufacturePage from './components/landing/industries/ManufacturePage';
 import LogisticsPage from './components/landing/industries/LogisticsPage';
 import HealthPage from './components/landing/industries/HealthPage';
 import EducationPage from './components/landing/industries/EducationPage';
+import FAQPage from './components/landing/FAQPage';
+import SoportePage from './components/landing/SoportePage';
+import PreciosPage from './components/landing/PreciosPage';
 import FreeTrialModal from './components/ui/FreeTrialModal';
 import DemoRequestModal from './components/ui/DemoRequestModal';
+import TrakLayout from '@/modules/trak/TrakLayout';
+import TrakDashboard from '@/modules/trak/TrakDashboard';
+import ClientList from '@/modules/trak/components/clients/ClientList';
+import ProjectList from '@/modules/trak/components/projects/ProjectList';
+import ProjectForm from '@/modules/trak/components/projects/ProjectForm';
+import ProjectDetail from '@/modules/trak/components/projects/ProjectDetail';
+import GlobalTaskList from '@/modules/trak/components/tasks/GlobalTaskList';
+import TrakQuoteList from '@/modules/trak/components/quotes/QuoteList';
+import TrakQuoteForm from '@/modules/trak/components/quotes/QuoteForm';
+import ReportsDashboard from '@/modules/trak/components/reports/ReportsDashboard';
+import EmployeeList from '@/modules/trak/components/hr/EmployeeList';
+import EmployeeForm from '@/modules/trak/components/hr/EmployeeForm';
+import TrakCalendar from '@/modules/trak/components/calendar/TrakCalendar';
+import InventoryList from '@/modules/trak/components/inventory/InventoryList';
+import TrakSettings from '@/modules/trak/components/settings/TrakSettings';
+import { TrakProvider } from '@/modules/trak/context/TrakContext';
 import Layout from '@/modules/crm/components/Layout';
 import Dashboard from '@/modules/crm/components/Dashboard';
 import Embudo from '@/modules/crm/components/Embudo';
@@ -33,6 +52,10 @@ import WorkspaceLayout from '@/modules/workspace/WorkspaceLayout';
 import Login from './components/auth/Login';
 import ResetPassword from './components/auth/ResetPassword';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import SupportLayout from '@/modules/support/SupportLayout';
+import UserTicketList from '@/modules/support/components/UserTicketList';
+import NewTicketForm from '@/modules/support/components/NewTicketForm';
+import TicketDetail from '@/modules/support/components/TicketDetail';
 
 import { AppProviders } from './components/providers/AppProviders';
 
@@ -49,12 +72,33 @@ function App() {
         <Route path="/industrias/logistica" element={<LogisticsPage />} />
         <Route path="/industrias/salud" element={<HealthPage />} />
         <Route path="/industrias/educacion" element={<EducationPage />} />
+        <Route path="/faq" element={<FAQPage />} />
+        <Route path="/soporte" element={<SoportePage />} />
+        <Route path="/precios" element={<PreciosPage />} />
 
         {/* Rutas del CRM */}
         <Route path="/crm/login" element={<Login />} />
         <Route path="/crm/reset-password" element={<ResetPassword />} />
 
         <Route element={<ProtectedRoute />}>
+          {/* Rutas de Trak (Project Tracker - SaaS independiente) */}
+          <Route path="/trak" element={<TrakProvider><TrakLayout /></TrakProvider>}>
+            <Route index element={<TrakDashboard />} />
+            <Route path="clients" element={<ClientList />} />
+            <Route path="projects" element={<ProjectList />} />
+            <Route path="projects/new" element={<ProjectForm />} />
+            <Route path="projects/:id" element={<ProjectDetail />} />
+            <Route path="tasks" element={<GlobalTaskList />} />
+            <Route path="quotes" element={<TrakQuoteList />} />
+            <Route path="quotes/:id" element={<TrakQuoteForm />} />
+            <Route path="reports" element={<ReportsDashboard />} />
+            <Route path="hr" element={<EmployeeList />} />
+            <Route path="hr/:id" element={<EmployeeForm />} />
+            <Route path="calendar" element={<TrakCalendar />} />
+            <Route path="inventory" element={<InventoryList />} />
+            <Route path="settings" element={<TrakSettings />} />
+          </Route>
+
           <Route path="/crm" element={<Layout />}>
             <Route index element={<Navigate to="/crm/dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
@@ -64,6 +108,13 @@ function App() {
             <Route path="prospectos/detalle" element={<ProspectDetail />} />
             <Route path="calendar" element={<Calendar />} />
             <Route path="settings" element={<CompanySettings />} />
+
+            {/* Rutas de Soporte */}
+            <Route path="support" element={<SupportLayout />}>
+              <Route index element={<UserTicketList />} />
+              <Route path="new" element={<NewTicketForm />} />
+              <Route path=":ticketId" element={<TicketDetail />} />
+            </Route>
 
             {/* Rutas de Cotizaciones */}
             <Route path="quotes" element={<QuoteDetailWrapper />}>
@@ -84,7 +135,7 @@ function App() {
             {/* Rutas de Finanzas y Tesorería */}
             <Route path="finance/*" element={<FinanceLayout />} />
 
-            {/* Rutas de Workspace (Nodo) */}
+            {/* Nodo - Colaboración interna de Corē */}
             <Route path="workspace/*" element={<WorkspaceLayout />} />
           </Route>
 

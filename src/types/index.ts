@@ -559,6 +559,8 @@ export interface WorkspaceTaskComment {
   content: string;
   createdAt: Date;
   updatedAt: Date;
+  userExt?: any;
+  user?: any;
 }
 
 export interface WorkspaceTaskChecklist {

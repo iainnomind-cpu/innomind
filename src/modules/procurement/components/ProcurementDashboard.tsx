@@ -37,7 +37,7 @@ export default function ProcurementDashboard() {
 
     // --- KPI CALCS ---
     const totalSpend = purchaseOrders
-        .filter(o => o.estado !== 'cancelada')
+        .filter(o => o.estado !== 'rejected')
         .reduce((sum, o) => sum + (o.total_amount || 0), 0);
 
     const monthlySpendData = [
@@ -57,7 +57,7 @@ export default function ProcurementDashboard() {
 
     const COLORS = ['#2563eb', '#10b981', '#f59e0b', '#ef4444'];
 
-    const pendingOrders = purchaseOrders.filter(o => o.estado === 'pendiente').length;
+    const pendingOrders = purchaseOrders.filter(o => o.estado === 'pending').length;
 
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -190,11 +190,11 @@ export default function ProcurementDashboard() {
                                     <div className="font-bold text-gray-900">#{order.numero_orden}</div>
                                     <div className="text-xs text-gray-500">Monto: ${order.total_amount?.toLocaleString()}</div>
                                 </div>
-                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${order.estado === 'pendiente' ? 'bg-amber-100 text-amber-700' :
-                                    order.estado === 'aprobada' ? 'bg-emerald-100 text-emerald-700' :
+                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${order.estado === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                    order.estado === 'approved' ? 'bg-emerald-100 text-emerald-700' :
                                         'bg-red-100 text-red-700'
                                     }`}>
-                                    {(order.estado || 'pendiente').toUpperCase()}
+                                    {order.estado === 'pending' ? 'PENDIENTE' : order.estado === 'approved' ? 'APROBADA' : order.estado === 'sent' ? 'ENVIADA' : 'RECHAZADA'}
                                 </span>
                             </div>
                         ))}

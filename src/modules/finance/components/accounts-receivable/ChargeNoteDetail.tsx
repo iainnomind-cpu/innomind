@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { ChargeNote, useAccountsReceivable } from '@/context/AccountsReceivableContext';
+import { useAccountsReceivable } from '@/context/AccountsReceivableContext';
+import { ChargeNote } from '@/types';
 import { ArrowLeft, Download, Mail, DollarSign, FileText, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';

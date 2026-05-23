@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ChargeNote, useAccountsReceivable } from '@/context/AccountsReceivableContext';
+import { useAccountsReceivable } from '@/context/AccountsReceivableContext';
+import { ChargeNote } from '@/types';
 import { X, DollarSign } from 'lucide-react';
 
 interface PaymentModalProps {

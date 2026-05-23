@@ -1,4 +1,4 @@
-import { Users, LayoutDashboard, Menu, Search, Building2, Trello, LogOut, FileText, Settings, Calendar as CalendarIcon, Package, Receipt, ShoppingCart, Hash } from 'lucide-react';
+import { Users, LayoutDashboard, Menu, Search, Building2, Trello, LogOut, FileText, Settings, Calendar as CalendarIcon, Package, Receipt, ShoppingCart, Hash, LifeBuoy } from 'lucide-react';
 import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -22,6 +22,7 @@ export default function Layout() {
     { id: 'procurement', label: 'Compras', icon: ShoppingCart },
     { id: 'workspace', label: 'Nodo', icon: Hash },
     { id: 'calendar', label: 'Calendario', icon: CalendarIcon },
+    { id: 'support', label: 'Soporte', icon: LifeBuoy, alwaysVisible: true },
     { id: 'settings', label: 'Mi Empresa', icon: Settings, adminOnly: true, alwaysVisible: true },
   ];
 
