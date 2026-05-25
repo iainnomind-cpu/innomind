@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { useAccountsReceivable, ChargeNote } from '@/context/AccountsReceivableContext';
+import React, { useState } from 'react';
+import { useAccountsReceivable } from '@/context/AccountsReceivableContext';
+import { ChargeNote } from '@/types';
 import { Search, FileText, CheckCircle, AlertCircle, Clock, DollarSign, Loader2 } from 'lucide-react';
 import ChargeNoteDetail from './ChargeNoteDetail';
 import PaymentModal from './PaymentModal';

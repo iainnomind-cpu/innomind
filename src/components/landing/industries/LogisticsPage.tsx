@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 
 export default function LogisticsPage() {
-    const { openFreeTrial } = useModal();
+    const { openFreeTrial, openDemoModal } = useModal();
 
     return (
         <div className="font-display bg-white dark:bg-slate-900 text-slate-900 dark:text-white antialiased selection:bg-teal-600 selection:text-white min-h-screen flex flex-col">
@@ -43,13 +43,10 @@ export default function LogisticsPage() {
 
                                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                                     <button
-                                        onClick={openFreeTrial}
+                                        onClick={() => openDemoModal('ERP Logística')}
                                         className="px-8 py-4 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white font-bold rounded-xl shadow-lg shadow-teal-500/25 transition-all transform hover:-translate-y-0.5"
                                     >
                                         Solicitar Cotización
-                                    </button>
-                                    <button className="px-8 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-white font-bold rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2">
-                                        Ver Demo en Vivo <ArrowRight className="w-5 h-5" />
                                     </button>
                                 </div>
                             </div>
@@ -73,8 +70,8 @@ export default function LogisticsPage() {
                                                 <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Facturas Perdidas</div>
                                             </div>
                                             <div>
-                                                <div className="text-4xl font-extrabold text-slate-800 dark:text-white mb-2">72h</div>
-                                                <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Implementación</div>
+                                                <div className="text-4xl font-extrabold text-slate-800 dark:text-white mb-2">3M</div>
+                                                <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Implementación Max.</div>
                                             </div>
                                         </div>
 
@@ -237,7 +234,7 @@ export default function LogisticsPage() {
                             {[
                                 "Seguimiento de Rutas", "Almacenes", "Clientes",
                                 "Finanzas", "Compras", "Operaciones",
-                                "Dashboard Eficiencia"
+                                "Dashboard Eficiencia", "Chatbot IA", "Mensajería Masiva"
                             ].map((module, idx) => (
                                 <div key={idx} className="px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full text-slate-700 dark:text-slate-200 font-semibold shadow-sm hover:border-teal-500 hover:text-teal-600 dark:hover:text-teal-400 transition-colors cursor-default">
                                     {module}
@@ -265,13 +262,10 @@ export default function LogisticsPage() {
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             <button
-                                onClick={openFreeTrial}
+                                onClick={() => openDemoModal('ERP Logística')}
                                 className="px-8 py-4 bg-teal-500 hover:bg-teal-600 text-white font-bold rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5"
                             >
                                 Solicitar Cotización
-                            </button>
-                            <button className="px-8 py-4 bg-transparent text-white border-2 border-white/20 hover:border-white/40 hover:bg-white/5 font-bold rounded-xl transition-all">
-                                Ver Demo en Vivo
                             </button>
                         </div>
                     </div>

@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 
 export default function RetailPage() {
-  const { openFreeTrial } = useModal();
+  const { openFreeTrial, openDemoModal } = useModal();
 
   return (
     <div className="font-display bg-white dark:bg-slate-900 text-slate-900 dark:text-white antialiased selection:bg-blue-600 selection:text-white min-h-screen flex flex-col">
@@ -44,13 +44,10 @@ export default function RetailPage() {
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                   <button
-                    onClick={openFreeTrial}
+                    onClick={() => openDemoModal('ERP Retail')}
                     className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/25 transition-all transform hover:-translate-y-0.5"
                   >
                     Solicitar Cotización
-                  </button>
-                  <button className="px-8 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-white font-bold rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2">
-                    Ver Demo en Vivo <ArrowRight className="w-5 h-5" />
                   </button>
                 </div>
               </div>
@@ -76,14 +73,14 @@ export default function RetailPage() {
                         <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Recompra</div>
                       </div>
                       <div>
-                        <div className="text-4xl font-extrabold text-slate-800 dark:text-white mb-2">72h</div>
-                        <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Implementación</div>
+                        <div className="text-4xl font-extrabold text-slate-800 dark:text-white mb-2">3M</div>
+                        <div className="text-sm font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Implementación Max.</div>
                       </div>
                     </div>
 
                     <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700 flex items-center justify-center text-center">
                       <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                        Implementación en 72h · Sin tarjeta de crédito requerida
+                        Implementación en máximo 3 meses · Sin tarjeta de crédito requerida
                       </span>
                     </div>
                   </div>
@@ -240,7 +237,7 @@ export default function RetailPage() {
               {[
                 "Embudo de Ventas", "Gestión de Clientes", "Cotizaciones",
                 "Finanzas", "Inventario", "Automatización",
-                "WhatsApp CRM", "Analytics"
+                "WhatsApp CRM", "Analytics", "Chatbot IA", "Mensajería Masiva"
               ].map((module, idx) => (
                 <div key={idx} className="px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full text-slate-700 dark:text-slate-200 font-semibold shadow-sm hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-default">
                   {module}
@@ -261,7 +258,7 @@ export default function RetailPage() {
             <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-6">¿Listo para transformar tu retail?</h2>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-10 text-blue-100 font-medium text-lg">
-              <span className="flex items-center gap-2"><CheckCircle2 className="w-5 h-5 text-blue-400" /> Implementación en 72 horas</span>
+              <span className="flex items-center gap-2"><CheckCircle2 className="w-5 h-5 text-blue-400" /> Implementación en máximo 3 meses</span>
               <span className="hidden sm:inline text-blue-400">•</span>
               <span className="flex items-center gap-2"><CheckCircle2 className="w-5 h-5 text-blue-400" /> Sin contratos forzosos</span>
               <span className="hidden sm:inline text-blue-400">•</span>
@@ -270,13 +267,10 @@ export default function RetailPage() {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
-                onClick={openFreeTrial}
+                onClick={() => openDemoModal('ERP Retail')}
                 className="px-8 py-4 bg-white text-blue-900 hover:bg-blue-50 font-bold rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5"
               >
                 Solicitar Cotización
-              </button>
-              <button className="px-8 py-4 bg-transparent text-white border-2 border-white/20 hover:border-white/40 hover:bg-white/5 font-bold rounded-xl transition-all">
-                Agendar Demo
               </button>
             </div>
           </div>

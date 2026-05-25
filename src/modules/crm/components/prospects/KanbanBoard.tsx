@@ -25,27 +25,31 @@ export default function KanbanBoard({ hideHeader = false }: KanbanBoardProps) {
     ];
 
     const getStatusColor = (status: ProspectStatus) => {
-        const colors = {
+        const colors: Record<string, string> = {
             'Nuevo': 'bg-blue-600',
             'Contactado': 'bg-yellow-500',
             'En seguimiento': 'bg-orange-500',
             'Cotizado': 'bg-purple-600',
             'Venta cerrada': 'bg-green-600',
+            'Cliente Activo': 'bg-teal-600',
+            'Cliente Inactivo': 'bg-gray-600',
             'Perdido': 'bg-red-600'
         };
-        return colors[status];
+        return colors[status as string] || 'bg-gray-600';
     };
 
     const getStatusBgColor = (status: ProspectStatus) => {
-        const colors = {
+        const colors: Record<string, string> = {
             'Nuevo': 'bg-blue-50',
             'Contactado': 'bg-yellow-50',
             'En seguimiento': 'bg-orange-50',
             'Cotizado': 'bg-purple-50',
             'Venta cerrada': 'bg-green-50',
+            'Cliente Activo': 'bg-teal-50',
+            'Cliente Inactivo': 'bg-gray-50',
             'Perdido': 'bg-red-50'
         };
-        return colors[status];
+        return colors[status as string] || 'bg-gray-50';
     };
 
     const getProspectsForStatus = (status: ProspectStatus) => {
@@ -182,7 +186,7 @@ export default function KanbanBoard({ hideHeader = false }: KanbanBoardProps) {
                                                 </div>
                                                 <div className="flex items-center text-xs text-gray-400">
                                                     <Calendar className="w-3.5 h-3.5 mr-1.5" />
-                                                    <span>{format(new Date(prospect.fechaContacto), 'dd MMM')}</span>
+                                                    <span>{prospect.fechaContacto ? format(new Date(prospect.fechaContacto), 'dd MMM') : 'N/A'}</span>
                                                 </div>
                                             </div>
                                         </div>

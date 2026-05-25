@@ -6,12 +6,18 @@ interface ModalContextType {
     inviteEmail: string | null;
     openFreeTrial: (email?: any) => void;
     closeFreeTrial: () => void;
+    isDemoModalOpen: boolean;
+    serviceOfInterest: string | null;
+    openDemoModal: (service?: string | any) => void;
+    closeDemoModal: () => void;
 }
 
 const ModalContext = createContext<ModalContextType | undefined>(undefined);
 
 export function ModalProvider({ children }: { children: ReactNode }) {
     const [isFreeTrialOpen, setIsFreeTrialOpen] = useState(false);
+    const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
+    const [serviceOfInterest, setServiceOfInterest] = useState<string | null>(null);
     const [inviteEmail, setInviteEmail] = useState<string | null>(null);
 
     const openFreeTrial = (email?: any) => {
@@ -28,6 +34,19 @@ export function ModalProvider({ children }: { children: ReactNode }) {
         setInviteEmail(null);
     };
 
+    const openDemoModal = (service?: string | any) => {
+        if (typeof service === 'string') {
+            setServiceOfInterest(service);
+        } else {
+            setServiceOfInterest(null);
+        }
+        setIsDemoModalOpen(true);
+    };
+    const closeDemoModal = () => {
+        setIsDemoModalOpen(false);
+        setServiceOfInterest(null);
+    };
+
     const location = useLocation();
 
     // Auto-open modal if ?invite= is in the URL
@@ -41,7 +60,10 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     }, [location.search]);
 
     return (
-        <ModalContext.Provider value={{ isFreeTrialOpen, inviteEmail, openFreeTrial, closeFreeTrial }}>
+        <ModalContext.Provider value={{ 
+            isFreeTrialOpen, inviteEmail, openFreeTrial, closeFreeTrial,
+            isDemoModalOpen, serviceOfInterest, openDemoModal, closeDemoModal 
+        }}>
             {children}
         </ModalContext.Provider>
     );

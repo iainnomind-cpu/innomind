@@ -1,6 +1,7 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { useAccountsReceivable } from '@/context/AccountsReceivableContext';
-import { Upload, FileDown, CheckCircle, RefreshCw, AlertTriangle } from 'lucide-react';
+import { BankMovement } from '@/types';
+import { Upload, FileDown, CheckCircle, RefreshCw, XCircle, AlertTriangle } from 'lucide-react';
 import { differenceInDays, parseISO } from 'date-fns';
 
 export default function BankReconciliationView() {

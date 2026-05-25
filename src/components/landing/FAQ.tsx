@@ -11,28 +11,28 @@ export default function FAQ() {
 
     const faqs = [
         {
-            question: "¿Cuándo elegir la Plataforma SaaS?",
-            answer: "Ideal si necesitas implementación rápida, tienes presupuesto mensual predecible y tus procesos se adaptan a workflows estándar. Perfecto para equipos de 5-100 personas que buscan empezar rápido."
+            question: "¿Cuándo elegir Corē o Trak (Suscripción)?",
+            answer: "Corē es nuestro ERP por suscripción y Trak es nuestro project tracker. Son ideales si buscas empezar de inmediato: te suscribes y ya tienes acceso. Sin implementaciones largas ni esperas. Perfecto para equipos que necesitan una solución robusta desde el día uno."
         },
         {
             question: "¿Cuándo elegir Desarrollo a Medida?",
-            answer: "Recomendado si tienes procesos únicos que no se adaptan a soluciones estándar, necesitas integraciones complejas o quieres propiedad total del sistema. Ideal para empresas con más de 50 usuarios o procesos muy específicos."
+            answer: "Recomendado si tienes procesos únicos que no se adaptan a soluciones estándar, necesitas integraciones complejas o quieres propiedad total del sistema. En Innomind desarrollamos tu plataforma 100% personalizada en un máximo de 3 meses."
         },
         {
-            question: "¿Puedo empezar con SaaS y luego migrar a medida?",
-            answer: "¡Absolutamente! Muchos clientes comienzan con nuestra plataforma SaaS para validar rápidamente y luego migran a un ERP personalizado cuando sus necesidades crecen. Facilitamos todo el proceso de transición."
+            question: "¿Puedo empezar con Corē/Trak y luego migrar a medida?",
+            answer: "¡Absolutamente! Muchos clientes comienzan con Corē o Trak para operar rápidamente y luego migran a un sistema totalmente personalizado cuando sus necesidades crecen. Facilitamos todo el proceso de transición sin pérdida de datos."
         },
         {
-            question: "¿Qué incluyen ambas opciones?",
-            answer: "Tanto la plataforma SaaS como el desarrollo a medida incluyen: CRM completo, gestión de proyectos, ERP, inteligencia artificial, reportes avanzados y soporte técnico. La diferencia está en la personalización y el modelo de pago."
+            question: "¿Qué incluyen los productos de Innomind?",
+            answer: "Corē incluye CRM, facturación, inventario, reportes avanzados e inteligencia artificial. Trak ofrece gestión de proyectos, tableros Kanban, seguimiento de tareas y colaboración en equipo. Ambos incluyen soporte técnico y actualizaciones continuas. El desarrollo a medida incluye todo lo que tu operación necesite."
         },
         {
             question: "¿Cuánto tiempo toma implementar cada opción?",
-            answer: "La plataforma SaaS puede estar operativa en 7-30 días dependiendo de la complejidad. Un ERP a medida toma entre 3-6 meses, pero está diseñado exactamente para tus necesidades específicas."
+            answer: "Corē y Trak están listos al instante: te suscribes y ya puedes usarlos sin esperas. Un desarrollo a medida de Innomind toma un máximo de 3 meses, y está diseñado al 100% para las necesidades específicas de tu negocio."
         },
         {
             question: "¿Cómo funciona el precio en cada modalidad?",
-            answer: "SaaS: Suscripción mensual por usuario, sin inversión inicial. A Medida: Inversión única en desarrollo + mantenimiento anual opcional. Ambas opciones tienen excelente ROI según el tamaño de tu operación."
+            answer: "Corē y Trak: Mensualidad de $299. Desarrollo a Medida: El precio depende del sistema desarrollado y sus módulos. Ambas opciones tienen un excelente ROI."
         }
     ];
 
@@ -44,10 +44,10 @@ export default function FAQ() {
                         <HelpCircle size={24} />
                     </div>
                     <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl mb-4">
-                        SaaS vs A Medida: ¿Cuál elegir?
+                        Preguntas Frecuentes
                     </h2>
                     <p className="text-lg text-slate-600 dark:text-slate-400">
-                        Resolvemos las dudas más frecuentes para ayudarte a tomar la mejor decisión.
+                        Resolvemos las dudas más comunes sobre Corē, Trak y nuestros desarrollos a medida.
                     </p>
                 </div>
 

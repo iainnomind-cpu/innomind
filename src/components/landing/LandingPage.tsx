@@ -3,6 +3,7 @@ import React from 'react';
 import Navbar from './Navbar';
 import Hero from './Hero';
 import ComparisonSection from './ComparisonSection';
+import ChatbotSection from './ChatbotSection';
 import SuccessStories from './SuccessStories';
 import FAQ from './FAQ';
 import ROICalculator from './ROICalculator';
@@ -14,6 +15,7 @@ export default function LandingPage() {
             <Navbar />
             <Hero />
             <ComparisonSection />
+            <ChatbotSection />
             <SuccessStories />
             <FAQ />
             <ROICalculator />

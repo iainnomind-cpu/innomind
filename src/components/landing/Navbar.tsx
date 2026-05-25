@@ -8,13 +8,14 @@ import {
   Rocket, Lightbulb, LifeBuoy,
   FileText, BookOpen, Video, Files,
   Star, TrendingUp, Calculator,
-  HelpCircle, MessageCircle, Phone
+  HelpCircle, MessageCircle, Phone,
+  Bot, Send
 } from 'lucide-react';
 import { useModal } from '../../context/ModalContext';
 import { useAuth } from '@/context/AuthContext';
 
 export default function Navbar() {
-  const { openFreeTrial } = useModal();
+  const { openFreeTrial, openDemoModal } = useModal();
   const { session } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -72,35 +73,35 @@ export default function Navbar() {
                 </div>
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <DropdownLink
-                    icon={<LayoutGrid className="text-blue-500" />}
-                    title="CRM Innomind"
-                    desc="Gestión completa de clientes y ventas"
-                    href="/plataforma/crm"
+                    icon={<Database className="text-blue-500" />}
+                    title="Corē"
+                    desc="ERP y CRM unificado en una plataforma"
+                    href="/plataforma/core"
                   />
                   <DropdownLink
                     icon={<BarChart3 className="text-purple-500" />}
-                    title="Project Tracker"
-                    desc="Seguimiento de proyectos en tiempo real"
-                    href="/plataforma/project-tracker"
+                    title="Trak"
+                    desc="Seguimiento de proyectos y tareas"
+                    href="/plataforma/trak"
                   />
                   <DropdownLink
-                    icon={<Database className="text-green-500" />}
-                    title="ERP Estándar"
-                    desc="Planificación de recursos empresariales"
-                    href="/plataforma/erp"
+                    icon={<Bot className="text-emerald-500" />}
+                    title="Chatbots con IA"
+                    desc="Atención automatizada 24/7"
+                    href="/plataforma/chatbots"
                   />
                   <DropdownLink
-                    icon={<Layers className="text-orange-500" />}
-                    title="Suite Completa"
-                    desc="Todas las herramientas integradas"
-                    href="/plataforma/suite"
+                    icon={<Send className="text-green-500" />}
+                    title="Mensajería Masiva"
+                    desc="Campañas masivas por WhatsApp"
+                    href="/plataforma/mensajeria"
                   />
                 </div>
                 <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg">
                   <button onClick={openFreeTrial} className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-4 rounded-lg shadow transition-all hover:scale-105">Comenzar Prueba Gratuita</button>
-                  <a href="/demo" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1">
+                  <button onClick={() => openDemoModal('Ver Demo General')} className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1">
                     Ver Demo <ChevronRight size={14} />
-                  </a>
+                  </button>
                 </div>
               </div>
             </NavItem>
@@ -150,9 +151,9 @@ export default function Navbar() {
                     <SimpleLink icon={<GraduationCap size={18} />} title="Educación" href="/industrias/educacion" />
                   </div>
                   <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
-                    <a href="/cotizacion" className="block w-full text-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition-colors">
+                    <button onClick={() => openDemoModal('Cotización General')} className="block w-full text-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition-colors">
                       Solicitar Cotización
-                    </a>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -193,6 +194,18 @@ export default function Navbar() {
                     desc="Asistencia técnica siempre disponible"
                     href="/servicios/soporte"
                   />
+                  <DropdownLink
+                    icon={<Bot className="text-emerald-500" />}
+                    title="Chatbots con IA"
+                    desc="Atención automatizada 24/7 con IA"
+                    href="/servicios/chatbots"
+                  />
+                  <DropdownLink
+                    icon={<Send className="text-green-500" />}
+                    title="Mensajería Masiva"
+                    desc="Campañas masivas por WhatsApp"
+                    href="/servicios/mensajeria-masiva"
+                  />
                 </div>
                 <div className="text-right">
                   <a href="/experto" className="text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center justify-end gap-1">
@@ -229,7 +242,6 @@ export default function Navbar() {
                   <div>
                     <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4">Ayuda</h3>
                     <div className="space-y-3">
-                      <SimpleLink icon={<HelpCircle size={16} />} title="Centro de Ayuda" href="/ayuda" />
                       <SimpleLink icon={<MessageCircle size={16} />} title="FAQ" href="/faq" />
                       <SimpleLink icon={<Phone size={16} />} title="Contactar Soporte" href="/soporte" />
                     </div>
@@ -246,9 +258,19 @@ export default function Navbar() {
           {/* Buttons */}
           <div className="hidden lg:flex items-center gap-4">
             {session ? (
-              <a href="/crm/dashboard" className="text-sm font-bold text-slate-700 dark:text-white hover:text-blue-600 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-blue-600 transition-all">
-                Ir al CRM
-              </a>
+              <div className="relative group">
+                <button className="text-sm font-bold text-slate-700 dark:text-white hover:text-blue-600 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-blue-600 transition-all flex items-center gap-2">
+                  Mis Plataformas <ChevronDown size={14} />
+                </button>
+                <div className="absolute top-full right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-100 dark:border-slate-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all overflow-hidden">
+                  <a href="/crm/dashboard" className="flex items-center gap-3 px-4 py-3 text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700/50 border-b border-slate-100 dark:border-slate-700 text-blue-600">
+                    <Database size={16} /> Corē (ERP/CRM)
+                  </a>
+                  <a href="/trak" className="flex items-center gap-3 px-4 py-3 text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700/50 text-purple-600">
+                    <BarChart3 size={16} /> Trak (Proyectos)
+                  </a>
+                </div>
+              </div>
             ) : (
               <a href="/crm/login" className="text-sm font-bold text-slate-700 dark:text-white hover:text-blue-600 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-blue-600 transition-all">
                 Login
@@ -277,10 +299,10 @@ export default function Navbar() {
           <div className="p-4 space-y-2">
             <MobileNavItem title="PLATAFORMA" isOpen={activeDropdown === 'PLATAFORMA'} onClick={() => toggleDropdown('PLATAFORMA')}>
               <div className="pl-4 space-y-2 py-2">
-                <MobileLink href="/plataforma/crm" title="CRM Innomind" />
-                <MobileLink href="/plataforma/project-tracker" title="Project Tracker" />
-                <MobileLink href="/plataforma/erp" title="ERP Estándar" />
-                <MobileLink href="/plataforma/suite" title="Suite Completa" />
+                <MobileLink href="/plataforma/core" title="Corē (ERP-CRM)" />
+                <MobileLink href="/plataforma/trak" title="Trak" />
+                <MobileLink href="/plataforma/chatbots" title="Chatbots con IA" />
+                <MobileLink href="/plataforma/mensajeria" title="Mensajería Masiva WhatsApp" />
               </div>
             </MobileNavItem>
 
@@ -311,6 +333,8 @@ export default function Navbar() {
                 <MobileLink href="/servicios/migracion" title="Migración" />
                 <MobileLink href="/servicios/consultoria" title="Consultoría Estratégica" />
                 <MobileLink href="/servicios/soporte" title="Soporte 24/7" />
+                <MobileLink href="/servicios/chatbots" title="Chatbots con IA" />
+                <MobileLink href="/servicios/mensajeria-masiva" title="Mensajería Masiva WhatsApp" />
               </div>
             </MobileNavItem>
 
@@ -321,6 +345,7 @@ export default function Navbar() {
                 <MobileLink href="/webinars" title="Webinars" />
                 <MobileLink href="/casos-exito" title="Casos de Éxito" />
                 <MobileLink href="/calculadora-roi" title="Calculadora ROI" />
+                <MobileLink href="/faq" title="Preguntas Frecuentes" />
                 <MobileLink href="/soporte" title="Ayuda y Soporte" />
               </div>
             </MobileNavItem>
@@ -331,9 +356,14 @@ export default function Navbar() {
 
             <div className="pt-4 space-y-3">
               {session ? (
-                <a href="/crm/dashboard" className="block w-full text-center py-3 px-4 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-white font-bold">
-                  Ir al CRM
-                </a>
+                <div className="space-y-2">
+                  <a href="/crm/dashboard" className="flex items-center justify-center gap-2 w-full text-center py-3 px-4 border border-blue-200 dark:border-blue-900/50 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-700 dark:text-blue-400 font-bold">
+                    <Database size={16} /> Corē (ERP)
+                  </a>
+                  <a href="/trak" className="flex items-center justify-center gap-2 w-full text-center py-3 px-4 border border-purple-200 dark:border-purple-900/50 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-purple-700 dark:text-purple-400 font-bold">
+                    <BarChart3 size={16} /> Trak (Proyectos)
+                  </a>
+                </div>
               ) : (
                 <a href="/crm/login" className="block w-full text-center py-3 px-4 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-white font-bold">
                   Login
