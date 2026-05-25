@@ -61,7 +61,7 @@ export default function AccountsPayableCalendar() {
                 </div>
 
                 <div className="grid grid-cols-7 auto-rows-[120px] md:auto-rows-[160px]">
-                    {calendarDays.map((day, idx) => {
+                    {calendarDays.map((day) => {
                         const dayPayables = getPayablesForDay(day);
                         const isCurrentMonth = isSameMonth(day, monthStart);
                         const isTodayDay = isToday(day);
@@ -77,7 +77,7 @@ export default function AccountsPayableCalendar() {
                                     </span>
                                     {dayPayables.length > 0 && (
                                         <div className="flex -space-x-1">
-                                            {dayPayables.slice(0, 3).map((p, i) => (
+                                            {dayPayables.slice(0, 3).map((p) => (
                                                 <div key={p.id} className={`w-2 h-2 rounded-full border border-white ${p.status === 'paid' ? 'bg-green-500' : p.balance_due > 0 && isPast(new Date(p.due_date)) && !isToday(new Date(p.due_date)) ? 'bg-red-500 animate-bounce' : 'bg-amber-500'}`}></div>
                                             ))}
                                         </div>

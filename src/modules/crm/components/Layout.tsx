@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useUsers } from '@/context/UserContext';
+import { FEATURES } from '@/config/features';
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -29,6 +30,8 @@ export default function Layout() {
   const { enabledModules } = useUsers();
 
   const visibleMenuItems = menuItems.filter(item => {
+    if (item.id === 'procurement' && !FEATURES.enableCompras) return false;
+    if (item.id === 'workspace' && !FEATURES.enableNodo) return false;
     if (item.adminOnly && currentUser?.role !== 'ADMIN') return false;
     if (item.alwaysVisible) return true;
     // If no modules configured (legacy or empty), show all

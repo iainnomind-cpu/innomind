@@ -1,6 +1,5 @@
-import React from 'react';
 import { useAccountsReceivable } from '@/context/AccountsReceivableContext';
-import { AlertCircle, FileText, CheckCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle } from 'lucide-react';
 import { differenceInDays, parseISO } from 'date-fns';
 
 export default function OverdueReport() {

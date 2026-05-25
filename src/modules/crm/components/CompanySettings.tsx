@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useUsers } from '@/context/UserContext';
 import { Building, Upload, AtSign, Phone, MapPin, Hash, Palette, CheckCircle, Users, UserPlus, Shield, X, Send, Blocks, Check } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { FEATURES } from '@/config/features';
 
 const CompanySettings: React.FC = () => {
     const { companyProfile, updateCompanyProfile, users, currentUser, isLoadingProfile, enabledModules, updateEnabledModules } = useUsers();
@@ -248,7 +249,11 @@ const CompanySettings: React.FC = () => {
                             { id: 'procurement', label: 'Compras', desc: 'Órdenes de compra y proveedores' },
                             { id: 'inventory', label: 'Inventario', desc: 'Productos, stock y movimientos' },
                             { id: 'workspace', label: 'Nodo', desc: 'Conversaciones, tareas y notas' },
-                        ].map(mod => {
+                        ].filter(mod => {
+                            if (mod.id === 'procurement' && !FEATURES.enableCompras) return false;
+                            if (mod.id === 'workspace' && !FEATURES.enableNodo) return false;
+                            return true;
+                        }).map(mod => {
                             const isActive = enabledModules.length === 0 || enabledModules.includes(mod.id);
                             return (
                                 <div
@@ -257,7 +262,12 @@ const CompanySettings: React.FC = () => {
                                         let newModules: string[];
                                         if (enabledModules.length === 0) {
                                             // First toggle: activate all except this one
-                                            newModules = ['embudo', 'prospectos', 'prospectos?tab=clientes', 'quotes', 'calendar', 'finance', 'procurement', 'inventory', 'workspace'].filter(m => m !== mod.id);
+                                            newModules = ['embudo', 'prospectos', 'prospectos?tab=clientes', 'quotes', 'calendar', 'finance', 'procurement', 'inventory', 'workspace']
+                                                .filter(m => {
+                                                    if (m === 'procurement' && !FEATURES.enableCompras) return false;
+                                                    if (m === 'workspace' && !FEATURES.enableNodo) return false;
+                                                    return m !== mod.id;
+                                                });
                                         } else if (isActive) {
                                             newModules = enabledModules.filter(m => m !== mod.id);
                                         } else {

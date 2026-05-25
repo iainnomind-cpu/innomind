@@ -139,8 +139,8 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         try {
             const [prosRes, quotesRes, eventsRes, templatesRes] = await Promise.all([
                 supabase.from('prospects').select('*').eq('workspace', workspaceId).order('created_at', { ascending: false }),
-                supabase.from('quotes').select('*').eq('workspace_id', workspaceId).order('fecha', { ascending: false }),
-                supabase.from('calendar_events').select('*').eq('workspace_id', workspaceId).order('start_time', { ascending: true }),
+                supabase.from('quotes').select('*').eq('workspace', workspaceId).order('fecha', { ascending: false }),
+                supabase.from('calendar_events').select('*').eq('workspace', workspaceId).order('start_time', { ascending: true }),
                 supabase.from('quote_templates').select('*').eq('workspace_id', workspaceId).order('created_at', { ascending: false })
             ]);
 
@@ -264,25 +264,78 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const addQuote = async (quote: Partial<Quote>) => {
         const workspaceId = validateWorkspace(workspace?.id);
-        const { data, error } = await supabase.from('quotes').insert([{
-            ...quote,
-            workspace_id: workspaceId,
+        const payload = {
+            workspace: workspaceId,
             prospect_id: quote.prospectId,
-            notas_adicionales: quote.notasAdicionales,
-            terminos_condiciones: quote.terminosCondiciones,
-            metodos_pago_aceptados: quote.metodosPagoAceptados,
+            numero: quote.numero,
+            fecha: quote.fecha,
+            vigencia: quote.vigencia,
+            subtotal: quote.subtotal,
+            descuento: quote.descuento,
             iva_porcentaje: quote.ivaPorcentaje,
             iva_total: quote.ivaTotal,
-            condiciones_pago: quote.condicionesPago
-        }]).select().single();
+            total: quote.total,
+            estado: quote.estado,
+            condiciones_pago: quote.condicionesPago,
+            metodos_pago_aceptados: quote.metodosPagoAceptados,
+            notas_adicionales: quote.notasAdicionales,
+            terminos_condiciones: quote.terminosCondiciones,
+            items: quote.items
+        };
+
+        const { data, error } = await supabase.from('quotes').insert([payload]).select().single();
 
         if (error) throw error;
-        setQuotes(prev => [mapQuoteFromDB(data), ...prev]);
+        const newQuote = mapQuoteFromDB(data);
+        setQuotes(prev => [newQuote, ...prev]);
+
+        // SMART AUTOMATION: Convert prospect to Active Client if quote is created as accepted/won/approved
+        const isAccepted = quote.estado && ['aceptada', 'approved', 'won'].includes(quote.estado.toLowerCase());
+        if (isAccepted && quote.prospectId) {
+            const targetProspect = prospects.find(p => p.id === quote.prospectId);
+            if (targetProspect) {
+                const prospectUpdates: Partial<Prospect> = {};
+                let loggedConversion = false;
+
+                if (targetProspect.estado !== 'Cliente Activo') {
+                    prospectUpdates.estado = 'Cliente Activo';
+                    loggedConversion = true;
+                }
+
+                const quoteTotal = quote.total || 0;
+                if (targetProspect.valorEstimado !== quoteTotal) {
+                    prospectUpdates.valorEstimado = quoteTotal;
+                }
+
+                if (Object.keys(prospectUpdates).length > 0) {
+                    await updateProspect(quote.prospectId, prospectUpdates);
+
+                    const logMessage = loggedConversion
+                        ? `Sistema: El prospecto se convirtió automáticamente en Cliente Activo al registrarse la cotización #${quote.numero || newQuote.numero || newQuote.id.slice(0, 8)} en estado Aceptada por un valor de $${quoteTotal.toLocaleString()}.`
+                        : `Sistema: Se actualizaron las métricas comerciales del cliente según la cotización #${quote.numero || newQuote.numero || newQuote.id.slice(0, 8)} registrada en estado Aceptada por un valor de $${quoteTotal.toLocaleString()}.`;
+
+                    await addFollowUp(
+                        quote.prospectId,
+                        logMessage,
+                        authUser?.id || 'system'
+                    );
+                }
+            }
+        }
     };
 
     const updateQuote = async (id: string, updates: Partial<Quote>) => {
         const workspaceId = validateWorkspace(workspace?.id);
-        const payload: any = { ...updates, updated_at: new Date().toISOString() };
+        const payload: any = { updated_at: new Date().toISOString() };
+        
+        if (updates.prospectId !== undefined) payload.prospect_id = updates.prospectId;
+        if (updates.numero !== undefined) payload.numero = updates.numero;
+        if (updates.fecha !== undefined) payload.fecha = updates.fecha;
+        if (updates.vigencia !== undefined) payload.vigencia = updates.vigencia;
+        if (updates.subtotal !== undefined) payload.subtotal = updates.subtotal;
+        if (updates.descuento !== undefined) payload.descuento = updates.descuento;
+        if (updates.estado !== undefined) payload.estado = updates.estado;
+        if (updates.items !== undefined) payload.items = updates.items;
         if (updates.notasAdicionales !== undefined) payload.notas_adicionales = updates.notasAdicionales;
         if (updates.terminosCondiciones !== undefined) payload.terminos_condiciones = updates.terminosCondiciones;
         if (updates.metodosPagoAceptados !== undefined) payload.metodos_pago_aceptados = updates.metodosPagoAceptados;
@@ -293,10 +346,47 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const { error } = await supabase.from('quotes')
             .update(payload)
             .eq('id', id)
-            .eq('workspace_id', workspaceId);
+            .eq('workspace', workspaceId);
 
         if (error) throw error;
         setQuotes(prev => prev.map(q => q.id === id ? { ...q, ...updates } : q));
+
+        // SMART AUTOMATION: Convert prospect to Active Client if quote is accepted/won/approved
+        const isAccepted = updates.estado && ['aceptada', 'approved', 'won'].includes(updates.estado.toLowerCase());
+        if (isAccepted) {
+            const targetQuote = quotes.find(q => q.id === id);
+            if (targetQuote && targetQuote.prospectId) {
+                const targetProspect = prospects.find(p => p.id === targetQuote.prospectId);
+                if (targetProspect) {
+                    const prospectUpdates: Partial<Prospect> = {};
+                    let loggedConversion = false;
+
+                    if (targetProspect.estado !== 'Cliente Activo') {
+                        prospectUpdates.estado = 'Cliente Activo';
+                        loggedConversion = true;
+                    }
+
+                    const quoteTotal = targetQuote.total || 0;
+                    if (targetProspect.valorEstimado !== quoteTotal) {
+                        prospectUpdates.valorEstimado = quoteTotal;
+                    }
+
+                    if (Object.keys(prospectUpdates).length > 0) {
+                        await updateProspect(targetQuote.prospectId, prospectUpdates);
+
+                        const logMessage = loggedConversion
+                            ? `Sistema: El prospecto se convirtió automáticamente en Cliente Activo al aceptarse la cotización #${targetQuote.numero || targetQuote.id.slice(0, 8)} por un valor de $${quoteTotal.toLocaleString()}.`
+                            : `Sistema: Se actualizaron las métricas comerciales del cliente según la cotización #${targetQuote.numero || targetQuote.id.slice(0, 8)} por un valor de $${quoteTotal.toLocaleString()}.`;
+
+                        await addFollowUp(
+                            targetQuote.prospectId,
+                            logMessage,
+                            authUser?.id || 'system'
+                        );
+                    }
+                }
+            }
+        }
     };
 
     const deleteQuote = async (id: string) => {
@@ -304,7 +394,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const { error } = await supabase.from('quotes')
             .delete()
             .eq('id', id)
-            .eq('workspace_id', workspaceId);
+            .eq('workspace', workspaceId);
 
         if (error) throw error;
         setQuotes(prev => prev.filter(q => q.id !== id));
@@ -372,7 +462,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             end_time: event.endTime?.toISOString(),
             type: event.type,
             prospect_id: event.prospectId || null,
-            workspace_id: workspaceId
+            workspace: workspaceId
         }]).select().single();
 
         if (error) throw error;
@@ -391,7 +481,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const { error } = await supabase.from('calendar_events')
             .update(payload)
             .eq('id', id)
-            .eq('workspace_id', workspaceId);
+            .eq('workspace', workspaceId);
 
         if (error) throw error;
         setCalendarEvents(prev => prev.map(e => e.id === id ? { ...e, ...updates } : e));
@@ -402,7 +492,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const { error } = await supabase.from('calendar_events')
             .delete()
             .eq('id', id)
-            .eq('workspace_id', workspaceId);
+            .eq('workspace', workspaceId);
 
         if (error) throw error;
         setCalendarEvents(prev => prev.filter(e => e.id !== id));

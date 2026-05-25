@@ -184,6 +184,10 @@ export interface FinanceAccount {
   saldoActual: number;
   activo: boolean;
   updatedAt: Date;
+  bank_name?: string;
+  account_alias?: string;
+  last_four_digits?: string;
+  account_subtype?: string;
 }
 
 export type FinanceDocumentType = 'NOTA_CARGO' | 'CUENTA_PAGAR' | 'GASTO';
@@ -259,13 +263,22 @@ export interface RecurringExpense {
   created_at: Date;
 }
 
-export type TreasuryScenario = 'optimistic' | 'realistic' | 'pessimistic';
+export type TreasuryScenario = 'optimista' | 'conservador' | 'critico';
 
 export interface TreasuryProjectionPoint {
   date: Date;
-  balance: number;
+  balance: number;            // Balance bajo escenario activo
   inflow: number;
   outflow: number;
+  balanceOptimista: number;
+  balanceConservador: number;
+  balanceCritico: number;
+  inflowOptimista: number;
+  outflowOptimista: number;
+  inflowConservador: number;
+  outflowConservador: number;
+  inflowCritico: number;
+  outflowCritico: number;
 }
 
 export type TreasuryMovementType = 'deposit' | 'withdrawal' | 'transfer_in' | 'transfer_out' | 'adjustment';

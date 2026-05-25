@@ -1,5 +1,4 @@
-import React from 'react';
-import { Routes, Route, Navigate, Outlet, NavLink } from 'react-router-dom';
+import { Routes, Route, Navigate, NavLink } from 'react-router-dom';
 import { FileText, Calendar, Building, Receipt } from 'lucide-react';
 
 import Receivables from './components/Receivables';

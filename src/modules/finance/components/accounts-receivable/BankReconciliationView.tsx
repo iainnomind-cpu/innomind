@@ -12,7 +12,7 @@ export default function BankReconciliationView() {
     // Flatten all payments across all charge notes for matching
     const allPayments = useMemo(() => {
         return chargeNotes.flatMap(cn =>
-            (cn.payments || []).map(p => ({
+            (cn.payments || []).map((p: any) => ({
                 ...p,
                 note_number: cn.note_number,
                 client_name: cn.prospect?.nombre

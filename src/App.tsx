@@ -52,6 +52,7 @@ import WorkspaceLayout from '@/modules/workspace/WorkspaceLayout';
 import Login from './components/auth/Login';
 import ResetPassword from './components/auth/ResetPassword';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import { FEATURES } from '@/config/features';
 import SupportLayout from '@/modules/support/SupportLayout';
 import UserTicketList from '@/modules/support/components/UserTicketList';
 import NewTicketForm from '@/modules/support/components/NewTicketForm';
@@ -135,12 +136,12 @@ function App() {
             {/* Rutas de Finanzas y Tesorería */}
             <Route path="finance/*" element={<FinanceLayout />} />
 
-            {/* Nodo - Colaboración interna de Corē */}
-            <Route path="workspace/*" element={<WorkspaceLayout />} />
+            {/* Rutas de Workspace (Nodo) */}
+            <Route path="workspace/*" element={FEATURES.enableNodo ? <WorkspaceLayout /> : <Navigate to="/crm/dashboard" replace />} />
           </Route>
 
           {/* Módulo de Compras (Ruta Raíz /compras) */}
-          <Route path="/compras/*" element={<Layout />}>
+          <Route path="/compras/*" element={FEATURES.enableCompras ? <Layout /> : <Navigate to="/crm/dashboard" replace />}>
             <Route path="*" element={<ProcurementLayout />} />
           </Route>
         </Route>

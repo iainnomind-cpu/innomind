@@ -6,6 +6,7 @@ import { AIRecommendationWizard } from './AIRecommendationWizard';
 import { supabase } from '@/lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { useCRM } from '@/context/CRMContext';
+import { FEATURES } from '@/config/features';
 import { Prospect } from '@/types';
 
 export default function FreeTrialModal() {
@@ -434,15 +435,15 @@ export default function FreeTrialModal() {
                                                 />
                                                 <ModuleSelectionCard
                                                     title="Gestión Financiera"
-                                                    description="(Finanzas: Ingresos, Egresos, Reportes | Compras: Órdenes, Proveedores)"
-                                                    items={['Finanzas', 'Compras']}
+                                                    description={FEATURES.enableCompras ? "(Finanzas: Ingresos, Egresos, Reportes | Compras: Órdenes, Proveedores)" : "(Finanzas: Ingresos, Egresos, Reportes)"}
+                                                    items={FEATURES.enableCompras ? ['Finanzas', 'Compras'] : ['Finanzas']}
                                                     selected={selectedSubModules}
                                                     toggle={toggleSubModule}
                                                 />
                                                 <ModuleSelectionCard
                                                     title="Gestión Operativa"
-                                                    description="(Inventario: Productos, Stock, Movimientos | Nodo: Conversaciones, Bandeja, Mi Día, Tareas Globales, Notas)"
-                                                    items={['Inventario', 'Nodo']}
+                                                    description={FEATURES.enableNodo ? "(Inventario: Productos, Stock, Movimientos | Nodo: Conversaciones, Bandeja, Mi Día, Tareas Globales, Notas)" : "(Inventario: Productos, Stock, Movimientos)"}
+                                                    items={FEATURES.enableNodo ? ['Inventario', 'Nodo'] : ['Inventario']}
                                                     selected={selectedSubModules}
                                                     toggle={toggleSubModule}
                                                 />
