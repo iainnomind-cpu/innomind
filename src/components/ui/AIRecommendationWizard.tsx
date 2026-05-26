@@ -148,7 +148,7 @@ No recomiendes solo uno si existen múltiples necesidades.
 MÓDULOS DISPONIBLES EN INNOMIND:
 
 🔵 Gestión Comercial
-(Embudo: Oportunidades | Prospectos: Seguimiento | Clientes: Historial | Cotizaciones: Estados | Calendario: Eventos)
+(Embudo: Pipeline | Prospectos: Gestión | Clientes: Cartera | Cotizaciones: Propuestas | Calendario: Agendar)
 
 Módulos individuales:
 - Embudo de Ventas
@@ -158,7 +158,7 @@ Módulos individuales:
 - Calendario
 
 🟢 Gestión Financiera
-(Finanzas: Ingresos, Egresos, Reportes${FEATURES.enableCompras ? ' | Compras: Órdenes, Proveedores' : ''})
+(Finanzas: Tesorería, Cobros, Pagos, Gastos${FEATURES.enableCompras ? ' | Compras: Órdenes, Proveedores' : ''})
 
 Módulos individuales:
 - Finanzas

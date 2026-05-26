@@ -10,7 +10,7 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut } = useAuth();
-  const { currentUser } = useUsers();
+  const { currentUser, enabledModules, trialDaysRemaining } = useUsers();
 
   const menuItems = [
     { id: 'dashboard', label: 'Panel de Control', icon: LayoutDashboard, alwaysVisible: true },
@@ -26,8 +26,6 @@ export default function Layout() {
     { id: 'support', label: 'Soporte', icon: LifeBuoy, alwaysVisible: true },
     { id: 'settings', label: 'Mi Empresa', icon: Settings, adminOnly: true, alwaysVisible: true },
   ];
-
-  const { enabledModules } = useUsers();
 
   const visibleMenuItems = menuItems.filter(item => {
     if (item.id === 'procurement' && !FEATURES.enableCompras) return false;
@@ -141,6 +139,23 @@ export default function Layout() {
         </header>
 
         <main className="flex-1 overflow-y-auto p-6">
+          {trialDaysRemaining !== null && (
+            <div className={`mb-6 rounded-xl p-4 flex items-center justify-between border ${trialDaysRemaining <= 7 ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-blue-50 border-blue-200 text-blue-800'}`}>
+              <div>
+                <p className="font-semibold flex items-center gap-2">
+                  <CalendarIcon className="w-5 h-5" />
+                  Quedan {trialDaysRemaining} días de prueba gratuita
+                </p>
+                <p className="text-sm opacity-90 mt-0.5">Disfruta de todas las funciones premium. Actualiza tu plan antes de que termine.</p>
+              </div>
+              <button 
+                onClick={() => navigate('/precios')}
+                className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${trialDaysRemaining <= 7 ? 'bg-amber-600 hover:bg-amber-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+              >
+                Contratar Plan
+              </button>
+            </div>
+          )}
           <Outlet />
         </main>
       </div>
