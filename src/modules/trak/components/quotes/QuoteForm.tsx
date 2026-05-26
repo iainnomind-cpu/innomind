@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useTrak } from '../../context/TrakContext';
 import { supabase } from '@/lib/supabase';
-import { ChevronLeft, Plus, Trash2, Save, FileText, PackageSearch, Download } from 'lucide-react';
+import { ChevronLeft, Plus, Trash2, Save, FileText, PackageSearch, Download, LayoutTemplate, X } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -10,13 +10,21 @@ export default function QuoteForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { workspaceId, clients, projects, refreshProjects, refreshClients } = useTrak();
+  const [searchParams] = useSearchParams();
+  const templateId = searchParams.get('template');
+
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [templateForm, setTemplateForm] = useState({ name: '', description: '' });
+  const [savingTemplate, setSavingTemplate] = useState(false);
   
   const isEdit = id && id !== 'new';
   const [saving, setSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(isEdit);
   const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [catalogProducts, setCatalogProducts] = useState<any[]>([]);
+  const [templates, setTemplates] = useState<any[]>([]);
   const [showCatalog, setShowCatalog] = useState(false);
+  const [activeSearchIndex, setActiveSearchIndex] = useState<number | null>(null);
   const [companyInfo, setCompanyInfo] = useState({ name: '', logo: '' });
   const pdfRef = useRef<HTMLDivElement>(null);
   
@@ -39,11 +47,103 @@ export default function QuoteForm() {
 
   useEffect(() => {
     fetchCatalog();
+    fetchTemplates();
     fetchWorkspaceSettings();
     if (isEdit) {
       fetchQuote();
+    } else if (templateId) {
+      loadTemplate(templateId);
     }
-  }, [id, workspaceId]);
+  }, [id, workspaceId, templateId]);
+
+  const loadTemplate = async (tplId: string) => {
+    setIsLoading(true);
+    try {
+      const { data: template } = await supabase
+        .from('trak_quote_templates')
+        .select('*')
+        .eq('id', tplId)
+        .single();
+      
+      if (template) {
+        setForm(prev => ({
+          ...prev,
+          title: template.name || prev.title,
+          payment_terms: template.payment_terms || prev.payment_terms,
+          notes: template.notes || prev.notes,
+          tax_rate: template.tax_rate !== undefined ? template.tax_rate : prev.tax_rate
+        }));
+
+        const { data: tplItems } = await supabase
+          .from('trak_quote_template_items')
+          .select('*')
+          .eq('template_id', tplId)
+          .order('order_index');
+
+        if (tplItems && tplItems.length > 0) {
+          setItems(tplItems.map((item: any, index: number) => ({
+            id: `temp-${Date.now()}-${index}`,
+            name: item.name,
+            description: item.description || '',
+            quantity: item.quantity,
+            unit_price: item.unit_price,
+            total: item.quantity * item.unit_price
+          })));
+        }
+      }
+    } catch (err) {
+      console.error('Error loading template:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSaveAsTemplate = async () => {
+    if (!templateForm.name.trim()) return alert('El nombre de la plantilla es obligatorio');
+    setSavingTemplate(true);
+    try {
+      const { data: template, error: tplError } = await supabase
+        .from('trak_quote_templates')
+        .insert({
+          workspace_id: workspaceId,
+          name: templateForm.name.trim(),
+          description: templateForm.description.trim(),
+          payment_terms: form.payment_terms,
+          notes: form.notes,
+          tax_rate: form.tax_rate
+        })
+        .select('id')
+        .single();
+
+      if (tplError) throw tplError;
+
+      if (template) {
+        const itemsToInsert = items.map((item, index) => ({
+          template_id: template.id,
+          name: item.name,
+          description: item.description || '',
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          total: item.total,
+          order_index: index
+        }));
+
+        const { error: itemsError } = await supabase
+          .from('trak_quote_template_items')
+          .insert(itemsToInsert);
+
+        if (itemsError) throw itemsError;
+
+        alert('Plantilla guardada exitosamente');
+        setShowTemplateModal(false);
+      }
+    } catch (err) {
+      console.error('Error saving template:', err);
+      alert('Error al guardar la plantilla');
+    } finally {
+      setSavingTemplate(false);
+    }
+  };
 
   const fetchWorkspaceSettings = async () => {
     if (!workspaceId) return;
@@ -60,6 +160,16 @@ export default function QuoteForm() {
     if (!workspaceId) return;
     const { data } = await supabase.from('trak_products').select('*').eq('workspace_id', workspaceId).eq('is_active', true);
     if (data) setCatalogProducts(data);
+  };
+
+  const fetchTemplates = async () => {
+    if (!workspaceId) return;
+    const { data } = await supabase
+      .from('trak_quote_templates')
+      .select('*')
+      .eq('workspace_id', workspaceId)
+      .order('name');
+    if (data) setTemplates(data);
   };
 
   const fetchQuote = async () => {
@@ -326,7 +436,7 @@ export default function QuoteForm() {
             <div className="grid md:grid-cols-2 gap-6">
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Título de la Cotización *</label>
-                <input type="text" value={form.title} onChange={e=>setForm({...form, title:e.target.value})} className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-purple-500" placeholder="Ej. Desarrollo de App Móvil"/>
+                <input type="text" value={form.title} onChange={e=>setForm({...form, title:e.target.value})} className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-purple-500 font-medium" placeholder="Ej. Desarrollo de App Móvil"/>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Cliente *</label>
@@ -335,6 +445,27 @@ export default function QuoteForm() {
                   {clients.map(c => <option key={c.id} value={c.id}>{c.company_name}</option>)}
                 </select>
               </div>
+
+              {!isEdit && (
+                <div>
+                  <label className="block text-sm font-medium text-purple-700 mb-1">Cargar Plantilla (Opcional)</label>
+                  <select 
+                    onChange={e => {
+                      const tplId = e.target.value;
+                      if (tplId) {
+                        if (confirm('¿Cargar esta plantilla? Esto reemplazará los conceptos actuales de la cotización.')) {
+                          loadTemplate(tplId);
+                        }
+                      }
+                    }} 
+                    className="w-full p-2.5 bg-purple-50/50 border border-purple-200 text-purple-900 rounded-lg text-sm font-semibold outline-none focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="">Seleccionar Plantilla...</option>
+                    {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  </select>
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Proyecto Relacionado (Opcional)</label>
                 <select value={form.project_id} onChange={e=>setForm({...form, project_id:e.target.value})} className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-purple-500">
@@ -351,7 +482,7 @@ export default function QuoteForm() {
             {/* Line Items */}
             <div>
               <h2 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><FileText size={18}/> Conceptos</h2>
-              <div className="border border-gray-200 rounded-xl overflow-hidden">
+              <div className="border border-gray-200 rounded-xl">
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 border-b border-gray-200 text-gray-500">
                     <tr>
@@ -365,8 +496,72 @@ export default function QuoteForm() {
                   <tbody className="divide-y divide-gray-100">
                     {items.map((item, index) => (
                       <tr key={item.id} className="bg-white">
-                        <td className="p-2">
-                          <input type="text" placeholder="Nombre del concepto" value={item.name} onChange={e => handleItemChange(index, 'name', e.target.value)} className="w-full p-2 bg-transparent border-none outline-none font-medium mb-1"/>
+                        <td className="p-2 relative">
+                          <div className="relative">
+                            <input 
+                              type="text" 
+                              placeholder="Nombre del concepto" 
+                              value={item.name} 
+                              onChange={e => {
+                                handleItemChange(index, 'name', e.target.value);
+                                setActiveSearchIndex(index);
+                              }}
+                              onFocus={() => {
+                                setActiveSearchIndex(index);
+                              }}
+                              onBlur={() => {
+                                setTimeout(() => setActiveSearchIndex(null), 250);
+                              }}
+                              className="w-full p-2 bg-transparent border-none outline-none font-medium mb-1 text-gray-900 focus:ring-1 focus:ring-purple-200 rounded-lg"
+                            />
+                            
+                            {activeSearchIndex === index && (
+                              <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 shadow-2xl rounded-xl overflow-hidden z-50 max-h-60 overflow-y-auto text-left">
+                                {catalogProducts.filter(p => {
+                                  const query = (item.name || '').toLowerCase();
+                                  if (!query) return true;
+                                  return p.name.toLowerCase().includes(query) || (p.sku && p.sku.toLowerCase().includes(query));
+                                }).length === 0 ? (
+                                  <div className="p-3 text-xs text-gray-400 text-center">Sin coincidencias. Captura manual activa.</div>
+                                ) : (
+                                  catalogProducts.filter(p => {
+                                    const query = (item.name || '').toLowerCase();
+                                    if (!query) return true;
+                                    return p.name.toLowerCase().includes(query) || (p.sku && p.sku.toLowerCase().includes(query));
+                                  }).map(p => (
+                                    <button
+                                      key={p.id}
+                                      type="button"
+                                      onClick={() => {
+                                        const newItems = [...items];
+                                        newItems[index] = {
+                                          ...newItems[index],
+                                          name: p.name,
+                                          description: p.description || '',
+                                          unit_price: p.unit_price,
+                                          total: newItems[index].quantity * p.unit_price
+                                        };
+                                        setItems(newItems);
+                                        setActiveSearchIndex(null);
+                                      }}
+                                      className="w-full text-left p-2.5 hover:bg-purple-50 transition-colors border-b border-gray-50 last:border-0 flex justify-between items-center text-xs"
+                                    >
+                                      <div>
+                                        <div className="flex items-center gap-1.5">
+                                          <span className={`inline-flex items-center p-0.5 rounded text-[8px] font-extrabold uppercase ${p.type === 'product' ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+                                            {p.type === 'product' ? 'Prod' : 'Serv'}
+                                          </span>
+                                          <span className="font-semibold text-gray-900">{p.name}</span>
+                                        </div>
+                                        {p.sku && <span className="text-[9px] text-gray-400 font-mono block mt-0.5">{p.sku}</span>}
+                                      </div>
+                                      <span className="font-bold text-purple-600">${p.unit_price}</span>
+                                    </button>
+                                  ))
+                                )}
+                              </div>
+                            )}
+                          </div>
                           <input type="text" placeholder="Descripción adicional..." value={item.description} onChange={e => handleItemChange(index, 'description', e.target.value)} className="w-full p-2 bg-transparent border-none outline-none text-xs text-gray-500"/>
                         </td>
                         <td className="p-2 align-top pt-3">

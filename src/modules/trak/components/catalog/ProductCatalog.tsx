@@ -69,6 +69,7 @@ export default function ProductCatalog() {
       type: form.type,
       unit_price: parseFloat(form.unit_price),
       sku: form.sku.trim() || null,
+      is_active: true,
     };
 
     if (editingProduct) {
