@@ -89,6 +89,7 @@ function App() {
             <Route path="projects" element={<ProjectList />} />
             <Route path="projects/new" element={<ProjectForm />} />
             <Route path="projects/:id" element={<ProjectDetail />} />
+            <Route path="projects/:id/edit" element={<ProjectForm />} />
             <Route path="tasks" element={<GlobalTaskList />} />
             <Route path="quotes" element={<TrakQuoteList />} />
             <Route path="quotes/:id" element={<TrakQuoteForm />} />

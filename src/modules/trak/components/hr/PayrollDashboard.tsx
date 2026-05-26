@@ -53,27 +53,15 @@ export default function PayrollDashboard() {
   const calculatePayroll = (emp: any) => {
     let totalPay = 0;
     let totalHours = 0;
-
-    // We assume the auth.users id is linked to trak_employees in some way.
-    // Wait, trak_employees currently doesn't have a user_id foreign key linked to the auth.user in the frontend UI explicitly,
-    // but the users log time with their auth user_id. 
-    // Usually, tracking email is the safest fallback if auth user_id isn't in trak_employees.
-    // For this simulation, we'll map by email, assuming trak_employees.email matches auth.users.email
-    
-    // Actually, trak_time_entries just has user_id. We might not easily join them if trak_employees isn't linked to auth.users.
-    // Let's look at trak_employees schema: it has 'email'. We can mock it or just show the fixed salary for now.
+    const salary = parseFloat(emp.salary_amount) || 0;
 
     if (emp.payment_type === 'monthly') {
-      totalPay = emp.salary_amount;
+      totalPay = salary;
     } else if (emp.payment_type === 'hourly') {
-      // Since we don't have a direct user_id on trak_employees right now, we will simulate the connection
-      // by just calculating an average or using the raw salary as a base if we can't link it directly.
-      // Ideally, trak_employees should have a user_id or we link by email.
-      // We will show a placeholder calculation for hourly employees based on 160 hours if timeEntries can't be mapped.
       totalHours = 160; 
-      totalPay = emp.salary_amount * totalHours;
+      totalPay = salary * totalHours;
     } else if (emp.payment_type === 'daily') {
-      totalPay = emp.salary_amount * 20; // Avg 20 working days
+      totalPay = salary * 20; // Avg 20 working days
     }
 
     return { totalPay, totalHours };
@@ -105,7 +93,7 @@ export default function PayrollDashboard() {
             <DollarSign size={20} />
           </div>
           <p className="text-sm font-medium text-purple-600/80 mb-1">Nómina Total Estimada</p>
-          <p className="text-3xl font-black text-purple-700">${totalPayroll.toLocaleString()}</p>
+          <p className="text-3xl font-black text-purple-700">${totalPayroll.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
         </div>
         
         <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
@@ -170,10 +158,10 @@ export default function PayrollDashboard() {
                         {emp.payment_type === 'hourly' ? 'Por Hora' : emp.payment_type === 'daily' ? 'Por Día' : 'Mensual Fijo'}
                       </td>
                       <td className="px-6 py-4 text-gray-600">
-                        ${emp.salary_amount.toLocaleString()}
+                        ${(parseFloat(emp.salary_amount) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <span className="font-black text-gray-900">${totalPay.toLocaleString()}</span>
+                        <span className="font-black text-gray-900">${totalPay.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                       </td>
                     </tr>
                   );
