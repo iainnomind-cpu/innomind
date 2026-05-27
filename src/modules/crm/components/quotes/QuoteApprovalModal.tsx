@@ -38,7 +38,7 @@ export default function QuoteApprovalModal({ quote, accounts, onConfirm, onClose
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg flex flex-col border border-gray-200 animate-in fade-in slide-in-from-bottom-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg flex flex-col border border-gray-200 animate-in fade-in slide-in-from-bottom-4 max-h-[90vh]">
                 <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-emerald-50 rounded-t-xl">
                     <div className="flex items-center gap-3">
                         <div className="bg-emerald-100 p-2 rounded-lg text-emerald-600">
@@ -54,7 +54,7 @@ export default function QuoteApprovalModal({ quote, accounts, onConfirm, onClose
                     </button>
                 </div>
 
-                <div className="p-6 space-y-6">
+                <div className="p-6 space-y-6 overflow-y-auto flex-1">
                     <p className="text-gray-600">
                         Al aprobar esta cotización, se descontará el stock de los productos físicos automáticamente.
                     </p>

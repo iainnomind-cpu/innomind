@@ -33,6 +33,12 @@ export default function ProspectDetail() {
     const [isEditing, setIsEditing] = useState(false);
     const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
 
+    React.useEffect(() => {
+        if (!selectedProspect) {
+            navigate('/crm/prospectos', { replace: true });
+        }
+    }, [selectedProspect, navigate]);
+
     if (!selectedProspect) return null;
 
     const getUserName = (userId: string) => {

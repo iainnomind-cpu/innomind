@@ -12,41 +12,35 @@ interface FollowUpSectionProps {
 }
 
 export const FollowUpSection: React.FC<FollowUpSectionProps> = ({ prospect, onAddCalendarEvent }) => {
-    const { calendarEvents, quotes } = useCRM();
+    const { calendarEvents, quotes, addFollowUp } = useCRM();
     const { users, currentUser } = useUsers();
 
     const [isAddingNote, setIsAddingNote] = useState(false);
     const [newNote, setNewNote] = useState('');
     const [isSubmittingNote, setIsSubmittingNote] = useState(false);
 
-    // UI Local State for new notes
-    const [localNotes, setLocalNotes] = useState<{ id: string, nota: string, fecha: Date, usuario: string }[]>([]);
-
     const getUserName = (userId: string) => {
         const user = users.find(u => u.id === userId);
         return user ? user.name : 'Desconocido';
     };
 
-    const handleAddFollowUp = (e: React.FormEvent) => {
+    const handleAddFollowUp = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!newNote.trim() || !currentUser) return;
 
         setIsSubmittingNote(true);
 
-        // Add to local state only, no DB connect
-        const newLocalNote = {
-            id: Math.random().toString(36).substr(2, 9),
-            nota: newNote,
-            fecha: new Date(),
-            usuario: currentUser.id
-        };
-
-        setLocalNotes(prev => [newLocalNote, ...prev]);
-
-        setNewNote('');
-        setIsAddingNote(false);
-        setIsSubmittingNote(false);
+        try {
+            await addFollowUp(prospect.id, newNote, currentUser.id);
+            setNewNote('');
+            setIsAddingNote(false);
+        } catch (error) {
+            console.error('Error adding note:', error);
+            alert('Error al guardar la nota');
+        } finally {
+            setIsSubmittingNote(false);
+        }
     };
 
     const prospectEvents = calendarEvents.filter(e => e.prospectId === prospect.id);
@@ -61,8 +55,8 @@ export const FollowUpSection: React.FC<FollowUpSectionProps> = ({ prospect, onAd
         user?: string;
     };
 
-    // Merge DB notes with Local notes
-    const allNotes = [...(prospect.seguimientos || []), ...localNotes];
+    // Use DB notes directly
+    const allNotes = prospect.seguimientos || [];
 
     const timeline: TimelineItem[] = [
         ...allNotes.map(s => ({
