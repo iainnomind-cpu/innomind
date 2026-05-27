@@ -19,7 +19,7 @@ const PAYMENT_METHODS = [
 ];
 
 export default function QuoteForm({ onClose, editingQuote, initialProspectId }: QuoteFormProps) {
-    const { addQuote, updateQuote, prospects, quoteTemplates } = useCRM();
+    const { addQuote, updateQuote, prospects, quoteTemplates, updateProspect } = useCRM();
     const { products } = useInventory();
     const { companyProfile } = useUsers();
 
@@ -280,8 +280,11 @@ export default function QuoteForm({ onClose, editingQuote, initialProspectId }: 
             metodosPagoAceptados
         };
 
+        const shouldSyncCotizado = status !== 'Borrador' && selectedProspect && ['Nuevo', 'Contactado', 'En seguimiento'].includes(selectedProspect.estado);
+
         if (editingQuote) {
             await updateQuote(editingQuote.id, quoteData);
+            if (shouldSyncCotizado) await updateProspect(prospectId, { estado: 'Cotizado' });
             if (showSendToast) {
                 await (channel === 'email' ? shareQuoteByEmail(quoteData) : shareQuoteByWhatsApp(quoteData));
                 onClose();
@@ -296,6 +299,7 @@ export default function QuoteForm({ onClose, editingQuote, initialProspectId }: 
             }
         } else {
             await addQuote(quoteData);
+            if (shouldSyncCotizado) await updateProspect(prospectId, { estado: 'Cotizado' });
             if (showSendToast) {
                 await (channel === 'email' ? shareQuoteByEmail(quoteData) : shareQuoteByWhatsApp(quoteData));
                 onClose();
