@@ -27,7 +27,7 @@ export default function ProspectTable({ navigationParams }: ProspectTableProps) 
     const { prospects, deleteProspect, selectProspect } = useCRM();
     const { users } = useUsers();
 
-    const initialTab = (searchParams.get('tab') as TabFilter) || 'todos';
+    const initialTab = (searchParams.get('tab') as TabFilter) || 'prospectos';
     const [activeTab, setActiveTab] = useState<TabFilter>(initialTab);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<ProspectStatus | 'all'>('all');
@@ -42,10 +42,10 @@ export default function ProspectTable({ navigationParams }: ProspectTableProps) 
         const tabParam = searchParams.get('tab') as TabFilter;
         if (tabParam === 'clientes') {
             setActiveTab('clientes');
-        } else if (tabParam === 'prospectos') {
-            setActiveTab('prospectos');
-        } else {
+        } else if (tabParam === 'todos') {
             setActiveTab('todos');
+        } else {
+            setActiveTab('prospectos'); // Default to prospectos when accessed from sidebar
         }
     }, [searchParams]);
 
