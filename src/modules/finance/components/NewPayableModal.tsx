@@ -36,7 +36,7 @@ export default function NewPayableModal({ onClose }: NewPayableModalProps) {
                 .select('*')
                 .eq('workspace', workspace.id)
                 .eq('activo', true)
-                .order('nombreComercial');
+                .order('nombre_comercial');
             if (data) setSuppliers(data);
         };
         fetchSuppliers();
@@ -57,7 +57,7 @@ export default function NewPayableModal({ onClose }: NewPayableModalProps) {
                     .from('suppliers')
                     .insert({
                         workspace: workspace?.id,
-                        nombreComercial: newSupplierName,
+                        nombre_comercial: newSupplierName,
                         rfc: newSupplierRFC,
                         email: newSupplierEmail,
                         activo: true
@@ -196,7 +196,7 @@ export default function NewPayableModal({ onClose }: NewPayableModalProps) {
                                     >
                                         <option value="">-- Seleccionar Proveedor --</option>
                                         {suppliers.map(s => (
-                                            <option key={s.id} value={s.id}>{s.nombreComercial}</option>
+                                            <option key={s.id} value={s.id}>{s.nombre_comercial || s.nombreComercial}</option>
                                         ))}
                                     </select>
                                     <button
