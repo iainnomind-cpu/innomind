@@ -4,6 +4,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useUsers } from '@/context/UserContext';
 import { FEATURES } from '@/config/features';
+import TrakAIChat from '@/modules/trak/components/ai/TrakAIChat';
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -143,6 +144,7 @@ export default function Layout() {
         <main className="flex-1 overflow-y-auto p-6">
           <Outlet />
         </main>
+        <TrakAIChat />
       </div>
     </div>
   );
