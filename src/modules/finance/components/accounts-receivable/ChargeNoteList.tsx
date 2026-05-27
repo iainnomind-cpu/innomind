@@ -4,11 +4,13 @@ import { ChargeNote } from '@/types';
 import { Search, FileText, CheckCircle, AlertCircle, Clock, DollarSign, Loader2 } from 'lucide-react';
 import ChargeNoteDetail from './ChargeNoteDetail';
 import PaymentModal from './PaymentModal';
+import NewChargeNoteModal from './NewChargeNoteModal';
 
 export default function ChargeNoteList() {
     const { chargeNotes, isLoading, setSelectedNote, selectedNote } = useAccountsReceivable();
     const [searchTerm, setSearchTerm] = useState('');
     const [isPaymentModalOpen, setPaymentModalOpen] = useState(false);
+    const [isNewModalOpen, setIsNewModalOpen] = useState(false);
     const [noteToPay, setNoteToPay] = useState<ChargeNote | null>(null);
 
     if (isLoading && chargeNotes.length === 0) {
@@ -89,6 +91,12 @@ export default function ChargeNoteList() {
                         className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
                     />
                 </div>
+                <button
+                    onClick={() => setIsNewModalOpen(true)}
+                    className="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-bold shadow-sm shadow-emerald-600/20 hover:bg-emerald-700 transition-colors"
+                >
+                    + Nueva Nota de Cargo
+                </button>
             </div>
 
             {/* List */}
@@ -164,6 +172,10 @@ export default function ChargeNoteList() {
                     note={noteToPay}
                     onClose={() => setPaymentModalOpen(false)}
                 />
+            )}
+
+            {isNewModalOpen && (
+                <NewChargeNoteModal onClose={() => setIsNewModalOpen(false)} />
             )}
         </div>
     );

@@ -4,6 +4,7 @@ import { Search, FileText, CheckCircle, AlertCircle, Clock, CreditCard, Loader2,
 import { AccountsPayable } from '@/types';
 import { format, isPast, isToday } from 'date-fns';
 import { es } from 'date-fns/locale';
+import NewPayableModal from './NewPayableModal';
 
 interface AccountsPayableListProps {
     onSelectPayable: (payable: AccountsPayable) => void;
@@ -13,6 +14,7 @@ interface AccountsPayableListProps {
 export default function AccountsPayableList({ onSelectPayable, onAddPayment }: AccountsPayableListProps) {
     const { payables, isLoading } = useAccountsPayable();
     const [searchTerm, setSearchTerm] = useState('');
+    const [isNewModalOpen, setIsNewModalOpen] = useState(false);
 
     if (isLoading && payables.length === 0) {
         return (
@@ -90,6 +92,12 @@ export default function AccountsPayableList({ onSelectPayable, onAddPayment }: A
                         className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none transition-all"
                     />
                 </div>
+                <button
+                    onClick={() => setIsNewModalOpen(true)}
+                    className="w-full sm:w-auto px-6 py-2.5 bg-purple-600 text-white rounded-xl text-sm font-bold shadow-sm shadow-purple-600/20 hover:bg-purple-700 transition-colors"
+                >
+                    + Nueva Cuenta por Pagar
+                </button>
             </div>
 
             {/* Table */}
@@ -181,6 +189,10 @@ export default function AccountsPayableList({ onSelectPayable, onAddPayment }: A
                     </table>
                 </div>
             </div>
+
+            {isNewModalOpen && (
+                <NewPayableModal onClose={() => setIsNewModalOpen(false)} />
+            )}
         </div>
     );
 }
