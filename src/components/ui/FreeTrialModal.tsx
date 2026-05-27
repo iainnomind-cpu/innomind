@@ -110,7 +110,7 @@ export default function FreeTrialModal() {
     const doPasswordsMatch = password === confirmPassword;
 
     const isStep3Valid = useMemo(() => {
-        return sanitizedWorkspace.length > 3 && isPasswordValid && doPasswordsMatch && termsAccepted;
+        return sanitizedWorkspace.length >= 3 && isPasswordValid && doPasswordsMatch && termsAccepted;
     }, [sanitizedWorkspace, isPasswordValid, doPasswordsMatch, termsAccepted]);
 
     const toggleSubModule = (module: string) => {
@@ -374,7 +374,7 @@ export default function FreeTrialModal() {
                                                     <Check size={14} strokeWidth={3} />
                                                 </div>
                                             </div>
-                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">CRM-ERP UNIFICADO</h3>
+                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Corē</h3>
                                             <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 h-10">Automatiza ventas, finanzas y operaciones en un solo lugar</p>
 
                                             <ul className="space-y-2 mb-6">
@@ -400,7 +400,7 @@ export default function FreeTrialModal() {
                                                     <Check size={14} strokeWidth={3} />
                                                 </div>
                                             </div>
-                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">PROJECT TRACKER</h3>
+                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Trak</h3>
                                             <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 h-10">Gestiona proyectos y equipos con metodologías ágiles</p>
 
                                             <ul className="space-y-2 mb-6">
@@ -720,7 +720,7 @@ export default function FreeTrialModal() {
                                                             p_workspace_name: workspaceName,
                                                             p_phone: phone,
                                                             p_company_size: companySize,
-                                                            p_enabled_modules: mapModulesToSidebarIds(selectedSubModules)
+                                                            p_enabled_modules: selectedMainModule === 'project-tracker' ? ['trak'] : mapModulesToSidebarIds(selectedSubModules)
                                                         }
                                                     );
 
@@ -736,7 +736,11 @@ export default function FreeTrialModal() {
 
                                                 // Redirección inteligente
                                                 if (authData.session) {
-                                                    navigate('/crm/dashboard');
+                                                    if (selectedMainModule === 'project-tracker') {
+                                                        navigate('/trak');
+                                                    } else {
+                                                        navigate('/crm/dashboard');
+                                                    }
                                                 } else {
                                                     // Caso: Confirmación de correo requerida
                                                     navigate('/crm/login', {
