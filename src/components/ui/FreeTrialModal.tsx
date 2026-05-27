@@ -709,6 +709,28 @@ export default function FreeTrialModal() {
                                                 }
 
                                                 if (!isInvitedUser) {
+                                                    // 0. Enviar Lead al CRM de Finapp
+                                                    try {
+                                                        await fetch('https://mndkjjxtuqizpvkjnnde.supabase.co/rest/v1/crm_leads', {
+                                                            method: 'POST',
+                                                            headers: {
+                                                                'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uZGtqanh0dXFpenB2a2pubmRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1NTc3MzAsImV4cCI6MjA5MjEzMzczMH0.nKU1LC94eBYffLcvmRDtc_4jk_7NMkdDfbRtDLKzD9E',
+                                                                'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uZGtqanh0dXFpenB2a2pubmRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1NTc3MzAsImV4cCI6MjA5MjEzMzczMH0.nKU1LC94eBYffLcvmRDtc_4jk_7NMkdDfbRtDLKzD9E',
+                                                                'Content-Type': 'application/json',
+                                                                'Prefer': 'return=minimal'
+                                                            },
+                                                            body: JSON.stringify({
+                                                                full_name: fullName,
+                                                                company_name: companyName,
+                                                                phone: phone || 'No especificado',
+                                                                industry: companySize,
+                                                                service_of_interest: selectedMainModule === 'project-tracker' ? 'Trak (Proyectos)' : 'Corē (ERP/CRM)'
+                                                            })
+                                                        });
+                                                    } catch (leadError) {
+                                                        console.error('Error enviando lead a finapp:', leadError);
+                                                    }
+
                                                     // 1. Llamar al RPC Seguro para crear Empresa, Usuario y Prospecto ignorando RLS
                                                     const { data: newWorkspaceId, error: rpcError } = await supabase.rpc(
                                                         'register_new_tenant',
