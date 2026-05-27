@@ -108,6 +108,13 @@ function App() {
             <Route path="calendar" element={<TrakCalendar />} />
             <Route path="inventory" element={<InventoryList />} />
             <Route path="settings" element={<TrakSettings />} />
+
+            {/* Rutas de Soporte Trak */}
+            <Route path="support" element={<SupportLayout />}>
+              <Route index element={<UserTicketList />} />
+              <Route path="new" element={<NewTicketForm />} />
+              <Route path=":ticketId" element={<TicketDetail />} />
+            </Route>
           </Route>
 
           <Route path="/crm" element={<Layout />}>

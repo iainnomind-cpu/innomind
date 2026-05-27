@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import {
   LayoutDashboard, Users, FolderKanban, CheckSquare,
   Clock, FileText, BarChart3, Settings, LogOut, Menu, X,
-  ChevronLeft, CalendarDays, Package, Boxes
+  ChevronLeft, CalendarDays, Package, Boxes, LifeBuoy
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import TrakNotifications from './components/ui/TrakNotifications';
@@ -23,6 +23,7 @@ const baseMenuItems = [
   { id: 'quotes', label: 'Cotizaciones', icon: FileText, path: '/trak/quotes' },
   { id: 'calendar', label: 'Calendario', icon: CalendarDays, path: '/trak/calendar' },
   { id: 'reports', label: 'Reportes', icon: BarChart3, path: '/trak/reports' },
+  { id: 'support', label: 'Soporte', icon: LifeBuoy, path: '/trak/support' },
   { id: 'settings', label: 'Configuración', icon: Settings, path: '/trak/settings' },
 ];
 
