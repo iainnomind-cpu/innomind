@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useTrak } from '../../context/TrakContext';
 import { supabase } from '@/lib/supabase';
-import { ChevronLeft, Plus, Trash2, Save, FileText, PackageSearch, Download, LayoutTemplate, X } from 'lucide-react';
+import { ChevronLeft, Plus, Trash2, Save, FileText, PackageSearch, Download, LayoutTemplate, X, Mail, MessageSquare } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -19,6 +19,7 @@ export default function QuoteForm() {
   
   const isEdit = id && id !== 'new';
   const [saving, setSaving] = useState(false);
+  const [sharingChannel, setSharingChannel] = useState<'whatsapp' | 'email' | null>(null);
   const [isLoading, setIsLoading] = useState(isEdit);
   const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [catalogProducts, setCatalogProducts] = useState<any[]>([]);
@@ -206,6 +207,7 @@ export default function QuoteForm() {
   const subtotal = items.reduce((acc, item) => acc + (item.quantity * item.unit_price), 0);
   const taxAmount = (subtotal - form.discount) * (form.tax_rate / 100);
   const total = subtotal - form.discount + taxAmount;
+  const selectedClient = clients.find(c => c.id === form.client_id);
 
   const handleItemChange = (index: number, field: string, value: any) => {
     const newItems = [...items];
@@ -241,14 +243,15 @@ export default function QuoteForm() {
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = async (options: { navigateAfter?: boolean; status?: string } = {}) => {
     if (!form.title.trim() || !form.client_id) return alert('El título y el cliente son obligatorios');
     setSaving(true);
     try {
+      const nextStatus = options.status || form.status;
       let projectIdToLink = form.project_id || null;
 
       // Auto-create project if accepted and no project linked
-      if (form.status === 'accepted' && !projectIdToLink) {
+      if (nextStatus === 'accepted' && !projectIdToLink) {
         const { data: newProject } = await supabase.from('trak_projects').insert({
           workspace_id: workspaceId,
           name: form.title,
@@ -279,7 +282,7 @@ export default function QuoteForm() {
         subtotal,
         tax_amount: taxAmount,
         total,
-        status: form.status
+        status: nextStatus
       };
 
       let currentQuoteId = id;
@@ -309,12 +312,12 @@ export default function QuoteForm() {
 
       // Sincronizar estado del lead/cliente de forma reactiva
       if (form.client_id) {
-        if (form.status === 'accepted') {
+        if (nextStatus === 'accepted') {
           await supabase
             .from('trak_clients')
             .update({ status: 'active', pipeline_stage: 'won' })
             .eq('id', form.client_id);
-        } else if (form.status === 'rejected') {
+        } else if (nextStatus === 'rejected') {
           await supabase
             .from('trak_clients')
             .update({ pipeline_stage: 'lost' })
@@ -336,47 +339,126 @@ export default function QuoteForm() {
         if (refreshClients) await refreshClients();
       }
 
-      navigate('/trak/quotes');
+      if (nextStatus !== form.status) {
+        setForm(prev => ({ ...prev, status: nextStatus }));
+      }
+
+      if (options.navigateAfter !== false) {
+        navigate('/trak/quotes');
+      }
+
+      return currentQuoteId || null;
     } catch (err) {
       console.error('Error saving quote', err);
       alert('Error al guardar la cotización');
+      return null;
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDownloadPDF = async () => {
+  const generatePDFDocument = async () => {
     if (!pdfRef.current) return;
-    setDownloadingPDF(true);
-    try {
-      const canvas = await html2canvas(pdfRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        logging: false,
-      });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = pageWidth;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
+    const canvas = await html2canvas(pdfRef.current, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+    });
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const imgWidth = pageWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    let heightLeft = imgHeight;
+    let position = 0;
+    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+    while (heightLeft > 0) {
+      position -= pageHeight;
+      pdf.addPage();
       pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
-      while (heightLeft > 0) {
-        position -= pageHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
+    }
+    return pdf;
+  };
+
+  const handleDownloadPDF = async () => {
+    setDownloadingPDF(true);
+    try {
+      const pdf = await generatePDFDocument();
+      if (!pdf) return;
       pdf.save(`${form.quote_number}.pdf`);
     } catch (err) {
       console.error('Error generando PDF', err);
       alert('Error al generar el PDF. Intenta de nuevo.');
     } finally {
       setDownloadingPDF(false);
+    }
+  };
+
+  const buildWhatsAppUrl = () => {
+    let phone = (selectedClient?.phone || '').replace(/[\s\-().]/g, '');
+    if (phone.startsWith('+')) phone = phone.substring(1);
+    if (phone && !phone.startsWith('52')) phone = `52${phone}`;
+
+    const message = encodeURIComponent(
+      `Hola ${selectedClient?.contact_name || selectedClient?.company_name || ''},\n\n` +
+      `Le comparto la cotización *#${form.quote_number}* de *${companyInfo.name || 'nuestro equipo'}* ` +
+      `por un total de *$${total.toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN*.\n\n` +
+      `Quedo a sus órdenes.`
+    );
+
+    return `https://wa.me/${phone}?text=${message}`;
+  };
+
+  const buildGmailUrl = () => {
+    const to = encodeURIComponent(selectedClient?.email || '');
+    const subject = encodeURIComponent(`Cotización #${form.quote_number} - ${companyInfo.name || 'Trak'}`);
+    const body = encodeURIComponent(
+      `Estimado/a ${selectedClient?.contact_name || selectedClient?.company_name || 'Cliente'},\n\n` +
+      `Le comparto la cotización #${form.quote_number} por un total de $${total.toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN.\n\n` +
+      `${form.valid_until ? `Vigencia: ${new Date(form.valid_until + 'T12:00:00').toLocaleDateString('es-MX')}\n\n` : ''}` +
+      `Quedamos a sus órdenes.\n` +
+      `${companyInfo.name || ''}`
+    );
+
+    return `https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${subject}&body=${body}`;
+  };
+
+  const handleShare = async (channel: 'whatsapp' | 'email') => {
+    if (channel === 'whatsapp' && !selectedClient?.phone) {
+      alert('Este cliente no tiene teléfono registrado.');
+      return;
+    }
+    if (channel === 'email' && !selectedClient?.email) {
+      alert('Este cliente no tiene correo registrado.');
+      return;
+    }
+
+    setSharingChannel(channel);
+    try {
+      const quoteId = await handleSave({ navigateAfter: false, status: 'sent' });
+      if (!quoteId) return;
+
+      const pdf = await generatePDFDocument();
+      if (pdf) pdf.save(`${form.quote_number}.pdf`);
+
+      if (channel === 'whatsapp') {
+        alert('La cotización se guardó y el PDF se descargó. En la ventana de WhatsApp que se abrirá ahora, adjunta manualmente el PDF descargado. Si no se abre WhatsApp, habilita las ventanas emergentes para este sitio e inténtalo de nuevo.');
+        window.open(buildWhatsAppUrl(), '_blank', 'noopener,noreferrer');
+      } else {
+        alert('La cotización se guardó y el PDF se descargó. Se abrirá Gmail en una nueva pestaña con el mensaje precargado; adjunta manualmente el PDF descargado antes de enviarlo. Si no se abre, habilita las ventanas emergentes para este sitio.');
+        window.open(buildGmailUrl(), '_blank', 'noopener,noreferrer');
+      }
+
+      navigate('/trak/quotes');
+    } catch (err) {
+      console.error('Error sharing quote', err);
+      alert('Error al preparar el envío de la cotización.');
+    } finally {
+      setSharingChannel(null);
     }
   };
 
@@ -661,6 +743,22 @@ export default function QuoteForm() {
             <button onClick={() => navigate('/trak/quotes')} className="px-6 py-2.5 text-gray-700 hover:bg-gray-200 font-medium rounded-xl text-sm transition-colors">
               Cancelar
             </button>
+            <button
+              onClick={() => handleShare('email')}
+              disabled={saving || !!sharingChannel || !form.title || !form.client_id}
+              className="px-6 py-2.5 bg-white hover:bg-purple-50 disabled:opacity-50 text-purple-700 border border-purple-200 font-medium rounded-xl text-sm transition-colors flex items-center gap-2"
+            >
+              <Mail size={18} />
+              {sharingChannel === 'email' ? 'Preparando...' : 'Enviar por Gmail'}
+            </button>
+            <button
+              onClick={() => handleShare('whatsapp')}
+              disabled={saving || !!sharingChannel || !form.title || !form.client_id}
+              className="px-6 py-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-medium rounded-xl text-sm transition-colors flex items-center gap-2 shadow-lg shadow-green-600/20"
+            >
+              <MessageSquare size={18} />
+              {sharingChannel === 'whatsapp' ? 'Preparando...' : 'Enviar por WhatsApp'}
+            </button>
             {isEdit && (
               <button
                 onClick={handleDownloadPDF}
@@ -671,7 +769,7 @@ export default function QuoteForm() {
                 {downloadingPDF ? 'Generando PDF...' : 'Descargar PDF'}
               </button>
             )}
-            <button onClick={handleSave} disabled={saving || !form.title || !form.client_id} className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-medium rounded-xl text-sm transition-colors flex items-center gap-2 shadow-lg shadow-purple-600/20">
+            <button onClick={() => handleSave()} disabled={saving || !form.title || !form.client_id} className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-medium rounded-xl text-sm transition-colors flex items-center gap-2 shadow-lg shadow-purple-600/20">
               <Save size={18} />
               {saving ? 'Guardando...' : 'Guardar Cotización'}
             </button>

@@ -62,7 +62,16 @@ export default function Login() {
 
                     if (profileError) console.error('Error updating profile:', profileError);
 
-                    navigate('/crm/dashboard');
+                    let targetRoute = '/crm/dashboard';
+                    const { data: userData } = await supabase.from('users').select('workspace').eq('id', data.user.id).single();
+                    if (userData?.workspace) {
+                        const { data: companyData } = await supabase.from('company_profiles').select('enabled_modules').eq('id', userData.workspace).single();
+                        if (companyData?.enabled_modules && companyData.enabled_modules.length === 1 && companyData.enabled_modules[0] === 'trak') {
+                            targetRoute = '/trak';
+                        }
+                    }
+
+                    navigate(targetRoute);
                 }
             }
         } catch (err: any) {

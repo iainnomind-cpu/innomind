@@ -34,6 +34,7 @@ export default function ProspectForm({ onClose, onSuccess, editingProspect }: Pr
         estado: editingProspect?.estado || 'Nuevo',
         plataforma: editingProspect?.plataforma || 'WhatsApp',
         valorEstimado: editingProspect?.valorEstimado || 0,
+        urgencia: editingProspect?.urgencia || 'Solo explorando',
         fechaProximoSeguimiento: editingProspect?.fechaProximoSeguimiento || new Date()
     });
 
@@ -131,6 +132,7 @@ export default function ProspectForm({ onClose, onSuccess, editingProspect }: Pr
                     tamanoEmpresa: formData.tamanoEmpresa,
                     nivelInteres: formData.nivelInteres as 'Bajo' | 'Medio' | 'Alto',
                     valorEstimado: Number(formData.valorEstimado) || 0,
+                    urgencia: formData.urgencia as any,
                     direccion: formData.direccion,
                     notasInternas: formData.notasInternas,
                     fechaProximoSeguimiento: formData.fechaProximoSeguimiento ? new Date(formData.fechaProximoSeguimiento) : undefined,
@@ -158,6 +160,7 @@ export default function ProspectForm({ onClose, onSuccess, editingProspect }: Pr
                     tamanoEmpresa: formData.tamanoEmpresa,
                     nivelInteres: formData.nivelInteres as 'Bajo' | 'Medio' | 'Alto',
                     valorEstimado: Number(formData.valorEstimado) || 0,
+                    urgencia: formData.urgencia as any,
                     direccion: formData.direccion,
                     notasInternas: formData.notasInternas,
                     fechaProximoSeguimiento: formData.fechaProximoSeguimiento ? new Date(formData.fechaProximoSeguimiento) : undefined,
@@ -425,6 +428,22 @@ export default function ProspectForm({ onClose, onSuccess, editingProspect }: Pr
                                                 />
                                             </div>
                                         </div>
+
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Urgencia / Inicio Esperado</label>
+                                            <select
+                                                name="urgencia"
+                                                value={formData.urgencia}
+                                                onChange={handleChange}
+                                                className="block w-full px-4 py-2.5 bg-gray-50 border border-gray-200 focus:bg-white focus:ring-blue-100 focus:border-blue-500 rounded-xl text-sm transition-all focus:ring-4 outline-none appearance-none"
+                                            >
+                                                <option value="Inmediata">Inmediata (Lo antes posible)</option>
+                                                <option value="1-3 meses">En 1 a 3 meses</option>
+                                                <option value="3-6 meses">En 3 a 6 meses</option>
+                                                <option value="Solo explorando">Solo explorando opciones</option>
+                                            </select>
+                                        </div>
+
                                         <div className="md:col-span-2">
                                             <label className="block text-sm font-semibold text-gray-700 mb-1.5">Origen del Prospecto <span className="text-red-500">*</span></label>
                                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

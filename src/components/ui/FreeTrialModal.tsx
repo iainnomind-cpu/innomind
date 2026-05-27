@@ -47,6 +47,15 @@ export default function FreeTrialModal() {
         }
     }, [inviteEmail]);
 
+    // Auto-generate workspace name based on company and selected module
+    useEffect(() => {
+        if (step === 3 && !workspaceName && companyName) {
+            const moduleSuffix = selectedMainModule === 'crm-erp' ? 'core' : (selectedMainModule === 'project-tracker' ? 'trak' : '');
+            const defaultName = `${companyName.toLowerCase().replace(/[^a-z0-9]/g, '')}${moduleSuffix}`;
+            setWorkspaceName(defaultName);
+        }
+    }, [step, companyName, selectedMainModule, workspaceName]);
+
     const step1Errors = useMemo(() => {
         const errors: { fullName?: string, email?: string, companyName?: string } = {};
         if (!fullName.trim()) errors.fullName = "El nombre es obligatorio";
@@ -110,7 +119,7 @@ export default function FreeTrialModal() {
     const doPasswordsMatch = password === confirmPassword;
 
     const isStep3Valid = useMemo(() => {
-        return sanitizedWorkspace.length > 3 && isPasswordValid && doPasswordsMatch && termsAccepted;
+        return sanitizedWorkspace.length >= 3 && isPasswordValid && doPasswordsMatch && termsAccepted;
     }, [sanitizedWorkspace, isPasswordValid, doPasswordsMatch, termsAccepted]);
 
     const toggleSubModule = (module: string) => {
@@ -291,8 +300,8 @@ export default function FreeTrialModal() {
                                 <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                                     <div className="text-center mb-6">
                                         <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Comienza tu Prueba Gratuita</h2>
-                                        <p className="text-slate-600 dark:text-slate-400">
-                                            Accede a todas las funciones premium por 14 días.
+                                        <p className="text-slate-400 text-sm mt-1">
+                                            Accede a todas las funciones premium por 30 días.
                                         </p>
                                     </div>
 
@@ -374,7 +383,7 @@ export default function FreeTrialModal() {
                                                     <Check size={14} strokeWidth={3} />
                                                 </div>
                                             </div>
-                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">CRM-ERP UNIFICADO</h3>
+                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Corē</h3>
                                             <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 h-10">Automatiza ventas, finanzas y operaciones en un solo lugar</p>
 
                                             <ul className="space-y-2 mb-6">
@@ -400,7 +409,7 @@ export default function FreeTrialModal() {
                                                     <Check size={14} strokeWidth={3} />
                                                 </div>
                                             </div>
-                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">PROJECT TRACKER</h3>
+                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Trak</h3>
                                             <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 h-10">Gestiona proyectos y equipos con metodologías ágiles</p>
 
                                             <ul className="space-y-2 mb-6">
@@ -506,8 +515,13 @@ export default function FreeTrialModal() {
                                                     onChange={(e) => setWorkspaceName(e.target.value)}
                                                     className="w-full px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                                                 />
-                                                <p className="text-xs text-slate-500 font-medium">
-                                                    {sanitizedWorkspace || 'mi-empresa'}.innomind.com
+                                                <p className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+                                                    <span>{sanitizedWorkspace || 'mi-empresa'}.innomind.com</span>
+                                                    {selectedMainModule && (
+                                                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold ${selectedMainModule === 'crm-erp' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                                                            {selectedMainModule === 'crm-erp' ? 'Corē' : 'Trak'}
+                                                        </span>
+                                                    )}
                                                 </p>
                                             </div>
 
@@ -709,6 +723,28 @@ export default function FreeTrialModal() {
                                                 }
 
                                                 if (!isInvitedUser) {
+                                                    // 0. Enviar Lead al CRM de Finapp
+                                                    try {
+                                                        await fetch('https://mndkjjxtuqizpvkjnnde.supabase.co/rest/v1/crm_leads', {
+                                                            method: 'POST',
+                                                            headers: {
+                                                                'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uZGtqanh0dXFpenB2a2pubmRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1NTc3MzAsImV4cCI6MjA5MjEzMzczMH0.nKU1LC94eBYffLcvmRDtc_4jk_7NMkdDfbRtDLKzD9E',
+                                                                'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uZGtqanh0dXFpenB2a2pubmRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1NTc3MzAsImV4cCI6MjA5MjEzMzczMH0.nKU1LC94eBYffLcvmRDtc_4jk_7NMkdDfbRtDLKzD9E',
+                                                                'Content-Type': 'application/json',
+                                                                'Prefer': 'return=minimal'
+                                                            },
+                                                            body: JSON.stringify({
+                                                                full_name: fullName,
+                                                                company_name: companyName,
+                                                                phone: phone || 'No especificado',
+                                                                industry: companySize,
+                                                                service_of_interest: selectedMainModule === 'project-tracker' ? 'Trak (Proyectos)' : 'Corē (ERP/CRM)'
+                                                            })
+                                                        });
+                                                    } catch (leadError) {
+                                                        console.error('Error enviando lead a finapp:', leadError);
+                                                    }
+
                                                     // 1. Llamar al RPC Seguro para crear Empresa, Usuario y Prospecto ignorando RLS
                                                     const { data: newWorkspaceId, error: rpcError } = await supabase.rpc(
                                                         'register_new_tenant',
@@ -720,7 +756,7 @@ export default function FreeTrialModal() {
                                                             p_workspace_name: workspaceName,
                                                             p_phone: phone,
                                                             p_company_size: companySize,
-                                                            p_enabled_modules: mapModulesToSidebarIds(selectedSubModules)
+                                                            p_enabled_modules: selectedMainModule === 'project-tracker' ? ['trak'] : mapModulesToSidebarIds(selectedSubModules)
                                                         }
                                                     );
 
@@ -736,7 +772,11 @@ export default function FreeTrialModal() {
 
                                                 // Redirección inteligente
                                                 if (authData.session) {
-                                                    navigate('/crm/dashboard');
+                                                    if (selectedMainModule === 'project-tracker') {
+                                                        navigate('/trak');
+                                                    } else {
+                                                        navigate('/crm/dashboard');
+                                                    }
                                                 } else {
                                                     // Caso: Confirmación de correo requerida
                                                     navigate('/crm/login', {

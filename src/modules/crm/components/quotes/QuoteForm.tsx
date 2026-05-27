@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Save, Send, Plus, Trash2, FileText, CreditCard, Package, Receipt, Info, MapPin } from 'lucide-react';
+import { ArrowLeft, Save, Send, Plus, Trash2, FileText, CreditCard, Package, Receipt, Info, MapPin, Mail } from 'lucide-react';
 import { useCRM } from '@/context/CRMContext';
 import { useInventory } from '@/context/InventoryContext';
+import { useUsers } from '@/context/UserContext';
 import { Quote, QuoteItem, QuoteTemplate } from '@/types';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import QuotePDF from './QuotePDF';
 
 interface QuoteFormProps {
     onClose: () => void;
@@ -15,12 +19,15 @@ const PAYMENT_METHODS = [
 ];
 
 export default function QuoteForm({ onClose, editingQuote, initialProspectId }: QuoteFormProps) {
-    const { addQuote, updateQuote, prospects, quoteTemplates } = useCRM();
+    const { addQuote, updateQuote, prospects, quoteTemplates, updateProspect } = useCRM();
     const { products } = useInventory();
+    const { companyProfile } = useUsers();
 
     const [showTemplateModal, setShowTemplateModal] = useState(false);
     const [templateSearch, setTemplateSearch] = useState('');
     const [saveSuccess, setSaveSuccess] = useState('');
+    const [isSending, setIsSending] = useState(false);
+    const [pdfQuote, setPdfQuote] = useState<Quote | null>(null);
 
     const [prospectId, setProspectId] = useState(initialProspectId || '');
     const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
@@ -165,10 +172,98 @@ export default function QuoteForm({ onClose, editingQuote, initialProspectId }: 
         return Object.keys(newErrors).length === 0;
     };
 
-    const saveQuote = (status: Quote['estado'], showSendToast = false) => {
+    const getPdfFileName = (quote: Quote) => {
+        const companyName = companyProfile.nombreEmpresa.replace(/[^\w\s-]/g, '').replace(/\s+/g, '_') || 'Empresa';
+        return `Cotizacion_${quote.numero}_${companyName}.pdf`;
+    };
+
+    const generatePDFDocument = async (quote: Quote): Promise<jsPDF | null> => {
+        setPdfQuote(quote);
+        await new Promise(resolve => window.setTimeout(resolve, 80));
+
+        const input = document.getElementById(`quote-pdf-${quote.id}`);
+        if (!input) return null;
+
+        const canvas = await html2canvas(input, {
+            scale: 2,
+            useCORS: true,
+            logging: false
+        });
+
+        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+        return pdf;
+    };
+
+    const buildWhatsAppUrl = (quote: Quote) => {
+        let phone = (selectedProspect?.telefono || '').replace(/[\s\-().]/g, '');
+        if (phone.startsWith('+')) phone = phone.substring(1);
+        if (phone && !phone.startsWith('52')) phone = `52${phone}`;
+
+        const message = encodeURIComponent(
+            `Hola ${selectedProspect?.nombre || ''},\n\n` +
+            `Le comparto la cotización *#${quote.numero}* de *${companyProfile.nombreEmpresa}* ` +
+            `por un total de *$${(quote.total || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN*.\n\n` +
+            `Quedo a sus órdenes.`
+        );
+
+        return `https://wa.me/${phone}?text=${message}`;
+    };
+
+    const buildGmailUrl = (quote: Quote) => {
+        const subject = encodeURIComponent(`Cotización #${quote.numero} - ${companyProfile.nombreEmpresa}`);
+        const body = encodeURIComponent(
+            `Estimado/a ${selectedProspect?.nombre || 'Cliente'},\n\n` +
+            `Le comparto la cotización #${quote.numero} por un total de $${(quote.total || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN.\n\n` +
+            `Vigencia: ${new Date(quote.vigencia).toLocaleDateString('es-MX')}\n\n` +
+            `Quedamos a sus órdenes.\n` +
+            `${companyProfile.nombreEmpresa}\n` +
+            `${companyProfile.telefono || ''}\n` +
+            `${companyProfile.email || ''}`
+        );
+        const to = encodeURIComponent(selectedProspect?.correo || '');
+
+        return `https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${subject}&body=${body}`;
+    };
+
+    const openEmailClient = (emailUrl: string) => {
+        window.open(emailUrl, '_blank', 'noopener,noreferrer');
+    };
+
+    const shareQuoteByWhatsApp = async (quoteData: Quote) => {
+        setIsSending(true);
+        try {
+            const pdf = await generatePDFDocument(quoteData);
+            if (pdf) pdf.save(getPdfFileName(quoteData));
+            alert('La cotización se guardó y el PDF se descargó. En la ventana de WhatsApp que se abrirá ahora, adjunta manualmente el PDF descargado. Si no se abre WhatsApp, habilita las ventanas emergentes para este sitio e inténtalo de nuevo.');
+            window.open(buildWhatsAppUrl(quoteData), '_blank');
+        } finally {
+            setIsSending(false);
+            setPdfQuote(null);
+        }
+    };
+
+    const shareQuoteByEmail = async (quoteData: Quote) => {
+        setIsSending(true);
+        try {
+            const pdf = await generatePDFDocument(quoteData);
+            if (pdf) pdf.save(getPdfFileName(quoteData));
+            alert('La cotización se guardó y el PDF se descargó. Se abrirá Gmail en una nueva pestaña con el mensaje precargado; adjunta manualmente el PDF descargado antes de enviarlo. Si no se abre, habilita las ventanas emergentes para este sitio.');
+            openEmailClient(buildGmailUrl(quoteData));
+        } finally {
+            setIsSending(false);
+            setPdfQuote(null);
+        }
+    };
+
+    const saveQuote = async (status: Quote['estado'], showSendToast = false, channel: 'whatsapp' | 'email' = 'whatsapp') => {
         if (!validate(status === 'Borrador')) return;
 
-        const quoteData = {
+        const quoteData: Quote = {
+            id: editingQuote?.id || (typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : Math.random().toString(36).substr(2, 9)),
             prospectId,
             numero: editingQuote?.numero || `COT-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
             fecha: new Date(fecha),
@@ -185,8 +280,16 @@ export default function QuoteForm({ onClose, editingQuote, initialProspectId }: 
             metodosPagoAceptados
         };
 
+        const shouldSyncCotizado = status !== 'Borrador' && selectedProspect && ['Nuevo', 'Contactado', 'En seguimiento'].includes(selectedProspect.estado);
+
         if (editingQuote) {
-            updateQuote(editingQuote.id, quoteData);
+            await updateQuote(editingQuote.id, quoteData);
+            if (shouldSyncCotizado) await updateProspect(prospectId, { estado: 'Cotizado' });
+            if (showSendToast) {
+                await (channel === 'email' ? shareQuoteByEmail(quoteData) : shareQuoteByWhatsApp(quoteData));
+                onClose();
+                return;
+            }
             if (!showSendToast) {
                 setSaveSuccess('Guardado con éxito');
                 setTimeout(() => setSaveSuccess(''), 3000);
@@ -195,7 +298,13 @@ export default function QuoteForm({ onClose, editingQuote, initialProspectId }: 
                 onClose();
             }
         } else {
-            addQuote(quoteData);
+            await addQuote(quoteData);
+            if (shouldSyncCotizado) await updateProspect(prospectId, { estado: 'Cotizado' });
+            if (showSendToast) {
+                await (channel === 'email' ? shareQuoteByEmail(quoteData) : shareQuoteByWhatsApp(quoteData));
+                onClose();
+                return;
+            }
             alert(status === 'Borrador' ? 'Borrador guardado' : 'Cotización enviada');
             onClose();
         }
@@ -229,8 +338,11 @@ export default function QuoteForm({ onClose, editingQuote, initialProspectId }: 
                             <button onClick={(e) => { e.preventDefault(); saveQuote(editingQuote?.estado === 'Enviada' ? 'Actualizada' : (editingQuote?.estado || 'Borrador'), false); }} className="px-4 py-2 bg-gray-800 text-white rounded-lg text-sm font-medium hover:bg-gray-900 flex items-center gap-2">
                                 <Save size={16} /> {editingQuote ? 'Guardar Cambios' : 'Borrador'}
                             </button>
-                            <button onClick={(e) => { e.preventDefault(); saveQuote(editingQuote?.estado === 'Enviada' ? 'Actualizada' : 'Enviada', true); }} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center gap-2 shadow-lg shadow-blue-200">
-                                <Send size={16} /> Enviar
+                            <button onClick={(e) => { e.preventDefault(); saveQuote(editingQuote?.estado === 'Enviada' ? 'Actualizada' : 'Enviada', true); }} disabled={isSending} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-blue-200">
+                                <Send size={16} /> {isSending ? 'Preparando...' : 'Enviar por WhatsApp'}
+                            </button>
+                            <button onClick={(e) => { e.preventDefault(); saveQuote(editingQuote?.estado === 'Enviada' ? 'Actualizada' : 'Enviada', true, 'email'); }} disabled={isSending} className="px-4 py-2 bg-white text-blue-700 border border-blue-200 rounded-lg text-sm font-medium hover:bg-blue-50 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2">
+                                <Mail size={16} /> Enviar por correo
                             </button>
                         </>
                     )}
@@ -452,12 +564,23 @@ export default function QuoteForm({ onClose, editingQuote, initialProspectId }: 
                     </div>
 
                     {!isReadOnly && (
-                        <button onClick={(e) => { e.preventDefault(); saveQuote(editingQuote?.estado === 'Enviada' ? 'Actualizada' : 'Enviada', true); }} className="w-full mt-6 flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-3.5 rounded-xl hover:bg-blue-700 transition-colors font-bold shadow-lg shadow-blue-600/30">
-                            <Send size={18} /> Confirmar Cotización
+                        <button onClick={(e) => { e.preventDefault(); saveQuote(editingQuote?.estado === 'Enviada' ? 'Actualizada' : 'Enviada', true); }} disabled={isSending} className="w-full mt-6 flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-3.5 rounded-xl hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors font-bold shadow-lg shadow-blue-600/30">
+                            <Send size={18} /> {isSending ? 'Preparando envío...' : 'Guardar y enviar por WhatsApp'}
+                        </button>
+                    )}
+                    {!isReadOnly && (
+                        <button onClick={(e) => { e.preventDefault(); saveQuote(editingQuote?.estado === 'Enviada' ? 'Actualizada' : 'Enviada', true, 'email'); }} disabled={isSending} className="w-full mt-3 flex items-center justify-center gap-2 bg-white text-blue-700 border border-blue-200 px-4 py-3 rounded-xl hover:bg-blue-50 disabled:opacity-60 disabled:cursor-not-allowed transition-colors font-bold">
+                            <Mail size={18} /> Guardar y enviar por correo
                         </button>
                     )}
                 </div>
             </div>
+
+            {pdfQuote && selectedProspect && (
+                <div className="fixed -left-[9999px] top-0 pointer-events-none" aria-hidden="true">
+                    <QuotePDF quote={pdfQuote} prospect={selectedProspect} company={companyProfile} />
+                </div>
+            )}
 
             {/* Modal de Plantillas */}
             {showTemplateModal && (

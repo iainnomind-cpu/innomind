@@ -92,34 +92,29 @@ const QuoteDetail: React.FC<QuoteDetailProps> = ({ quote, onClose, onEdit }) => 
             const pdf = await generatePDFDocument();
             if (pdf) pdf.save(pdfFileName);
 
-            // Build mailto link
-            const to = prospect?.correo || '';
+            // Build Gmail compose link. This is more reliable than mailto when no desktop mail app is configured.
+            const to = encodeURIComponent(prospect?.correo || '');
             const subject = encodeURIComponent(`Cotización #${quote.numero} - ${companyProfile.nombreEmpresa}`);
             const body = encodeURIComponent(
                 `Estimado/a ${prospect?.nombre || 'Cliente'},\n\n` +
                 `Adjunto encontrará la cotización #${quote.numero} por un total de $${(quote.total || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN.\n\n` +
                 `Vigencia: ${safeFormat(quote.vigencia)}\n\n` +
-                `Por favor, adjunte el archivo "${pdfFileName}" que se acaba de descargar.\n\n` +
                 `Quedamos a sus órdenes.\n` +
                 `${companyProfile.nombreEmpresa}\n` +
                 `${companyProfile.telefono || ''}\n` +
                 `${companyProfile.email || ''}`
             );
 
-            const mailtoUrl = `mailto:${to}?subject=${subject}&body=${body}`;
-            const a = document.createElement('a');
-            a.href = mailtoUrl;
-            a.target = '_self';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${subject}&body=${body}`;
+            alert(`La cotización se guardó y el PDF se descargó. Se abrirá Gmail en una nueva pestaña con el mensaje precargado; adjunta manualmente el archivo "${pdfFileName}" antes de enviarlo. Si no se abre, habilita las ventanas emergentes para este sitio.`);
+            window.open(gmailUrl, '_blank', 'noopener,noreferrer');
 
             // Update quote status to 'Enviada'
             if (quote.estado === 'Borrador') {
                 updateQuote(quote.id, { estado: 'Enviada' });
             }
 
-            setShareSuccess('PDF descargado y cliente de correo abierto. Adjunta el archivo al correo.');
+            setShareSuccess('PDF descargado y Gmail abierto. Adjunta el archivo al correo.');
             setTimeout(() => setShareSuccess(null), 5000);
         } catch (error) {
             console.error('Error sharing via email:', error);
@@ -149,10 +144,10 @@ const QuoteDetail: React.FC<QuoteDetailProps> = ({ quote, onClose, onEdit }) => 
                 `Hola ${prospect?.nombre || ''},\n\n` +
                 `Le comparto la cotización *#${quote.numero}* de *${companyProfile.nombreEmpresa}* ` +
                 `por un total de *$${(quote.total || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN*.\n\n` +
-                `📎 El PDF se descargó automáticamente, por favor adjúntelo en este chat.\n\n` +
                 `Quedo a sus órdenes.`
             );
 
+            alert(`La cotización se guardó y el PDF se descargó. En la ventana de WhatsApp que se abrirá ahora, adjunta manualmente el archivo "${pdfFileName}". Si no se abre WhatsApp, habilita las ventanas emergentes para este sitio e inténtalo de nuevo.`);
             window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
 
             // Update quote status to 'Enviada'
