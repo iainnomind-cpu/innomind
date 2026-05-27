@@ -5,7 +5,11 @@ import { useAuth } from '@/context/AuthContext';
 import { useUsers } from '@/context/UserContext';
 import { FEATURES } from '@/config/features';
 
+import { CoreLogo } from '@/components/brand/CoreLogo';
+import { motion } from 'framer-motion';
+
 export default function Layout() {
+// ... existing state ...
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -32,28 +36,33 @@ export default function Layout() {
     if (item.id === 'workspace' && !FEATURES.enableNodo) return false;
     if (item.adminOnly && currentUser?.role !== 'ADMIN') return false;
     if (item.alwaysVisible) return true;
-    // If no modules configured (legacy or empty), show all
     if (!enabledModules || enabledModules.length === 0) return true;
-    // Check if this module's sidebar ID is in enabledModules
     return enabledModules.includes(item.id);
   });
 
   return (
     <div className="flex h-screen bg-gray-50">
       <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transition-transform duration-300 flex flex-col`}>
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold">
-              {companyProfile.nombreEmpresa?.charAt(0).toUpperCase() || 'C'}
+        <div className="px-4 py-3 border-b border-gray-100 flex flex-col gap-2">
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut" }}>
+            <CoreLogo variant="light" size="sm" showBy={false} />
+          </motion.div>
+          <div className="flex items-center gap-3 p-2 -mx-2 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer border border-transparent hover:border-gray-100 group">
+            <div className="w-10 h-10 bg-gradient-to-br from-[#2563EB] to-[#38AAFF] rounded-lg flex items-center justify-center text-white font-bold shadow-sm group-hover:shadow group-hover:scale-105 transition-all shrink-0 overflow-hidden">
+              {companyProfile.logoUrl ? (
+                  <img src={companyProfile.logoUrl} alt={companyProfile.nombreEmpresa} className="w-full h-full object-cover" />
+              ) : (
+                  companyProfile.nombreEmpresa?.charAt(0).toUpperCase() || 'C'
+              )}
             </div>
-            <div>
-              <h1 className="font-bold text-lg text-gray-900">{companyProfile.nombreEmpresa || 'Mi CRM'}</h1>
-              <p className="text-xs text-gray-500">Corē · Sistema de Gestión</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] text-[#8A9BBF] font-semibold uppercase tracking-wider mb-0.5 truncate">Workspace</p>
+              <h1 className="font-bold text-sm text-gray-900 leading-tight truncate">{companyProfile.nombreEmpresa || 'Mi CRM'}</h1>
             </div>
           </div>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 px-3 py-2 space-y-0.5">
           {visibleMenuItems.map((item) => {
             const Icon = item.icon;
             const isClientesTab = item.id === 'prospectos?tab=clientes';

@@ -13,6 +13,9 @@ import { useUsers } from '@/context/UserContext';
 import { AIProvider } from './context/AIContext';
 import TrakAIChat from './components/ai/TrakAIChat';
 
+import { TrakLogo } from '@/components/brand/TrakLogo';
+import { motion } from 'framer-motion';
+
 const baseMenuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/trak' },
   { id: 'clients', label: 'Clientes', icon: Users, path: '/trak/clients' },
@@ -50,20 +53,27 @@ export default function TrakLayout() {
       {/* Sidebar */}
       <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50 w-64 bg-slate-900 transition-transform duration-300 flex flex-col`}>
         {/* Brand */}
-        <div className="p-5 border-b border-slate-800">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center text-white font-black text-sm tracking-wider">
-              {companyProfile.nombreEmpresa?.charAt(0).toUpperCase() || 'T'}
+        <div className="px-4 py-3 border-b border-slate-800 flex flex-col gap-2">
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut" }}>
+            <TrakLogo variant="dark" size="sm" showBy={false} />
+          </motion.div>
+          <div className="flex items-center gap-3 p-2 -mx-2 rounded-xl hover:bg-slate-800 transition-colors cursor-pointer border border-transparent hover:border-slate-700 group">
+            <div className="w-10 h-10 bg-gradient-to-br from-[#9333EA] to-[#C084FC] rounded-lg flex items-center justify-center text-white font-bold shadow-sm group-hover:shadow group-hover:scale-105 transition-all shrink-0 overflow-hidden">
+              {companyProfile.logoUrl ? (
+                  <img src={companyProfile.logoUrl} alt={companyProfile.nombreEmpresa} className="w-full h-full object-cover" />
+              ) : (
+                  companyProfile.nombreEmpresa?.charAt(0).toUpperCase() || 'T'
+              )}
             </div>
-            <div>
-              <h1 className="font-bold text-lg text-white tracking-wide">{companyProfile.nombreEmpresa || 'Trak'}</h1>
-              <p className="text-[10px] text-slate-400 font-medium">Trak · Project Tracker</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] text-[#8A9BBF] font-semibold uppercase tracking-wider mb-0.5 truncate">Workspace</p>
+              <h1 className="font-bold text-sm text-white leading-tight truncate">{companyProfile.nombreEmpresa || 'Mi CRM'}</h1>
             </div>
           </div>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
           {menuItems.map(item => {
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -86,14 +96,7 @@ export default function TrakLayout() {
 
         {/* Footer */}
         <div className="p-3 border-t border-slate-800">
-          <button
-            onClick={() => navigate('/')}
-            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-slate-500 hover:text-slate-300 hover:bg-slate-800 transition-colors"
-          >
-            <ChevronLeft size={18} />
-            <span>Volver al Sitio</span>
-          </button>
-          <div className="flex items-center gap-3 p-3 mt-2 rounded-xl bg-slate-800/50">
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-800/50">
             <div className="w-9 h-9 rounded-full bg-purple-600/20 flex items-center justify-center text-purple-400 font-bold text-sm">
               {user?.email?.charAt(0).toUpperCase() || 'U'}
             </div>

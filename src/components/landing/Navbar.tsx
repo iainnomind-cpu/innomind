@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { useModal } from '../../context/ModalContext';
 import { useAuth } from '@/context/AuthContext';
+import { CoreIcon } from '@/components/brand/CoreIcon';
+import { TrakIcon } from '@/components/brand/TrakIcon';
 
 export default function Navbar() {
   const { openFreeTrial, openDemoModal } = useModal();
@@ -73,13 +75,13 @@ export default function Navbar() {
                 </div>
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <DropdownLink
-                    icon={<Database className="text-blue-500" />}
+                    icon={<CoreIcon variant="dark" size="xs" glow />}
                     title="Corē"
                     desc="ERP y CRM unificado en una plataforma"
                     href="/plataforma/core"
                   />
                   <DropdownLink
-                    icon={<BarChart3 className="text-purple-500" />}
+                    icon={<TrakIcon variant="dark" size="xs" glow />}
                     title="Trak"
                     desc="Seguimiento de proyectos y tareas"
                     href="/plataforma/trak"
@@ -264,10 +266,10 @@ export default function Navbar() {
                 </button>
                 <div className="absolute top-full right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-100 dark:border-slate-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all overflow-hidden">
                   <a href="/crm/dashboard" className="flex items-center gap-3 px-4 py-3 text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700/50 border-b border-slate-100 dark:border-slate-700 text-blue-600">
-                    <Database size={16} /> Corē (ERP/CRM)
+                    <CoreIcon variant="blue" size="sm" /> Corē (ERP/CRM)
                   </a>
                   <a href="/trak" className="flex items-center gap-3 px-4 py-3 text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700/50 text-purple-600">
-                    <BarChart3 size={16} /> Trak (Proyectos)
+                    <TrakIcon variant="blue" size="sm" /> Trak (Proyectos)
                   </a>
                 </div>
               </div>
@@ -358,10 +360,10 @@ export default function Navbar() {
               {session ? (
                 <div className="space-y-2">
                   <a href="/crm/dashboard" className="flex items-center justify-center gap-2 w-full text-center py-3 px-4 border border-blue-200 dark:border-blue-900/50 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-700 dark:text-blue-400 font-bold">
-                    <Database size={16} /> Corē (ERP)
+                    <CoreIcon variant="dark" size="xs" /> Corē (ERP)
                   </a>
                   <a href="/trak" className="flex items-center justify-center gap-2 w-full text-center py-3 px-4 border border-purple-200 dark:border-purple-900/50 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-purple-700 dark:text-purple-400 font-bold">
-                    <BarChart3 size={16} /> Trak (Proyectos)
+                    <TrakIcon variant="dark" size="xs" /> Trak (Proyectos)
                   </a>
                 </div>
               ) : (

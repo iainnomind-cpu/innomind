@@ -9,6 +9,10 @@ import EducationPage from './components/landing/industries/EducationPage';
 import FAQPage from './components/landing/FAQPage';
 import SoportePage from './components/landing/SoportePage';
 import PreciosPage from './components/landing/PreciosPage';
+import CorePage from './components/landing/platform/CorePage';
+import TrakPage from './components/landing/platform/TrakPage';
+import ChatbotsPage from './components/landing/platform/ChatbotsPage';
+import MensajeriaPage from './components/landing/platform/MensajeriaPage';
 import FreeTrialModal from './components/ui/FreeTrialModal';
 import DemoRequestModal from './components/ui/DemoRequestModal';
 import TrakLayout from '@/modules/trak/TrakLayout';
@@ -76,6 +80,12 @@ function App() {
         <Route path="/faq" element={<FAQPage />} />
         <Route path="/soporte" element={<SoportePage />} />
         <Route path="/precios" element={<PreciosPage />} />
+        
+        {/* Rutas de Plataforma SaaS */}
+        <Route path="/plataforma/core" element={<CorePage />} />
+        <Route path="/plataforma/trak" element={<TrakPage />} />
+        <Route path="/plataforma/chatbots" element={<ChatbotsPage />} />
+        <Route path="/plataforma/mensajeria" element={<MensajeriaPage />} />
 
         {/* Rutas del CRM */}
         <Route path="/crm/login" element={<Login />} />

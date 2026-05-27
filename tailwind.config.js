@@ -9,9 +9,22 @@ export default {
         'background-light': '#f5f7f8',
         'background-dark': '#101922',
         'brand-orange': '#FF6B00',
+        // Corē Brand Palette
+        'core-blue': '#2563EB',
+        'core-signal': '#38AAFF',
+        'core-ice': '#72C8FF',
+        'core-arctic': '#F5F8FF',
+        'core-void': '#05080F',
+        // Trak Brand Palette
+        'trak-primary': '#9333EA',
+        'trak-signal': '#C084FC',
+        'trak-ice': '#F3E8FF',
+        'trak-void': '#0F0B1A',
       },
       fontFamily: {
         display: ['Manrope', 'sans-serif'],
+        brand: ['Space Grotesk', 'sans-serif'],
+        sans: ['DM Sans', 'sans-serif'],
       },
       borderRadius: {
         DEFAULT: '0.25rem',

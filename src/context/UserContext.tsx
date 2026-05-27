@@ -89,15 +89,21 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     });
                     setEnabledModules(data.enabled_modules || []);
                     
-                    if (data.trial_expires_at) {
-                        const expireDate = new Date(data.trial_expires_at);
+                    if (data.trial_expires_at || data.created_at) {
+                        let expireDate;
+                        if (data.trial_expires_at) {
+                            expireDate = new Date(data.trial_expires_at);
+                        } else {
+                            expireDate = new Date(data.created_at);
+                            expireDate.setDate(expireDate.getDate() + 30);
+                        }
                         const now = new Date();
                         const diffTime = expireDate.getTime() - now.getTime();
                         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                         setTrialDaysRemaining(diffDays > 0 ? diffDays : 0);
                         setIsTrialExpired(diffDays <= 0);
                     } else {
-                        setTrialDaysRemaining(null);
+                        setTrialDaysRemaining(30);
                         setIsTrialExpired(false);
                     }
                 }

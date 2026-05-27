@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { Rocket, Settings, Check, ArrowRight } from 'lucide-react';
+import { CoreLogo } from '@/components/brand/CoreLogo';
+import { TrakLogo } from '@/components/brand/TrakLogo';
 import { useModal } from '../../context/ModalContext';
 
 export default function ComparisonSection() {
@@ -22,14 +24,13 @@ export default function ComparisonSection() {
                     <div className="flex flex-col p-8 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl shadow-slate-200/50 dark:shadow-none hover:border-blue-500/50 transition-all duration-300 relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-32 bg-blue-500/5 rounded-full blur-3xl group-hover:bg-blue-500/10 transition-colors"></div>
 
-                        <div className="flex items-center gap-4 mb-6 relative z-10">
-                            <div className="w-14 h-14 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                                <Rocket size={32} />
+                        <div className="flex flex-col gap-2 mb-6 relative z-10">
+                            <div className="flex items-center gap-4">
+                                <CoreLogo variant="blue" size="sm" showBy={false} glow />
+                                <span className="text-gray-400 font-medium text-lg">&amp;</span>
+                                <TrakLogo variant="blue" size="sm" showBy={false} glow />
                             </div>
-                            <div>
-                                <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Corē & Trak</h3>
-                                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Suscripción mensual</p>
-                            </div>
+                            <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-2">Suscripción mensual combinada</p>
                         </div>
 
                         <ul className="space-y-4 mb-8 flex-grow relative z-10">

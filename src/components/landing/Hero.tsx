@@ -2,6 +2,8 @@
 import React from 'react';
 import { Play, ArrowRight, CheckCircle2, TrendingUp, Activity, Brain, DollarSign, Users } from 'lucide-react';
 import { useModal } from '../../context/ModalContext';
+import { CoreIcon } from '@/components/brand/CoreIcon';
+import { TrakIcon } from '@/components/brand/TrakIcon';
 
 export default function Hero() {
     const { openFreeTrial, openDemoModal } = useModal();
@@ -44,8 +46,8 @@ export default function Hero() {
                         </h1>
 
                         {/* Description */}
-                        <p className="text-lg md:text-xl text-slate-400 font-medium leading-relaxed max-w-lg mx-auto lg:mx-0">
-                            Descubra <strong>Corē</strong> (nuestro ERP-CRM unificado), <strong>Trak</strong> (gestión de proyectos), chatbots con IA y mensajería masiva por WhatsApp en un solo ecosistema. Obtenga insights predictivos y automatice flujos de trabajo complejos.
+                        <p className="text-lg md:text-xl text-slate-400 font-medium leading-relaxed max-w-xl mx-auto lg:mx-0">
+                            Descubra <span className="inline-flex items-center gap-1.5 align-middle mx-1 px-2 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/20"><CoreIcon variant="blue" size="xs" glow className="w-5 h-5 -ml-1" /><strong className="bg-clip-text text-transparent bg-gradient-to-r from-[#2563EB] to-[#38AAFF]">Corē</strong></span> (nuestro ERP-CRM unificado), <span className="inline-flex items-center gap-1.5 align-middle mx-1 px-2 py-0.5 rounded-md bg-purple-500/10 border border-purple-500/20"><TrakIcon variant="blue" size="xs" glow className="w-5 h-5 -ml-1" /><strong className="bg-clip-text text-transparent bg-gradient-to-r from-[#9333EA] to-[#C084FC]">Trak</strong></span> (gestión de proyectos), chatbots con IA y mensajería masiva por WhatsApp en un solo ecosistema. Obtenga insights predictivos y automatice flujos de trabajo complejos.
                         </p>
 
                         {/* CTAs */}
