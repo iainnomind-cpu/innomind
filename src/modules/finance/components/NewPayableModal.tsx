@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, DollarSign, Calendar as CalendarIcon, User, CreditCard } from 'lucide-react';
+import { X, DollarSign, Calendar as CalendarIcon, User, CreditCard, Plus } from 'lucide-react';
 import { useAccountsPayable } from '@/context/AccountsPayableContext';
 import { supabase } from '@/lib/supabase';
 import { useWorkspace } from '@/context/WorkspaceContext';
@@ -20,6 +20,11 @@ export default function NewPayableModal({ onClose }: NewPayableModalProps) {
     const [customName, setCustomName] = useState('');
     const [notes, setNotes] = useState('');
 
+    const [isCreatingSupplier, setIsCreatingSupplier] = useState(false);
+    const [newSupplierName, setNewSupplierName] = useState('');
+    const [newSupplierRFC, setNewSupplierRFC] = useState('');
+    const [newSupplierEmail, setNewSupplierEmail] = useState('');
+
     const [suppliers, setSuppliers] = useState<any[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -30,7 +35,8 @@ export default function NewPayableModal({ onClose }: NewPayableModalProps) {
                 .from('suppliers')
                 .select('*')
                 .eq('workspace', workspace.id)
-                .eq('activo', true);
+                .eq('activo', true)
+                .order('nombreComercial');
             if (data) setSuppliers(data);
         };
         fetchSuppliers();
@@ -41,6 +47,33 @@ export default function NewPayableModal({ onClose }: NewPayableModalProps) {
         setIsSubmitting(true);
 
         try {
+            if (isCreatingSupplier) {
+                if (!newSupplierName) {
+                    alert('Ingresa el nombre comercial del proveedor');
+                    setIsSubmitting(false);
+                    return;
+                }
+                const { data: newSupplier, error: supError } = await supabase
+                    .from('suppliers')
+                    .insert({
+                        workspace: workspace?.id,
+                        nombreComercial: newSupplierName,
+                        rfc: newSupplierRFC,
+                        email: newSupplierEmail,
+                        activo: true
+                    })
+                    .select()
+                    .single();
+
+                if (supError) throw supError;
+                
+                setSuppliers(prev => [...prev, newSupplier]);
+                setSupplierId(newSupplier.id);
+                setSupplierType('supplier');
+                setIsCreatingSupplier(false);
+                // Proceed with the current supplierId set to the new one
+            }
+
             const numAmount = parseFloat(amount);
             if (isNaN(numAmount) || numAmount <= 0) {
                 alert('Monto inválido');
@@ -56,6 +89,7 @@ export default function NewPayableModal({ onClose }: NewPayableModalProps) {
 
             if (supplierType === 'supplier') {
                 payload.supplier_type = 'supplier';
+                // If we just created a supplier, supplierId might be delayed in state, so we check if we have it in state or use a fallback if it was just set
                 payload.supplier_id = supplierId || undefined;
             } else if (supplierType === 'employee') {
                 payload.supplier_type = 'employee';
@@ -89,7 +123,7 @@ export default function NewPayableModal({ onClose }: NewPayableModalProps) {
                     </button>
                 </div>
 
-                <div className="p-6 overflow-y-auto">
+                <div className="p-6 overflow-y-auto min-h-0">
                     <form id="new-payable-form" onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <label className="block text-sm font-bold text-slate-700 mb-1">Concepto</label>
@@ -152,18 +186,61 @@ export default function NewPayableModal({ onClose }: NewPayableModalProps) {
                                 <option value="custom">Acreedor Libre (Sin registrar)</option>
                             </select>
 
-                            {supplierType === 'supplier' && (
-                                <select
-                                    value={supplierId}
-                                    onChange={(e) => setSupplierId(e.target.value)}
-                                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
-                                    required
-                                >
-                                    <option value="">-- Seleccionar Proveedor --</option>
-                                    {suppliers.map(s => (
-                                        <option key={s.id} value={s.id}>{s.nombreComercial}</option>
-                                    ))}
-                                </select>
+                            {supplierType === 'supplier' && !isCreatingSupplier && (
+                                <div className="flex gap-2 items-center">
+                                    <select
+                                        value={supplierId}
+                                        onChange={(e) => setSupplierId(e.target.value)}
+                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                                        required={!isCreatingSupplier}
+                                    >
+                                        <option value="">-- Seleccionar Proveedor --</option>
+                                        {suppliers.map(s => (
+                                            <option key={s.id} value={s.id}>{s.nombreComercial}</option>
+                                        ))}
+                                    </select>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsCreatingSupplier(true)}
+                                        className="shrink-0 flex items-center justify-center p-2.5 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-colors"
+                                        title="Registrar Nuevo Proveedor"
+                                    >
+                                        <Plus size={20} />
+                                    </button>
+                                </div>
+                            )}
+
+                            {supplierType === 'supplier' && isCreatingSupplier && (
+                                <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-3">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <h4 className="text-sm font-bold text-slate-800">Alta Rápida de Proveedor</h4>
+                                        <button type="button" onClick={() => setIsCreatingSupplier(false)} className="text-xs text-purple-600 hover:underline">Cancelar</button>
+                                    </div>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={newSupplierName}
+                                        onChange={e => setNewSupplierName(e.target.value)}
+                                        placeholder="Nombre Comercial *"
+                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm"
+                                    />
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={newSupplierRFC}
+                                            onChange={e => setNewSupplierRFC(e.target.value)}
+                                            placeholder="RFC (Opcional)"
+                                            className="w-1/2 px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm"
+                                        />
+                                        <input
+                                            type="email"
+                                            value={newSupplierEmail}
+                                            onChange={e => setNewSupplierEmail(e.target.value)}
+                                            placeholder="Correo (Opcional)"
+                                            className="w-1/2 px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm"
+                                        />
+                                    </div>
+                                </div>
                             )}
 
                             {supplierType === 'custom' && (

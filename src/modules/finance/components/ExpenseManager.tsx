@@ -235,8 +235,8 @@ function NewExpenseModal({ onClose, onAdd }: { onClose: () => void, onAdd: (expe
 
     return (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md flex flex-col border border-gray-200 animate-in zoom-in-95 duration-200">
-                <div className="flex justify-between items-center p-5 border-b border-gray-100">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md flex flex-col max-h-[90vh] border border-gray-200 animate-in zoom-in-95 duration-200">
+                <div className="flex justify-between items-center p-5 border-b border-gray-100 shrink-0">
                     <div className="flex items-center gap-2">
                         <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
                             <Receipt size={20} />
@@ -247,7 +247,7 @@ function NewExpenseModal({ onClose, onAdd }: { onClose: () => void, onAdd: (expe
                         <X size={24} />
                     </button>
                 </div>
-                <form onSubmit={handleSubmit} className="p-6 space-y-5">
+                <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto min-h-0">
                     <div>
                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Concepto / Motivo *</label>
                         <input

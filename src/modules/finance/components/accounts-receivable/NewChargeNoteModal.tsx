@@ -103,7 +103,7 @@ export default function NewChargeNoteModal({ onClose }: NewChargeNoteModalProps)
                     </button>
                 </div>
 
-                <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
+                <div className="p-6 overflow-y-auto flex-1 min-h-0 custom-scrollbar">
                     <form id="new-chargenote-form" onSubmit={handleSubmit} className="space-y-6">
                         
                         {/* Header info */}
