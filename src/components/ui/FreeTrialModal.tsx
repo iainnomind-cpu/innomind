@@ -291,8 +291,8 @@ export default function FreeTrialModal() {
                                 <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                                     <div className="text-center mb-6">
                                         <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Comienza tu Prueba Gratuita</h2>
-                                        <p className="text-slate-600 dark:text-slate-400">
-                                            Accede a todas las funciones premium por 14 días.
+                                        <p className="text-slate-400 text-sm mt-1">
+                                            Accede a todas las funciones premium por 30 días.
                                         </p>
                                     </div>
 
