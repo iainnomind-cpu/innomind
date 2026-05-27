@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useAI } from '../../context/AIContext';
+import { useAI } from '@/modules/trak/context/AIContext';
 import { X, Send, User, AlertTriangle, Zap, FolderKanban, MessageSquarePlus, Clock, Trash2, ChevronLeft, Package, Users, FileText } from 'lucide-react';
 
 // Inline Chatbot SVG icon for the floating button and header
@@ -16,7 +16,7 @@ const InnoIcon = ({ size = 24, className = '' }: { size?: number; className?: st
   </svg>
 );
 
-export default function TrakAIChat() {
+export default function InnoAIChat() {
   const {
     isOpen, setIsOpen, messages, sendMessage, isLoading,
     tokensUsed, tokensLimit,

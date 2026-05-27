@@ -10,8 +10,7 @@ import { supabase } from '@/lib/supabase';
 import TrakNotifications from './components/ui/TrakNotifications';
 import { useTrak } from './context/TrakContext';
 import { useUsers } from '@/context/UserContext';
-import { AIProvider } from './context/AIContext';
-import TrakAIChat from './components/ai/TrakAIChat';
+import InnoAIChat from '@/components/ai/InnoAIChat';
 
 const baseMenuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/trak' },
@@ -45,8 +44,7 @@ export default function TrakLayout() {
   };
 
   return (
-    <AIProvider>
-      <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50 w-64 bg-slate-900 transition-transform duration-300 flex flex-col`}>
         {/* Brand */}
@@ -158,8 +156,7 @@ export default function TrakLayout() {
       </div>
 
       {/* AI Assistant Chat */}
-      <TrakAIChat />
+      <InnoAIChat />
     </div>
-    </AIProvider>
   );
 }

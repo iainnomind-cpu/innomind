@@ -4,7 +4,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useUsers } from '@/context/UserContext';
 import { FEATURES } from '@/config/features';
-import TrakAIChat from '@/modules/trak/components/ai/TrakAIChat';
+import InnoAIChat from '@/components/ai/InnoAIChat';
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -159,7 +159,7 @@ export default function Layout() {
           )}
           <Outlet />
         </main>
-        <TrakAIChat />
+        <InnoAIChat />
       </div>
     </div>
   );
