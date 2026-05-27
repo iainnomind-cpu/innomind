@@ -9,7 +9,6 @@ import {
     Phone,
     Mail,
     Edit2,
-    CheckSquare,
     Zap,
     Briefcase,
     Activity
@@ -34,10 +33,6 @@ export default function ProspectDetail() {
     const [isEditing, setIsEditing] = useState(false);
     const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
 
-    // Task State
-    const [newTaskTitle, setNewTaskTitle] = useState('');
-    const [newTaskDate, setNewTaskDate] = useState('');
-
     if (!selectedProspect) return null;
 
     const getUserName = (userId: string) => {
@@ -59,39 +54,15 @@ export default function ProspectDetail() {
         }
     };
 
-
-
     const handleStatusChange = (newStatus: ProspectStatus) => {
         updateProspect(selectedProspect.id, { estado: newStatus });
         setEditingStatus(false);
-    };
-
-    const handleAddTask = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newTaskTitle.trim() || !newTaskDate) return;
-
-        const newTask = {
-            id: Math.random().toString(36).substr(2, 9),
-            titulo: newTaskTitle,
-            fechaVencimiento: new Date(newTaskDate),
-            completada: false
-        };
-
-        updateProspect(selectedProspect.id, {
-            tareas: [...(selectedProspect.tareas || []), newTask]
-        });
-
-        setNewTaskTitle('');
-        setNewTaskDate('');
     };
 
     const openWhatsApp = () => {
         window.open(`https://wa.me/${selectedProspect.telefono.replace(/\+/g, '')}`, '_blank');
     };
 
-    // Calculate task stats
-    const totalTasks = selectedProspect.tareas?.length || 0;
-    const pendingTasks = selectedProspect.tareas?.filter(t => !t.completada).length || 0;
 
     // --- ACTIVITY ENGINE LOGIC --- //
     const prospectEvents = calendarEvents.filter(e => e.prospectId === selectedProspect.id);
@@ -357,60 +328,6 @@ export default function ProspectDetail() {
                         </div>
                     )}
 
-                    {/* Tasks Card (Moved Here) */}
-                    <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-                        <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                            <CheckSquare size={20} className="text-blue-500" />
-                            Tareas
-                        </h3>
-
-                        <div className="space-y-4 mb-4 max-h-60 overflow-y-auto custom-scrollbar">
-                            {(!selectedProspect.tareas || selectedProspect.tareas.length === 0) ? (
-                                <div className="text-center py-4 text-gray-400 text-sm italic">
-                                    Sin tareas registradas
-                                </div>
-                            ) : (
-                                selectedProspect.tareas.map(tarea => (
-                                    <div key={tarea.id} className="p-3 bg-gray-50 rounded-lg border border-gray-100 flex items-start gap-3">
-                                        <div className={`mt-1.5 w-2 h-2 rounded-full ${tarea.completada ? 'bg-green-500' : 'bg-orange-500'}`} />
-                                        <div>
-                                            <p className={`text-sm font-medium ${tarea.completada ? 'text-gray-500 line-through' : 'text-gray-900'}`}>
-                                                {tarea.titulo}
-                                            </p>
-                                            <p className="text-xs text-gray-500 mt-0.5">
-                                                {format(new Date(tarea.fechaVencimiento), 'dd MMM yyyy', { locale: es })}
-                                            </p>
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-
-                        {/* Add Task Form */}
-                        <form onSubmit={handleAddTask} className="border-t border-gray-100 pt-4 space-y-3">
-                            <input
-                                placeholder="Título de la tarea"
-                                value={newTaskTitle}
-                                onChange={(e) => setNewTaskTitle(e.target.value)}
-                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                            />
-                            <div className="flex gap-2">
-                                <input
-                                    type="date"
-                                    value={newTaskDate}
-                                    onChange={(e) => setNewTaskDate(e.target.value)}
-                                    className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                />
-                                <button
-                                    type="submit"
-                                    disabled={!newTaskTitle || !newTaskDate}
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    Agregar
-                                </button>
-                            </div>
-                        </form>
-                    </div>
 
                     {/* Timeline */}
                     <FollowUpSection
@@ -441,12 +358,6 @@ export default function ProspectDetail() {
                             <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
                                 <span className="text-sm text-gray-600">Seguimientos</span>
                                 <span className="text-base font-semibold text-gray-900">{selectedProspect.seguimientos?.length || 0}</span>
-                            </div>
-                            <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
-                                <span className="text-sm text-gray-600">Tareas</span>
-                                <span className="text-base font-semibold text-gray-900">
-                                    {pendingTasks} pendientes / {totalTasks} total
-                                </span>
                             </div>
                             <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
                                 <span className="text-sm text-gray-600">Cotizaciones</span>

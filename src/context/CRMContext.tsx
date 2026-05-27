@@ -223,10 +223,13 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (updates.ultimoSeguimiento !== undefined) payload.ultimo_seguimiento = updates.ultimoSeguimiento;
         if (updates.fechaContacto !== undefined) payload.fecha_contacto = updates.fechaContacto;
 
-        // Serialize tareas array — convert Date objects to ISO strings for JSONB storage
+        // Persist tareas to Supabase JSONB column.
+        // Requires running prospect_tasks_migration.sql first.
         if (updates.tareas !== undefined) {
             payload.tareas = updates.tareas.map(t => ({
-                ...t,
+                id: t.id,
+                titulo: t.titulo,
+                completada: t.completada,
                 fechaVencimiento: t.fechaVencimiento instanceof Date
                     ? t.fechaVencimiento.toISOString()
                     : t.fechaVencimiento
