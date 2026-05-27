@@ -158,6 +158,7 @@ export interface CompanyProfile {
   sitioWeb?: string;
   colorPrimario?: string; // for PDF accents
   enabledModules?: string[]; // sidebar module IDs selected during registration
+  trialExpiresAt?: Date | null;
 }
 
 export type EventType = 'reunión' | 'llamada' | 'recordatorio';

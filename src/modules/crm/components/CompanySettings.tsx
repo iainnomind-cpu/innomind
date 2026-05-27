@@ -245,7 +245,7 @@ const CompanySettings: React.FC = () => {
                             { id: 'prospectos?tab=clientes', label: 'Clientes', desc: 'Cartera de clientes activos' },
                             { id: 'quotes', label: 'Cotizaciones', desc: 'Propuestas comerciales y presupuestos' },
                             { id: 'calendar', label: 'Calendario', desc: 'Eventos, reuniones y recordatorios' },
-                            { id: 'finance', label: 'Finanzas', desc: 'Ingresos, egresos y reportes' },
+                            { id: 'finance', label: 'Finanzas', desc: 'Tesorería, Cobros, Pagos, Gastos' },
                             { id: 'procurement', label: 'Compras', desc: 'Órdenes de compra y proveedores' },
                             { id: 'inventory', label: 'Inventario', desc: 'Productos, stock y movimientos' },
                             { id: 'workspace', label: 'Nodo', desc: 'Conversaciones, tareas y notas' },

@@ -148,7 +148,7 @@ No recomiendes solo uno si existen múltiples necesidades.
 MÓDULOS DISPONIBLES EN INNOMIND:
 
 🔵 Gestión Comercial
-(Embudo: Oportunidades | Prospectos: Seguimiento | Clientes: Historial | Cotizaciones: Estados | Calendario: Eventos)
+(Embudo: Pipeline | Prospectos: Gestión | Clientes: Cartera | Cotizaciones: Propuestas | Calendario: Agendar)
 
 Módulos individuales:
 - Embudo de Ventas
@@ -158,27 +158,27 @@ Módulos individuales:
 - Calendario
 
 🟢 Gestión Financiera
-(Finanzas: Ingresos, Egresos, Reportes\${FEATURES.enableCompras ? ' | Compras: Órdenes, Proveedores' : ''})
+(Finanzas: Tesorería, Cobros, Pagos, Gastos, Ingresos, Egresos, Reportes${FEATURES.enableCompras ? ' | Compras: Órdenes, Proveedores' : ''})
 
 Módulos individuales:
 - Finanzas
-\${FEATURES.enableCompras ? '- Compras' : ''}
+${FEATURES.enableCompras ? '- Compras' : ''}
 
 🟣 Gestión Operativa
-(Inventario: Productos, Stock, Movimientos\${FEATURES.enableNodo ? ' | Nodo: Conversaciones, Bandeja, Mi Día, Tareas Globales, Notas' : ''})
+(Inventario: Productos, Stock, Movimientos${FEATURES.enableNodo ? ' | Nodo: Conversaciones, Bandeja, Mi Día, Tareas Globales, Notas' : ''})
 
 Módulos individuales:
 - Inventario
-\${FEATURES.enableNodo ? '- Nodo' : ''}
+${FEATURES.enableNodo ? '- Nodo' : ''}
 
-\${!FEATURES.enableCompras ? 'NOTA CRÍTICA: El módulo "Compras" está temporalmente desactivado y NO PUEDE ser recomendado. No lo incluyas bajo ningún motivo en la respuesta.' : ''}
-\${!FEATURES.enableNodo ? 'NOTA CRÍTICA: El módulo "Nodo" está temporalmente desactivado y NO PUEDE ser recomendado. No lo incluyas bajo ningún motivo en la respuesta.' : ''}
+${!FEATURES.enableCompras ? 'NOTA CRÍTICA: El módulo "Compras" está temporalmente desactivado y NO PUEDE ser recomendado. No lo incluyas bajo ningún motivo en la respuesta.' : ''}
+${!FEATURES.enableNodo ? 'NOTA CRÍTICA: El módulo "Nodo" está temporalmente desactivado y NO PUEDE ser recomendado. No lo incluyas bajo ningún motivo en la respuesta.' : ''}
 
 Respuestas del negocio:
-- Reto principal: \${answers[0]}
-- Maneja inventario: \${answers[1]}
-- Proceso de ventas actual: \${answers[2]}
-- Tamaño de empresa: \${answers[3]}
+- Reto principal: ${answers[0]}
+- Maneja inventario: ${answers[1]}
+- Proceso de ventas actual: ${answers[2]}
+- Tamaño de empresa: ${answers[3]}
 
 Devuelve la respuesta en JSON con este formato exacto:
 
@@ -203,10 +203,10 @@ REGLAS DE DECISIÓN:
   Inventario.
 
 - Si menciona desorden financiero, falta de control de gastos o flujo de efectivo → incluir:
-  Finanzas\${FEATURES.enableCompras ? ' y Compras' : ''}.
+  Finanzas${FEATURES.enableCompras ? ' y Compras' : ''}.
 
 - Si el equipo es mayor a 3 personas o menciona problemas de organización interna → incluir:
-  \${FEATURES.enableNodo ? 'Nodo.' : 'únicamente los otros módulos indicados (el módulo Nodo está deshabilitado).'}
+  ${FEATURES.enableNodo ? 'Nodo.' : 'únicamente los otros módulos indicados (el módulo Nodo está deshabilitado).'}
 
 - Si existen múltiples problemas → combinar módulos Comerciales + Financieros + Operativos según corresponda.
 

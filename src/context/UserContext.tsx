@@ -19,6 +19,8 @@ interface UserContextType {
     enabledModules: string[];
     updateEnabledModules: (modules: string[]) => Promise<void>;
     isLoadingProfile: boolean;
+    trialDaysRemaining: number | null;
+    isTrialExpired: boolean;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -41,6 +43,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [companyProfile, setCompanyProfile] = useState<CompanyProfile>(DEFAULT_COMPANY_PROFILE);
     const [enabledModules, setEnabledModules] = useState<string[]>([]);
     const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+    const [trialDaysRemaining, setTrialDaysRemaining] = useState<number | null>(null);
+    const [isTrialExpired, setIsTrialExpired] = useState<boolean>(false);
 
     // Sync Auth User & Fetch Profile
     useEffect(() => {
@@ -80,9 +84,22 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         logoUrl: data.logo_url,
                         sitioWeb: data.sitio_web,
                         colorPrimario: data.color_primario || DEFAULT_COMPANY_PROFILE.colorPrimario,
-                        enabledModules: data.enabled_modules || []
+                        enabledModules: data.enabled_modules || [],
+                        trialExpiresAt: data.trial_expires_at ? new Date(data.trial_expires_at) : null
                     });
                     setEnabledModules(data.enabled_modules || []);
+                    
+                    if (data.trial_expires_at) {
+                        const expireDate = new Date(data.trial_expires_at);
+                        const now = new Date();
+                        const diffTime = expireDate.getTime() - now.getTime();
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        setTrialDaysRemaining(diffDays > 0 ? diffDays : 0);
+                        setIsTrialExpired(diffDays <= 0);
+                    } else {
+                        setTrialDaysRemaining(null);
+                        setIsTrialExpired(false);
+                    }
                 }
             } catch (err) {
                 console.error("Error on company sync:", err);
@@ -172,7 +189,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     return (
-        <UserContext.Provider value={{ users, currentUser, companyProfile, updateCompanyProfile, enabledModules, updateEnabledModules, isLoadingProfile }}>
+        <UserContext.Provider value={{ users, currentUser, companyProfile, updateCompanyProfile, enabledModules, updateEnabledModules, isLoadingProfile, trialDaysRemaining, isTrialExpired }}>
             {children}
         </UserContext.Provider>
     );

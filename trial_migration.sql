@@ -1,4 +1,8 @@
--- Función SECURITY DEFINER para bypass de RLS durante el Onboarding
+-- 1. Agregar la columna trial_expires_at
+ALTER TABLE public.company_profiles
+ADD COLUMN IF NOT EXISTS trial_expires_at TIMESTAMPTZ;
+
+-- 2. Actualizar la función de registro para establecer el trial en 30 días
 CREATE OR REPLACE FUNCTION public.register_new_tenant(
   p_user_id uuid,
   p_email text,

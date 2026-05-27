@@ -428,14 +428,14 @@ export default function FreeTrialModal() {
                                             <div className="grid md:grid-cols-3 gap-4">
                                                 <ModuleSelectionCard
                                                     title="Gestión Comercial"
-                                                    description="(Embudo: Oportunidades | Prospectos: Seguimiento | Clientes: Historial | Cotizaciones: Estados | Calendario: Eventos)"
+                                                    description="(Embudo: Pipeline | Prospectos: Seguimiento | Clientes: Cartera | Cotizaciones: Propuestas | Calendario: Agendar)"
                                                     items={['Embudo de Ventas', 'Prospectos', 'Clientes', 'Cotizaciones', 'Calendario']}
                                                     selected={selectedSubModules}
                                                     toggle={toggleSubModule}
                                                 />
                                                 <ModuleSelectionCard
                                                     title="Gestión Financiera"
-                                                    description={FEATURES.enableCompras ? "(Finanzas: Ingresos, Egresos, Reportes | Compras: Órdenes, Proveedores)" : "(Finanzas: Ingresos, Egresos, Reportes)"}
+                                                    description={FEATURES.enableCompras ? "(Finanzas: Tesorería, Cobros, Pagos, Gastos | Compras: Órdenes, Proveedores)" : "(Finanzas: Tesorería, Cobros, Pagos, Gastos)"}
                                                     items={FEATURES.enableCompras ? ['Finanzas', 'Compras'] : ['Finanzas']}
                                                     selected={selectedSubModules}
                                                     toggle={toggleSubModule}
