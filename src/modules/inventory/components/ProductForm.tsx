@@ -9,9 +9,10 @@ interface ProductFormProps {
 }
 
 export default function ProductForm({ onClose, productId }: ProductFormProps) {
-    const { products, addProduct, updateProduct } = useInventory();
+    const { products, locations, addProduct, updateProduct } = useInventory();
 
     const editingProduct = productId ? products.find(p => p.id === productId) : null;
+    const activeLocations = locations.filter(l => l.activo);
 
     const [formData, setFormData] = useState({
         nombre: '',
@@ -28,7 +29,16 @@ export default function ProductForm({ onClose, productId }: ProductFormProps) {
         esPaqueteServicios: false,
     });
 
+    const [initialStock, setInitialStock] = useState<number>(0);
+    const [initialLocation, setInitialLocation] = useState<string>('');
+
     const [errors, setErrors] = useState<Record<string, string>>({});
+
+    useEffect(() => {
+        if (!editingProduct && activeLocations.length > 0 && !initialLocation) {
+            setInitialLocation(activeLocations[0].id);
+        }
+    }, [activeLocations, editingProduct, initialLocation]);
 
     useEffect(() => {
         if (editingProduct) {
@@ -80,7 +90,7 @@ export default function ProductForm({ onClose, productId }: ProductFormProps) {
         } else {
             await addProduct({
                 ...formData,
-            });
+            }, initialStock, initialLocation);
         }
 
         onClose();
@@ -229,6 +239,32 @@ export default function ProductForm({ onClose, productId }: ProductFormProps) {
                                                     className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                                                 />
                                             </div>
+                                        )}
+                                        {!editingProduct && formData.trackInventory && activeLocations.length > 0 && (
+                                            <>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Stock Actual (Inicial)</label>
+                                                    <input
+                                                        type="number" min="0" step="0.01"
+                                                        value={initialStock}
+                                                        onChange={(e) => setInitialStock(parseFloat(e.target.value) || 0)}
+                                                        className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Almacén Inicial</label>
+                                                    <select
+                                                        value={initialLocation}
+                                                        onChange={(e) => setInitialLocation(e.target.value)}
+                                                        className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                                        disabled={initialStock === 0}
+                                                    >
+                                                        {activeLocations.map(loc => (
+                                                            <option key={loc.id} value={loc.id}>{loc.nombre}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </>
                                         )}
                                     </>
                                 )}

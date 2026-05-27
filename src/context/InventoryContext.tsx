@@ -14,7 +14,7 @@ interface InventoryContextType {
     refreshInventoryData: () => Promise<void>;
 
     // Product Master Actions
-    addProduct: (product: Omit<Product, 'id'>) => Promise<void>;
+    addProduct: (product: Omit<Product, 'id'>, initialStock?: number, locationId?: string) => Promise<void>;
     updateProduct: (id: string, data: Partial<Product>) => Promise<void>;
     deleteProduct: (id: string) => Promise<void>;
 
@@ -115,7 +115,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }, [authUser, workspace?.id, isLoadingProfile]);
 
     // PRODUCTS
-    const addProduct = async (productData: Omit<Product, 'id'>) => {
+    const addProduct = async (productData: Omit<Product, 'id'>, initialStock?: number, locationId?: string) => {
         const workspaceId = validateWorkspace(workspace?.id);
         const payload = {
             codigo: productData.codigo,
@@ -134,7 +134,25 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         };
         const { data, error } = await supabase.from('products').insert(payload).select().single();
         if (error) throw error;
-        setProducts(prev => [mapProductFromDB(data), ...prev]);
+        
+        const newProduct = mapProductFromDB(data);
+        setProducts(prev => [newProduct, ...prev]);
+
+        if (initialStock && initialStock > 0 && locationId) {
+            try {
+                await registerMovement({
+                    productId: newProduct.id,
+                    locationId: locationId,
+                    tipoMovimiento: 'ENTRADA_COMPRA',
+                    cantidad: initialStock,
+                    costoUnitario: productData.costoPromedio,
+                    notas: 'Inventario inicial al crear producto',
+                    referenceId: ''
+                });
+            } catch (movError) {
+                console.error("Failed to register initial stock movement:", movError);
+            }
+        }
     };
 
     const updateProduct = async (id: string, data: Partial<Product>) => {
