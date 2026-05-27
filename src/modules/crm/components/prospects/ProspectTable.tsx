@@ -44,6 +44,8 @@ export default function ProspectTable({ navigationParams }: ProspectTableProps) 
             setActiveTab('clientes');
         } else if (tabParam === 'prospectos') {
             setActiveTab('prospectos');
+        } else {
+            setActiveTab('todos');
         }
     }, [searchParams]);
 
