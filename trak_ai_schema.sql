@@ -49,12 +49,15 @@ ALTER TABLE public.trak_ai_token_usage ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.trak_ai_conversations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.trak_ai_config ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "ai_token_usage_policy" ON public.trak_ai_token_usage;
 CREATE POLICY "ai_token_usage_policy" ON public.trak_ai_token_usage FOR ALL
   USING (workspace_id IN (SELECT workspace_id FROM users WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "ai_conversations_policy" ON public.trak_ai_conversations;
 CREATE POLICY "ai_conversations_policy" ON public.trak_ai_conversations FOR ALL
   USING (workspace_id IN (SELECT workspace_id FROM users WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "ai_config_policy" ON public.trak_ai_config;
 CREATE POLICY "ai_config_policy" ON public.trak_ai_config FOR ALL
   USING (workspace_id IN (SELECT workspace_id FROM users WHERE id = auth.uid()));
 

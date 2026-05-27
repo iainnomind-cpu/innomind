@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useAI } from '../../context/AIContext';
+import { useAI } from '@/modules/trak/context/AIContext';
 import { X, Send, User, AlertTriangle, Zap, FolderKanban, MessageSquarePlus, Clock, Trash2, ChevronLeft, Package, Users, FileText } from 'lucide-react';
 
 // Inline Chatbot SVG icon for the floating button and header
@@ -16,7 +16,7 @@ const InnoIcon = ({ size = 24, className = '' }: { size?: number; className?: st
   </svg>
 );
 
-export default function TrakAIChat() {
+export default function InnoAIChat() {
   const {
     isOpen, setIsOpen, messages, sendMessage, isLoading,
     tokensUsed, tokensLimit,
@@ -30,16 +30,48 @@ export default function TrakAIChat() {
 
   const getModuleContext = () => {
     const path = location.pathname;
-    if (path.includes('/projects')) return 'Proyectos';
-    if (path.includes('/tasks')) return 'Tareas';
-    if (path.includes('/quotes')) return 'Cotizaciones';
-    if (path.includes('/hr')) return 'Recursos Humanos';
-    if (path.includes('/inventory')) return 'Inventario';
-    if (path.includes('/calendar')) return 'Calendario';
-    if (path.includes('/clients')) return 'Clientes';
-    if (path.includes('/reports')) return 'Reportes';
-    if (path.includes('/time')) return 'Control de Tiempo';
-    if (path.includes('/settings')) return 'Configuración';
+    
+    // Trak routes
+    if (path.startsWith('/trak')) {
+      if (path.includes('/projects')) return 'Proyectos (Trak)';
+      if (path.includes('/tasks')) return 'Tareas (Trak)';
+      if (path.includes('/quotes')) return 'Cotizaciones (Trak)';
+      if (path.includes('/hr')) return 'Recursos Humanos (Trak)';
+      if (path.includes('/inventory')) return 'Inventario (Trak)';
+      if (path.includes('/calendar')) return 'Calendario (Trak)';
+      if (path.includes('/clients')) return 'Clientes (Trak)';
+      if (path.includes('/reports')) return 'Reportes (Trak)';
+      if (path.includes('/time')) return 'Control de Tiempo (Trak)';
+      if (path.includes('/settings')) return 'Configuración (Trak)';
+      return 'Dashboard Trak';
+    }
+
+    // CRM-ERP routes
+    if (path.startsWith('/crm')) {
+      if (path.includes('/dashboard')) return 'Dashboard de CRM';
+      if (path.includes('/embudo')) return 'Embudo de Ventas';
+      if (path.includes('/prospectos')) {
+        const search = location.search;
+        if (search.includes('tab=clientes')) return 'Clientes Corporativos';
+        return 'Prospectos y Oportunidades';
+      }
+      if (path.includes('/calendar')) return 'Calendario Corporativo';
+      if (path.includes('/settings')) return 'Configuración de Empresa';
+      if (path.includes('/support')) return 'Soporte y Tickets';
+      if (path.includes('/quotes')) {
+        if (path.includes('/plantillas')) return 'Plantillas de Cotización';
+        return 'Cotizaciones de CRM';
+      }
+      if (path.includes('/inventory')) return 'Inventario Maestro (ERP)';
+      if (path.includes('/finance')) return 'Finanzas y Tesorería';
+      if (path.includes('/workspace')) return 'Nodo / Espacio Colaborativo';
+    }
+
+    // Compras / Procurement routes
+    if (path.startsWith('/compras')) {
+      return 'Compras y Abastecimiento';
+    }
+
     return 'Dashboard General';
   };
 

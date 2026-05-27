@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Sparkles, ArrowRight, Check, Bot, Loader2, ChevronRight, X } from 'lucide-react';
 import { FEATURES } from '@/config/features';
+import { supabase } from '@/lib/supabase';
+import { useTrak } from '@/modules/trak/context/TrakContext';
 
 interface AIRecommendationWizardProps {
     onApplyRecommendation: (modules: string[]) => void;
@@ -18,6 +20,7 @@ export function AIRecommendationWizard({ onApplyRecommendation, onCancel }: AIRe
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [answers, setAnswers] = useState<Record<number, string>>({});
     const [result, setResult] = useState<RecommendationResult | null>(null);
+    const { workspaceId } = useTrak();
 
     const questions = [
         {
@@ -129,11 +132,8 @@ export function AIRecommendationWizard({ onApplyRecommendation, onCancel }: AIRe
     };
 
     const processRecommendation = async () => {
-        const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-
-        if (!apiKey) {
-            console.error("API Key no encontrada");
-            // Fallback to mock logic if no key
+        if (!workspaceId) {
+            console.error("Workspace ID no encontrado para recomendación");
             generateRecommendationMock();
             return;
         }
@@ -158,7 +158,7 @@ Módulos individuales:
 - Calendario
 
 🟢 Gestión Financiera
-(Finanzas: Tesorería, Cobros, Pagos, Gastos${FEATURES.enableCompras ? ' | Compras: Órdenes, Proveedores' : ''})
+(Finanzas: Tesorería, Cobros, Pagos, Gastos, Ingresos, Egresos, Reportes${FEATURES.enableCompras ? ' | Compras: Órdenes, Proveedores' : ''})
 
 Módulos individuales:
 - Finanzas
@@ -215,34 +215,27 @@ REGLAS DE DECISIÓN:
 - Siempre usar el nombre EXACTO del módulo en el array "modulos_recomendados".
 `;
 
-            const response = await fetch("https://api.openai.com/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    model: "gpt-4o-mini", // Or gpt-3.5-turbo if unavailable
+            // Invocar la Edge Function de Supabase inno-chat de manera segura
+            const { data, error } = await supabase.functions.invoke('inno-chat', {
+                body: {
                     messages: [
-                        { role: "system", content: "Eres un asistente útil que responde siempre en JSON valid." },
+                        { role: "system", content: "Eres un asesor experto que responde estrictamente en formato JSON válido." },
                         { role: "user", content: prompt }
                     ],
-                    temperature: 0.7
-                })
+                    workspaceId,
+                    isRecommendation: true
+                }
             });
 
-            if (!response.ok) {
-                throw new Error(`OpenAI API Error: ${response.statusText}`);
-            }
+            if (error) throw error;
 
-            const data = await response.json();
-            const content = data.choices[0].message.content;
+            const content = data.content;
 
             // Debug response from OpenAI
-            console.log("Raw OpenAI Response:", content);
+            console.log("Raw OpenAI Response (Secure):", content);
 
-            // Clean markdown verify if it's wrapped in ```json
-            const cleanContent = content.replace(/```json\n?|```/g, "").trim();
+            // Clean markdown verification if wrapped in \`\`\`json
+            const cleanContent = content.replace(/\`\`\`json\n?|\`\`\`/g, "").trim();
             const parsedResult = JSON.parse(cleanContent);
 
             console.log("Parsed JSON:", parsedResult);

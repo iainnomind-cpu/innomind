@@ -4,6 +4,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useUsers } from '@/context/UserContext';
 import { FEATURES } from '@/config/features';
+import InnoAIChat from '@/components/ai/InnoAIChat';
 
 import { CoreLogo } from '@/components/brand/CoreLogo';
 import { motion } from 'framer-motion';
@@ -167,6 +168,7 @@ export default function Layout() {
           )}
           <Outlet />
         </main>
+        <InnoAIChat />
       </div>
     </div>
   );

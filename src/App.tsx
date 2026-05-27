@@ -30,7 +30,6 @@ import EmployeeForm from '@/modules/trak/components/hr/EmployeeForm';
 import TrakCalendar from '@/modules/trak/components/calendar/TrakCalendar';
 import InventoryList from '@/modules/trak/components/inventory/InventoryList';
 import TrakSettings from '@/modules/trak/components/settings/TrakSettings';
-import { TrakProvider } from '@/modules/trak/context/TrakContext';
 import Layout from '@/modules/crm/components/Layout';
 import Dashboard from '@/modules/crm/components/Dashboard';
 import Embudo from '@/modules/crm/components/Embudo';
@@ -93,7 +92,7 @@ function App() {
 
         <Route element={<ProtectedRoute />}>
           {/* Rutas de Trak (Project Tracker - SaaS independiente) */}
-          <Route path="/trak" element={<TrakProvider><TrakLayout /></TrakProvider>}>
+          <Route path="/trak" element={<TrakLayout />}>
             <Route index element={<TrakDashboard />} />
             <Route path="clients" element={<ClientList />} />
             <Route path="projects" element={<ProjectList />} />

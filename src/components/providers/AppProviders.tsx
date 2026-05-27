@@ -9,6 +9,8 @@ import { WorkspaceProvider } from '@/context/WorkspaceContext';
 import { CRMProvider } from '@/context/CRMContext';
 import { AccountsReceivableProvider } from '@/context/AccountsReceivableContext';
 import { ModalProvider } from '@/context/ModalContext';
+import { TrakProvider } from '@/modules/trak/context/TrakContext';
+import { AIProvider } from '@/modules/trak/context/AIContext';
 
 interface AppProvidersProps {
     children: React.ReactNode;
@@ -25,9 +27,13 @@ export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
                                 <FinanceProvider>
                                     <InventoryProvider>
                                         <ProcurementProvider>
-                                            <ModalProvider>
-                                                {children}
-                                            </ModalProvider>
+                                            <TrakProvider>
+                                                <AIProvider>
+                                                    <ModalProvider>
+                                                        {children}
+                                                    </ModalProvider>
+                                                </AIProvider>
+                                            </TrakProvider>
                                         </ProcurementProvider>
                                     </InventoryProvider>
                                 </FinanceProvider>
