@@ -55,7 +55,7 @@ export default function Calendar() {
     };
 
     return (
-        <div className="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 relative">
+        <div className="flex-1 flex flex-col h-full overflow-y-auto bg-slate-50 relative">
             {/* Header */}
             <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-4">
@@ -82,7 +82,7 @@ export default function Calendar() {
 
             {/* Grid Container */}
             <div className="flex-1 overflow-auto p-6">
-                <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col h-full min-h-[600px]">
+                <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col">
                     {/* Days Header */}
                     <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50 shrink-0">
                         {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map(day => (
@@ -172,6 +172,8 @@ export function EventFormModal({ initialDate, initialProspectId, onClose }: { in
     const [type, setType] = useState<EventType>('reunión');
     const [prospectId, setProspectId] = useState(initialProspectId || '');
 
+    const [selectedDate, setSelectedDate] = useState(format(initialDate, 'yyyy-MM-dd'));
+
     // Time Strings for native time inputs
     const [startTime, setStartTime] = useState('09:00');
     const [endTime, setEndTime] = useState('10:00');
@@ -179,13 +181,13 @@ export function EventFormModal({ initialDate, initialProspectId, onClose }: { in
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const [startH, startM] = startTime.split(':');
-        const start = new Date(initialDate);
-        start.setHours(parseInt(startH), parseInt(startM));
+        const [year, month, day] = selectedDate.split('-').map(Number);
 
-        const [endH, endM] = endTime.split(':');
-        const end = new Date(initialDate);
-        end.setHours(parseInt(endH), parseInt(endM));
+        const [startH, startM] = startTime.split(':').map(Number);
+        const start = new Date(year, month - 1, day, startH, startM);
+
+        const [endH, endM] = endTime.split(':').map(Number);
+        const end = new Date(year, month - 1, day, endH, endM);
 
         await addCalendarEvent({
             title,
@@ -213,7 +215,7 @@ export function EventFormModal({ initialDate, initialProspectId, onClose }: { in
                 </div>
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-1">Título {format(initialDate, '(dd/MM/yyyy)')}</label>
+                        <label className="block text-sm font-bold text-slate-700 mb-1">Título</label>
                         <input
                             type="text"
                             required
@@ -250,6 +252,17 @@ export function EventFormModal({ initialDate, initialProspectId, onClose }: { in
                                 ))}
                             </select>
                         </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-1">Fecha</label>
+                        <input
+                            type="date"
+                            required
+                            value={selectedDate}
+                            onChange={(e) => setSelectedDate(e.target.value)}
+                            className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                        />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">

@@ -197,13 +197,16 @@ function ClientFormModal({ client, workspaceId, onClose, onSaved }: {
     setSaving(true);
     try {
       if (isEdit) {
-        await supabase.from('trak_clients').update({ ...form, updated_at: new Date().toISOString() }).eq('id', client!.id);
+        const { error } = await supabase.from('trak_clients').update({ ...form, updated_at: new Date().toISOString() }).eq('id', client!.id);
+        if (error) throw error;
       } else {
-        await supabase.from('trak_clients').insert({ ...form, workspace_id: workspaceId });
+        const { error } = await supabase.from('trak_clients').insert({ ...form, workspace_id: workspaceId });
+        if (error) throw error;
       }
       onSaved();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error saving client:', err);
+      alert('Error al guardar el cliente: ' + (err.message || JSON.stringify(err)));
     } finally {
       setSaving(false);
     }

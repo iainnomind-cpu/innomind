@@ -198,9 +198,21 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const updateProspect = async (id: string, updates: Partial<Prospect>) => {
         const workspaceId = validateWorkspace(workspace?.id);
-        const payload: any = { ...updates, updated_at: new Date().toISOString() };
+        const payload: any = { updated_at: new Date().toISOString() };
 
-        // Map camelCase to snake_case if necessary
+        // Map camelCase to snake_case — only add fields that are actually being updated
+        if (updates.nombre !== undefined) payload.nombre = updates.nombre;
+        if (updates.telefono !== undefined) payload.telefono = updates.telefono;
+        if (updates.correo !== undefined) payload.correo = updates.correo;
+        if (updates.empresa !== undefined) payload.empresa = updates.empresa;
+        if (updates.cargo !== undefined) payload.cargo = updates.cargo;
+        if (updates.plataforma !== undefined) payload.plataforma = updates.plataforma;
+        if (updates.estado !== undefined) payload.estado = updates.estado;
+        if (updates.responsable !== undefined) payload.responsable = updates.responsable;
+        if (updates.origen !== undefined) payload.origen = updates.origen;
+        if (updates.industria !== undefined) payload.industria = updates.industria;
+        if (updates.tamanoEmpresa !== undefined) payload.tamano_empresa = updates.tamanoEmpresa;
+        if (updates.direccion !== undefined) payload.direccion = updates.direccion;
         if (updates.servicioInteres !== undefined) payload.servicio_interes = updates.servicioInteres;
         if (updates.valorEstimado !== undefined) payload.valor_estimado = updates.valorEstimado;
         if (updates.urgencia !== undefined) payload.urgencia = updates.urgencia;
@@ -210,6 +222,16 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (updates.fechaProximoSeguimiento !== undefined) payload.fecha_proximo_seguimiento = updates.fechaProximoSeguimiento;
         if (updates.ultimoSeguimiento !== undefined) payload.ultimo_seguimiento = updates.ultimoSeguimiento;
         if (updates.fechaContacto !== undefined) payload.fecha_contacto = updates.fechaContacto;
+
+        // Serialize tareas array — convert Date objects to ISO strings for JSONB storage
+        if (updates.tareas !== undefined) {
+            payload.tareas = updates.tareas.map(t => ({
+                ...t,
+                fechaVencimiento: t.fechaVencimiento instanceof Date
+                    ? t.fechaVencimiento.toISOString()
+                    : t.fechaVencimiento
+            }));
+        }
 
         const { error } = await supabase.from('prospects')
             .update(payload)
