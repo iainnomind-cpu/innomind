@@ -30,7 +30,7 @@ export default function TrakLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut } = useAuth();
-  const { trialDaysRemaining } = useUsers();
+  const { trialDaysRemaining, companyProfile } = useUsers();
 
   const menuItems = [
     ...baseMenuItems.slice(0, 6), // before reports
@@ -53,11 +53,11 @@ export default function TrakLayout() {
         <div className="p-5 border-b border-slate-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center text-white font-black text-sm tracking-wider">
-              TK
+              {companyProfile.nombreEmpresa?.charAt(0).toUpperCase() || 'T'}
             </div>
             <div>
-              <h1 className="font-bold text-lg text-white tracking-wide">Trak</h1>
-              <p className="text-[10px] text-slate-400 font-medium">Project Tracker</p>
+              <h1 className="font-bold text-lg text-white tracking-wide">{companyProfile.nombreEmpresa || 'Trak'}</h1>
+              <p className="text-[10px] text-slate-400 font-medium">Trak · Project Tracker</p>
             </div>
           </div>
         </div>
@@ -125,8 +125,8 @@ export default function TrakLayout() {
               <Menu size={20} />
             </button>
             <div className="flex items-center gap-2 lg:hidden">
-              <div className="w-7 h-7 bg-purple-600 rounded-lg flex items-center justify-center text-white font-black text-[10px]">TK</div>
-              <span className="font-bold text-gray-900">Trak</span>
+              <div className="w-7 h-7 bg-purple-600 rounded-lg flex items-center justify-center text-white font-black text-[10px]">{companyProfile.nombreEmpresa?.charAt(0).toUpperCase() || 'T'}</div>
+              <span className="font-bold text-gray-900">{companyProfile.nombreEmpresa || 'Trak'}</span>
             </div>
           </div>
           <div className="flex items-center gap-4 ml-auto">

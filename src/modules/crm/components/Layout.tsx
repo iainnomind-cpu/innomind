@@ -10,7 +10,7 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut } = useAuth();
-  const { currentUser, enabledModules, trialDaysRemaining } = useUsers();
+  const { currentUser, enabledModules, trialDaysRemaining, companyProfile } = useUsers();
 
   const menuItems = [
     { id: 'dashboard', label: 'Panel de Control', icon: LayoutDashboard, alwaysVisible: true },
@@ -44,11 +44,11 @@ export default function Layout() {
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold">
-              CRM
+              {companyProfile.nombreEmpresa?.charAt(0).toUpperCase() || 'C'}
             </div>
             <div>
-              <h1 className="font-bold text-lg text-gray-900">Mi CRM</h1>
-              <p className="text-xs text-gray-500">Sistema de Gestión</p>
+              <h1 className="font-bold text-lg text-gray-900">{companyProfile.nombreEmpresa || 'Mi CRM'}</h1>
+              <p className="text-xs text-gray-500">Corē · Sistema de Gestión</p>
             </div>
           </div>
         </div>

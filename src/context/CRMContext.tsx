@@ -60,6 +60,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         fechaContacto: row.fecha_contacto ? new Date(row.fecha_contacto) : undefined,
         tamanoEmpresa: row.tamano_empresa || '',
         valorEstimado: Number(row.valor_estimado) || 0,
+        urgencia: row.urgencia || 'Solo explorando',
         telefonoSecundario: row.telefono_secundario || '',
         origen: row.origen || '',
         industria: row.industria || '',
@@ -180,6 +181,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             fecha_contacto: prospect.fechaContacto,
             tamano_empresa: prospect.tamanoEmpresa,
             valor_estimado: prospect.valorEstimado,
+            urgencia: prospect.urgencia,
             telefono_secundario: prospect.telefonoSecundario,
             origen: prospect.origen,
             industria: prospect.industria,
@@ -201,6 +203,7 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         // Map camelCase to snake_case if necessary
         if (updates.servicioInteres !== undefined) payload.servicio_interes = updates.servicioInteres;
         if (updates.valorEstimado !== undefined) payload.valor_estimado = updates.valorEstimado;
+        if (updates.urgencia !== undefined) payload.urgencia = updates.urgencia;
         if (updates.telefonoSecundario !== undefined) payload.telefono_secundario = updates.telefonoSecundario;
         if (updates.notasInternas !== undefined) payload.notas_internas = updates.notasInternas;
         if (updates.nivelInteres !== undefined) payload.nivel_interes = updates.nivelInteres;

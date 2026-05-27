@@ -21,6 +21,7 @@ export interface Prospect {
   tamanoEmpresa?: string;
   nivelInteres?: 'Bajo' | 'Medio' | 'Alto';
   valorEstimado?: number;
+  urgencia?: 'Inmediata' | '1-3 meses' | '3-6 meses' | 'Solo explorando';
   direccion?: string;
   fechaProximoSeguimiento?: Date;
   seguimientos: Array<{

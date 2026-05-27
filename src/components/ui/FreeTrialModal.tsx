@@ -47,6 +47,15 @@ export default function FreeTrialModal() {
         }
     }, [inviteEmail]);
 
+    // Auto-generate workspace name based on company and selected module
+    useEffect(() => {
+        if (step === 3 && !workspaceName && companyName) {
+            const moduleSuffix = selectedMainModule === 'crm-erp' ? 'core' : (selectedMainModule === 'project-tracker' ? 'trak' : '');
+            const defaultName = `${companyName.toLowerCase().replace(/[^a-z0-9]/g, '')}${moduleSuffix}`;
+            setWorkspaceName(defaultName);
+        }
+    }, [step, companyName, selectedMainModule, workspaceName]);
+
     const step1Errors = useMemo(() => {
         const errors: { fullName?: string, email?: string, companyName?: string } = {};
         if (!fullName.trim()) errors.fullName = "El nombre es obligatorio";
@@ -506,8 +515,13 @@ export default function FreeTrialModal() {
                                                     onChange={(e) => setWorkspaceName(e.target.value)}
                                                     className="w-full px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                                                 />
-                                                <p className="text-xs text-slate-500 font-medium">
-                                                    {sanitizedWorkspace || 'mi-empresa'}.innomind.com
+                                                <p className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+                                                    <span>{sanitizedWorkspace || 'mi-empresa'}.innomind.com</span>
+                                                    {selectedMainModule && (
+                                                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold ${selectedMainModule === 'crm-erp' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                                                            {selectedMainModule === 'crm-erp' ? 'Corē' : 'Trak'}
+                                                        </span>
+                                                    )}
                                                 </p>
                                             </div>
 
