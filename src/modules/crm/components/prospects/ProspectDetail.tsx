@@ -83,8 +83,8 @@ export default function ProspectDetail() {
         const date1 = new Date(now);
         date1.setHours(date1.getHours() + 1);
         await addCalendarEvent({
-            title: 'Secuencia: Enviar correo de primer contacto',
-            description: 'Plantilla de saludo disponible. Revisar y enviar.',
+            title: 'Secuencia: Enviar WhatsApp de primer contacto',
+            description: 'Plantilla de saludo disponible. Revisar y enviar por WhatsApp.',
             type: 'recordatorio',
             startTime: date1,
             endTime: new Date(date1.getTime() + 30 * 60000),
@@ -109,8 +109,8 @@ export default function ProspectDetail() {
         date3.setDate(date3.getDate() + 7);
         date3.setHours(11, 0, 0, 0);
         await addCalendarEvent({
-            title: 'Secuencia: Correo de cierre / Oferta final',
-            description: 'Mandar propuesta atractiva de cierre antes de marcar como perdido.',
+            title: 'Secuencia: WhatsApp de cierre / Oferta final',
+            description: 'Mandar propuesta atractiva de cierre por WhatsApp antes de marcar como perdido.',
             type: 'recordatorio',
             startTime: date3,
             endTime: new Date(date3.getTime() + 30 * 60000),

@@ -236,6 +236,15 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             }));
         }
 
+        if (updates.seguimientos !== undefined) {
+            payload.seguimientos = updates.seguimientos.map(s => ({
+                id: s.id,
+                fecha: s.fecha instanceof Date ? s.fecha.toISOString() : s.fecha,
+                usuario: s.usuario,
+                nota: s.nota
+            }));
+        }
+
         const { error } = await supabase.from('prospects')
             .update(payload)
             .eq('id', id)
@@ -259,35 +268,22 @@ export const CRMProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     const addFollowUp = async (prospectId: string, note: string, userId: string) => {
-        const workspaceId = validateWorkspace(workspace?.id);
-        const { data, error } = await supabase.from('prospect_followups').insert([{
-            prospect_id: prospectId,
-            nota: note,
-            created_by: userId,
-            workspace: workspaceId
-        }]).select().single();
-
-        if (error) throw error;
+        const targetProspect = prospects.find(p => p.id === prospectId);
+        if (!targetProspect) throw new Error("Prospect not found");
 
         const newFollowUp = {
-            id: data.id,
-            fecha: new Date(data.created_at),
-            usuario: data.created_by,
-            nota: data.nota
+            id: Math.random().toString(36).substr(2, 9),
+            fecha: new Date(),
+            usuario: userId,
+            nota: note
         };
 
-        setProspects(prev => prev.map(p =>
-            p.id === prospectId
-                ? { ...p, seguimientos: [newFollowUp, ...(p.seguimientos || [])] }
-                : p
-        ));
+        const updatedSeguimientos = [newFollowUp, ...(targetProspect.seguimientos || [])];
 
-        if (selectedProspect?.id === prospectId) {
-            setSelectedProspect(prev => prev ? {
-                ...prev,
-                seguimientos: [newFollowUp, ...(prev.seguimientos || [])]
-            } : null);
-        }
+        await updateProspect(prospectId, {
+            seguimientos: updatedSeguimientos,
+            ultimoSeguimiento: new Date()
+        });
     };
 
     const addQuote = async (quote: Partial<Quote>) => {
