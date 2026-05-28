@@ -145,7 +145,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                     locationId: locationId,
                     tipoMovimiento: 'ENTRADA_COMPRA',
                     cantidad: initialStock,
-                    costoUnitario: productData.costoPromedio,
+                    costoUnitario: productData.costoPromedio || 0,
                     notas: 'Inventario inicial al crear producto',
                     referenceId: ''
                 });

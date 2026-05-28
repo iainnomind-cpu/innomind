@@ -1,7 +1,50 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAI } from '@/modules/trak/context/AIContext';
-import { X, Send, User, AlertTriangle, Zap, FolderKanban, MessageSquarePlus, Clock, Trash2, ChevronLeft, Package, Users, FileText } from 'lucide-react';
+import {
+  X, Send, User, AlertTriangle, Zap, FolderKanban, MessageSquarePlus, Clock, Trash2,
+  ChevronLeft, Package, Users, FileText, TrendingUp, Landmark, Truck, Navigation,
+  Activity, AlertCircle, BarChart3
+} from 'lucide-react';
+
+interface SuggestedQuestion {
+  text: string;
+  icon: React.ComponentType<any>;
+  iconColor: string;
+}
+
+interface PlatformConfig {
+  title: string;
+  description: string;
+  suggestedQuestions: SuggestedQuestion[];
+}
+
+const platformConfigs: Record<'crm_erp' | 'trak', PlatformConfig> = {
+  crm_erp: {
+    title: '¡Hola! Soy Inno 👋',
+    description: 'Tu asistente inteligente para ventas, clientes, proyectos, inventario y finanzas.',
+    suggestedQuestions: [
+      { text: '¿Qué tareas tengo pendientes?', icon: Zap, iconColor: 'text-amber-500' },
+      { text: 'Resumen de mis proyectos', icon: FolderKanban, iconColor: 'text-blue-500' },
+      { text: '¿Qué hay en inventario?', icon: Package, iconColor: 'text-emerald-500' },
+      { text: '¿Quiénes son mis clientes?', icon: Users, iconColor: 'text-indigo-500' },
+      { text: '¿Cuáles son mis oportunidades abiertas?', icon: TrendingUp, iconColor: 'text-rose-500' },
+      { text: 'Muéstrame el estado financiero actual', icon: Landmark, iconColor: 'text-purple-500' },
+    ]
+  },
+  trak: {
+    title: '¡Hola! Soy Inno Trak 🚚',
+    description: 'Tu asistente para logística, seguimiento, monitoreo y operaciones.',
+    suggestedQuestions: [
+      { text: '¿Qué entregas están pendientes?', icon: Truck, iconColor: 'text-blue-500' },
+      { text: 'Estado de las rutas activas', icon: Navigation, iconColor: 'text-indigo-500' },
+      { text: 'Resumen operativo de hoy', icon: FileText, iconColor: 'text-emerald-500' },
+      { text: '¿Qué incidencias existen?', icon: AlertCircle, iconColor: 'text-rose-500' },
+      { text: '¿Qué unidades requieren atención?', icon: Activity, iconColor: 'text-amber-500' },
+      { text: 'Muéstrame el rendimiento operativo', icon: BarChart3, iconColor: 'text-purple-500' },
+    ]
+  }
+};
 
 // Inline Chatbot SVG icon for the floating button and header
 const InnoIcon = ({ size = 24, className = '' }: { size?: number; className?: string }) => (
@@ -76,6 +119,8 @@ export default function InnoAIChat() {
   };
 
   const moduleContext = getModuleContext();
+  const platform = location.pathname.startsWith('/trak') ? 'trak' : 'crm_erp';
+  const config = platformConfigs[platform];
 
   const handleSend = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -245,29 +290,29 @@ export default function InnoAIChat() {
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
               {messages.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center px-4 space-y-4 text-gray-500">
+                <div className="h-full flex flex-col items-center justify-center text-center px-4 space-y-4 text-gray-500 animate-in fade-in duration-300">
                   <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-indigo-100 text-purple-600 rounded-2xl flex items-center justify-center mb-1">
                     <InnoIcon size={36} />
                   </div>
                   <div>
-                    <p className="font-bold text-gray-900 mb-1">¡Hola! Soy Inno 👋</p>
-                    <p className="text-xs text-gray-500">Tu asistente inteligente. Tengo acceso a todos tus módulos.</p>
+                    <p className="font-bold text-gray-900 mb-1">{config.title}</p>
+                    <p className="text-xs text-gray-500">{config.description}</p>
                   </div>
 
                   <div className="w-full space-y-2 mt-3 text-left">
                     <p className="text-[10px] font-bold uppercase text-gray-400 mb-2">Prueba preguntarme:</p>
-                    <button onClick={() => handleQuickAction('¿Qué tareas tengo pendientes?')} className="w-full bg-white border border-gray-200 hover:border-purple-300 hover:bg-purple-50 p-2.5 rounded-xl text-xs font-medium text-gray-700 transition-colors flex items-center gap-2">
-                      <Zap size={14} className="text-amber-500 shrink-0" /> ¿Qué tareas tengo pendientes?
-                    </button>
-                    <button onClick={() => handleQuickAction('Dame un resumen de mis proyectos activos')} className="w-full bg-white border border-gray-200 hover:border-purple-300 hover:bg-purple-50 p-2.5 rounded-xl text-xs font-medium text-gray-700 transition-colors flex items-center gap-2 text-left">
-                      <FolderKanban size={14} className="text-blue-500 shrink-0" /> Resumen de mis proyectos
-                    </button>
-                    <button onClick={() => handleQuickAction('¿Qué productos tenemos en inventario?')} className="w-full bg-white border border-gray-200 hover:border-purple-300 hover:bg-purple-50 p-2.5 rounded-xl text-xs font-medium text-gray-700 transition-colors flex items-center gap-2 text-left">
-                      <Package size={14} className="text-emerald-500 shrink-0" /> ¿Qué hay en inventario?
-                    </button>
-                    <button onClick={() => handleQuickAction('¿Quiénes son mis clientes?')} className="w-full bg-white border border-gray-200 hover:border-purple-300 hover:bg-purple-50 p-2.5 rounded-xl text-xs font-medium text-gray-700 transition-colors flex items-center gap-2 text-left">
-                      <Users size={14} className="text-indigo-500 shrink-0" /> ¿Quiénes son mis clientes?
-                    </button>
+                    {config.suggestedQuestions.map((q, idx) => {
+                      const Icon = q.icon;
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => handleQuickAction(q.text)}
+                          className="w-full bg-white border border-gray-200 hover:border-purple-300 hover:bg-purple-50 p-2.5 rounded-xl text-xs font-medium text-gray-700 transition-colors flex items-center gap-2 text-left"
+                        >
+                          <Icon size={14} className={`${q.iconColor} shrink-0`} /> {q.text}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               ) : (
