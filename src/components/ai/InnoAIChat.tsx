@@ -12,6 +12,7 @@ interface SuggestedQuestion {
   text: string;
   icon: React.ComponentType<any>;
   iconColor: string;
+  intent?: string;
 }
 
 interface PlatformConfig {
@@ -31,39 +32,39 @@ const getCrmErpQuestions = (enabledModules: string[] | undefined | null): Sugges
 
   if (hasCRM) {
     pool.push(
-      { text: '¿Quiénes son mis clientes más importantes?', icon: Users, iconColor: 'text-indigo-500' },
-      { text: '¿Cuáles son mis oportunidades abiertas?', icon: TrendingUp, iconColor: 'text-emerald-500' },
-      { text: 'Muéstrame mis ventas del mes', icon: BarChart3, iconColor: 'text-blue-500' },
-      { text: '¿Qué clientes requieren seguimiento?', icon: Users, iconColor: 'text-amber-500' },
-      { text: '¿Cuál es el estado de mi embudo de ventas?', icon: TrendingUp, iconColor: 'text-purple-500' },
-      { text: '¿Qué cotizaciones están pendientes?', icon: FileText, iconColor: 'text-rose-500' }
+      { text: '¿Quiénes son mis clientes más importantes?', icon: Users, iconColor: 'text-indigo-500', intent: 'crm_important_clients' },
+      { text: '¿Cuáles son mis oportunidades abiertas?', icon: TrendingUp, iconColor: 'text-emerald-500', intent: 'crm_open_opportunities' },
+      { text: 'Muéstrame mis ventas del mes', icon: BarChart3, iconColor: 'text-blue-500', intent: 'crm_month_sales' },
+      { text: '¿Qué clientes requieren seguimiento?', icon: Users, iconColor: 'text-amber-500', intent: 'crm_followup_clients' },
+      { text: '¿Cuál es el estado de mi embudo de ventas?', icon: TrendingUp, iconColor: 'text-purple-500', intent: 'crm_sales_funnel_status' },
+      { text: '¿Qué cotizaciones están pendientes?', icon: FileText, iconColor: 'text-rose-500', intent: 'crm_pending_quotes' }
     );
   }
 
   if (hasInventory) {
     pool.push(
-      { text: '¿Cuáles son mis productos más vendidos?', icon: Package, iconColor: 'text-amber-500' },
-      { text: '¿Qué hay en inventario?', icon: Package, iconColor: 'text-emerald-500' }
+      { text: '¿Cuáles son mis productos más vendidos?', icon: Package, iconColor: 'text-amber-500', intent: 'inventory_top_selling_products' },
+      { text: '¿Qué hay en inventario?', icon: Package, iconColor: 'text-emerald-500', intent: 'inventory_stock_status' }
     );
   }
 
   if (hasFinance) {
     pool.push(
-      { text: 'Muéstrame las cuentas por cobrar', icon: Landmark, iconColor: 'text-indigo-500' },
-      { text: 'Resumen de ingresos y gastos', icon: BarChart3, iconColor: 'text-purple-500' },
-      { text: '¿Qué facturas están pendientes de pago?', icon: FileText, iconColor: 'text-rose-500' }
+      { text: 'Muéstrame las cuentas por cobrar', icon: Landmark, iconColor: 'text-indigo-500', intent: 'finance_accounts_receivable' },
+      { text: 'Resumen de ingresos y gastos', icon: BarChart3, iconColor: 'text-purple-500', intent: 'finance_income_expenses_summary' },
+      { text: '¿Qué facturas están pendientes de pago?', icon: FileText, iconColor: 'text-rose-500', intent: 'finance_pending_bills' }
     );
   }
 
   // Si todos los módulos están habilitados, queremos una mezcla curada e inteligente de máximo 6 preguntas:
   if (showAll || (hasCRM && hasInventory && hasFinance)) {
     return [
-      { text: '¿Quiénes son mis clientes más importantes?', icon: Users, iconColor: 'text-indigo-500' },
-      { text: '¿Cuáles son mis oportunidades abiertas?', icon: TrendingUp, iconColor: 'text-emerald-500' },
-      { text: 'Muéstrame mis ventas del mes', icon: BarChart3, iconColor: 'text-blue-500' },
-      { text: '¿Qué hay en inventario?', icon: Package, iconColor: 'text-emerald-500' },
-      { text: 'Resumen de ingresos y gastos', icon: BarChart3, iconColor: 'text-purple-500' },
-      { text: '¿Qué cotizaciones están pendientes?', icon: FileText, iconColor: 'text-rose-500' }
+      { text: '¿Quiénes son mis clientes más importantes?', icon: Users, iconColor: 'text-indigo-500', intent: 'crm_important_clients' },
+      { text: '¿Cuáles son mis oportunidades abiertas?', icon: TrendingUp, iconColor: 'text-emerald-500', intent: 'crm_open_opportunities' },
+      { text: 'Muéstrame mis ventas del mes', icon: BarChart3, iconColor: 'text-blue-500', intent: 'crm_month_sales' },
+      { text: '¿Qué hay en inventario?', icon: Package, iconColor: 'text-emerald-500', intent: 'inventory_stock_status' },
+      { text: 'Resumen de ingresos y gastos', icon: BarChart3, iconColor: 'text-purple-500', intent: 'finance_income_expenses_summary' },
+      { text: '¿Qué cotizaciones están pendientes?', icon: FileText, iconColor: 'text-rose-500', intent: 'crm_pending_quotes' }
     ];
   }
 
@@ -183,8 +184,8 @@ export default function InnoAIChat() {
     setInput('');
   };
 
-  const handleQuickAction = (action: string) => {
-    sendMessage(action, moduleContext);
+  const handleQuickAction = (action: string, intent?: string) => {
+    sendMessage(action, moduleContext, intent);
   };
 
   useEffect(() => {
@@ -360,7 +361,7 @@ export default function InnoAIChat() {
                       return (
                         <button
                           key={idx}
-                          onClick={() => handleQuickAction(q.text)}
+                          onClick={() => handleQuickAction(q.text, q.intent)}
                           className="w-full bg-white border border-gray-200 hover:border-purple-300 hover:bg-purple-50 p-2.5 rounded-xl text-xs font-medium text-gray-700 transition-colors flex items-center gap-2 text-left"
                         >
                           <Icon size={14} className={`${q.iconColor} shrink-0`} /> {q.text}
