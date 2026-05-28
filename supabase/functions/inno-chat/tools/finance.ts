@@ -8,8 +8,10 @@ export async function leerFinanzas(supabase: SupabaseClient, workspaceId: string
     throw new Error(`Finanzas es un módulo exclusivo de la plataforma CRM-ERP. Intento de acceso no autorizado desde: ${platform}`);
   }
 
+  console.log("=== FINANCE_SUMMARY_START ===");
+  console.log("workspaceId recibido:", workspaceId);
+  console.log("currentRoute recibido:", args.currentRoute || "No especificado");
   console.log("=== [leerFinanzas] INICIANDO DIAGNÓSTICO FINANCIERO CONSOLIDADO ===");
-  console.log("Workspace ID:", workspaceId);
 
   const diagnostics: any[] = [];
   const results: any = {
@@ -35,10 +37,22 @@ export async function leerFinanzas(supabase: SupabaseClient, workspaceId: string
         .eq(filterColumn, workspaceId);
 
       if (error) {
+        console.error("FINANCE_SUMMARY_ERROR", {
+          table: tableName,
+          errorCode: error.code,
+          message: error.message,
+          details: error.details
+        });
         return { success: false, error, data: null };
       }
       return { success: true, error: null, data };
     } catch (err: any) {
+      console.error("FINANCE_SUMMARY_ERROR", {
+        table: tableName,
+        errorCode: err.code || "FATAL_CATCH",
+        message: err.message,
+        details: err.stack
+      });
       return { success: false, error: err, data: null };
     }
   };
@@ -68,7 +82,8 @@ export async function leerFinanzas(supabase: SupabaseClient, workspaceId: string
     tabla: "finance_accounts",
     exitoso: qAccounts.success,
     registros: qAccounts.data ? qAccounts.data.length : 0,
-    error: qAccounts.error ? qAccounts.error.message : null
+    error: qAccounts.error ? qAccounts.error.message : null,
+    platform: "crm_erp"
   });
   if (qAccounts.success && qAccounts.data) {
     results.cuentas = qAccounts.data.map((a: any) => ({ ...a, platform: "crm_erp" }));
@@ -80,7 +95,8 @@ export async function leerFinanzas(supabase: SupabaseClient, workspaceId: string
     tabla: "charge_notes",
     exitoso: qReceivables.success,
     registros: qReceivables.data ? qReceivables.data.length : 0,
-    error: qReceivables.error ? qReceivables.error.message : null
+    error: qReceivables.error ? qReceivables.error.message : null,
+    platform: "crm_erp"
   });
   if (qReceivables.success && qReceivables.data) {
     results.cuentas_cobrar = qReceivables.data.map((r: any) => ({ ...r, platform: "crm_erp" }));
@@ -92,7 +108,8 @@ export async function leerFinanzas(supabase: SupabaseClient, workspaceId: string
     tabla: "accounts_payable",
     exitoso: qPayables.success,
     registros: qPayables.data ? qPayables.data.length : 0,
-    error: qPayables.error ? qPayables.error.message : null
+    error: qPayables.error ? qPayables.error.message : null,
+    platform: "crm_erp"
   });
   if (qPayables.success && qPayables.data) {
     results.cuentas_pagar = qPayables.data.map((p: any) => ({ ...p, platform: "crm_erp" }));
@@ -104,7 +121,8 @@ export async function leerFinanzas(supabase: SupabaseClient, workspaceId: string
     tabla: "expenses",
     exitoso: qExpenses.success,
     registros: qExpenses.data ? qExpenses.data.length : 0,
-    error: qExpenses.error ? qExpenses.error.message : null
+    error: qExpenses.error ? qExpenses.error.message : null,
+    platform: "crm_erp"
   });
   if (qExpenses.success && qExpenses.data) {
     results.gastos = qExpenses.data.map((e: any) => ({ ...e, platform: "crm_erp" }));
@@ -116,7 +134,8 @@ export async function leerFinanzas(supabase: SupabaseClient, workspaceId: string
     tabla: "bank_movements",
     exitoso: qBankMovements.success,
     registros: qBankMovements.data ? qBankMovements.data.length : 0,
-    error: qBankMovements.error ? qBankMovements.error.message : null
+    error: qBankMovements.error ? qBankMovements.error.message : null,
+    platform: "crm_erp"
   });
   if (qBankMovements.success && qBankMovements.data) {
     results.movimientos_bancarios = qBankMovements.data.map((m: any) => ({ ...m, platform: "crm_erp" }));
@@ -128,7 +147,8 @@ export async function leerFinanzas(supabase: SupabaseClient, workspaceId: string
     tabla: "treasury_movements",
     exitoso: qTreasuryMovements.success,
     registros: qTreasuryMovements.data ? qTreasuryMovements.data.length : 0,
-    error: qTreasuryMovements.error ? qTreasuryMovements.error.message : null
+    error: qTreasuryMovements.error ? qTreasuryMovements.error.message : null,
+    platform: "crm_erp"
   });
   if (qTreasuryMovements.success && qTreasuryMovements.data) {
     results.movimientos_tesoreria = qTreasuryMovements.data.map((t: any) => ({ ...t, platform: "crm_erp" }));
