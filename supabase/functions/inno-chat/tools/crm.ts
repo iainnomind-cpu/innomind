@@ -109,47 +109,79 @@ export async function crearCotizacion(supabase: SupabaseClient, workspaceId: str
  * Lee cotizaciones, limitando la cantidad y campos según la plataforma.
  */
 export async function leerCotizaciones(supabase: SupabaseClient, workspaceId: string, platform: "track" | "crm_erp") {
-  if (platform === "track") {
-    const { data, error } = await supabase
-      .from("trak_quotes")
-      .select("id, quote_number, title, status, total, subtotal, tax_amount, discount, created_at")
-      .eq("workspace_id", workspaceId)
-      .order("created_at", { ascending: false })
-      .limit(10);
+  try {
+    console.log(`[leerCotizaciones] Iniciando consulta. Workspace: ${workspaceId}, Plataforma: ${platform}`);
+    if (platform === "track") {
+      const { data, error } = await supabase
+        .from("trak_quotes")
+        .select("id, quote_number, title, status, total, subtotal, tax_amount, discount, created_at")
+        .eq("workspace_id", workspaceId)
+        .order("created_at", { ascending: false })
+        .limit(10);
 
-    if (error) throw error;
-    // Inyectar el parámetro de plataforma de forma explícita
-    const mapped = (data || []).map((q: any) => ({
-      ...q,
-      platform: "track"
-    }));
-    return JSON.stringify(mapped);
-  } else if (platform === "crm_erp") {
-    const { data, error } = await supabase
-      .from("quotes")
-      .select("id, numero, fecha, vigencia, estado, total, subtotal, descuento, iva_total, created_at")
-      .eq("workspace", workspaceId)
-      .order("fecha", { ascending: false })
-      .limit(10);
+      if (error) {
+        console.error("[leerCotizaciones Track Error]:", error);
+        return JSON.stringify({
+          error: true,
+          message: error.message,
+          code: error.code,
+          hint: error.hint,
+          details: error.details
+        });
+      }
+      // Inyectar el parámetro de plataforma de forma explícita
+      const mapped = (data || []).map((q: any) => ({
+        ...q,
+        platform: "track"
+      }));
+      return JSON.stringify(mapped);
+    } else if (platform === "crm_erp") {
+      console.log(`[leerCotizaciones CRM-ERP] Consultando tabla 'quotes' con filtro 'workspace'`);
+      // Nota: Eliminamos created_at para evitar errores si la columna no existe (usamos fecha)
+      const { data, error } = await supabase
+        .from("quotes")
+        .select("id, numero, fecha, vigencia, estado, total, subtotal, descuento, iva_total, items")
+        .eq("workspace", workspaceId)
+        .order("fecha", { ascending: false })
+        .limit(15);
 
-    if (error) throw error;
-    // Adaptar nombres para consistencia de respuesta e inyectar plataforma
-    const adapted = (data || []).map((q: any) => ({
-      id: q.id,
-      quote_number: q.numero,
-      title: `Cotización ${q.numero}`,
-      status: q.estado,
-      total: q.total,
-      subtotal: q.subtotal,
-      tax_amount: q.iva_total,
-      discount: q.descuento,
-      created_at: q.fecha || q.created_at,
-      platform: "crm_erp"
-    }));
+      if (error) {
+        console.error("[leerCotizaciones CRM-ERP Error]:", error);
+        return JSON.stringify({
+          error: true,
+          message: error.message,
+          code: error.code,
+          hint: error.hint,
+          details: error.details
+        });
+      }
 
-    return JSON.stringify(adapted);
-  } else {
-    throw new Error(`Plataforma no admitida para leerCotizaciones: ${platform}`);
+      // Adaptar nombres para consistencia de respuesta e inyectar plataforma
+      const adapted = (data || []).map((q: any) => ({
+        id: q.id,
+        quote_number: q.numero,
+        title: `Cotización ${q.numero}`,
+        status: q.estado,
+        total: q.total,
+        subtotal: q.subtotal,
+        tax_amount: q.iva_total,
+        discount: q.descuento,
+        created_at: q.fecha,
+        platform: "crm_erp",
+        items: q.items
+      }));
+
+      console.log(`[leerCotizaciones CRM-ERP] Consulta exitosa. Se encontraron ${adapted.length} cotizaciones.`);
+      return JSON.stringify(adapted);
+    } else {
+      throw new Error(`Plataforma no admitida para leerCotizaciones: ${platform}`);
+    }
+  } catch (err: any) {
+    console.error("[leerCotizaciones Fatal Error]:", err);
+    return JSON.stringify({
+      error: true,
+      message: err.message || "Error fatal en la herramienta leerCotizaciones"
+    });
   }
 }
 
@@ -211,47 +243,73 @@ export async function crearCliente(supabase: SupabaseClient, workspaceId: string
  * Lee clientes/prospectos limitando columnas y conteo.
  */
 export async function leerClientes(supabase: SupabaseClient, workspaceId: string, platform: "track" | "crm_erp") {
-  if (platform === "track") {
-    const { data, error } = await supabase
-      .from("trak_clients")
-      .select("id, company_name, contact_name, email, phone, status, pipeline_stage, industry")
-      .eq("workspace_id", workspaceId)
-      .order("created_at", { ascending: false })
-      .limit(15);
+  try {
+    console.log(`[leerClientes] Iniciando consulta. Workspace: ${workspaceId}, Plataforma: ${platform}`);
+    if (platform === "track") {
+      const { data, error } = await supabase
+        .from("trak_clients")
+        .select("id, company_name, contact_name, email, phone, status, pipeline_stage, industry")
+        .eq("workspace_id", workspaceId)
+        .order("created_at", { ascending: false })
+        .limit(15);
 
-    if (error) throw error;
-    // Inyectar el parámetro de plataforma
-    const mapped = (data || []).map((c: any) => ({
-      ...c,
-      platform: "track"
-    }));
-    return JSON.stringify(mapped);
-  } else if (platform === "crm_erp") {
-    // CRM-ERP prospects
-    const { data, error } = await supabase
-      .from("prospects")
-      .select("id, nombre, empresa, cargo, telefono, correo, estado, valor_estimado, origen")
-      .eq("workspace", workspaceId)
-      .order("created_at", { ascending: false })
-      .limit(15);
+      if (error) {
+        console.error("[leerClientes Track Error]:", error);
+        return JSON.stringify({
+          error: true,
+          message: error.message,
+          code: error.code
+        });
+      }
+      // Inyectar el parámetro de plataforma
+      const mapped = (data || []).map((c: any) => ({
+        ...c,
+        platform: "track"
+      }));
+      return JSON.stringify(mapped);
+    } else if (platform === "crm_erp") {
+      console.log(`[leerClientes CRM-ERP] Consultando tabla 'prospects' con filtro 'workspace'`);
+      const { data, error } = await supabase
+        .from("prospects")
+        .select("id, nombre, empresa, cargo, telefono, correo, estado, valor_estimado, origen, created_at")
+        .eq("workspace", workspaceId)
+        .order("created_at", { ascending: false })
+        .limit(30);
 
-    if (error) throw error;
+      if (error) {
+        console.error("[leerClientes CRM-ERP Error]:", error);
+        return JSON.stringify({
+          error: true,
+          message: error.message,
+          code: error.code
+        });
+      }
 
-    // Adaptar nombres para consistencia de respuesta e inyectar plataforma
-    const adapted = (data || []).map((p: any) => ({
-      id: p.id,
-      company_name: p.empresa,
-      contact_name: p.nombre,
-      email: p.correo,
-      phone: p.telefono,
-      status: p.estado,
-      pipeline_stage: p.estado,
-      industry: p.origen || "CRM",
-      platform: "crm_erp"
-    }));
+      // Adaptar nombres para consistencia de respuesta e inyectar plataforma
+      const adapted = (data || []).map((p: any) => ({
+        id: p.id,
+        company_name: p.empresa,
+        contact_name: p.nombre,
+        email: p.correo,
+        phone: p.telefono,
+        status: p.estado,
+        pipeline_stage: p.estado,
+        industry: p.origen || "CRM",
+        estimated_value: p.valor_estimado,
+        created_at: p.created_at,
+        platform: "crm_erp"
+      }));
 
-    return JSON.stringify(adapted);
-  } else {
-    throw new Error(`Plataforma no admitida para leerClientes: ${platform}`);
+      console.log(`[leerClientes CRM-ERP] Consulta exitosa. Se encontraron ${adapted.length} prospectos.`);
+      return JSON.stringify(adapted);
+    } else {
+      throw new Error(`Plataforma no admitida para leerClientes: ${platform}`);
+    }
+  } catch (err: any) {
+    console.error("[leerClientes Fatal Error]:", err);
+    return JSON.stringify({
+      error: true,
+      message: err.message || "Error fatal en la herramienta leerClientes"
+    });
   }
 }

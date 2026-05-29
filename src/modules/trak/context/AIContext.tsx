@@ -23,7 +23,7 @@ export interface AIContextType {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   messages: AIMessage[];
-  sendMessage: (text: string, moduleContext?: string) => Promise<void>;
+  sendMessage: (text: string, moduleContext?: string, intent?: string) => Promise<void>;
   isLoading: boolean;
   tokensUsed: number;
   tokensLimit: number;
@@ -171,7 +171,7 @@ export const AIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     fetchTokens();
   }, [workspaceId]);
   // ========== SEND MESSAGE (Secure Supabase Edge Function Invoke) ==========
-  const sendMessage = async (text: string, moduleContext?: string) => {
+  const sendMessage = async (text: string, moduleContext?: string, intent?: string) => {
     const newUserMsg: AIMessage = {
       id: Date.now().toString(),
       role: 'user',
@@ -204,7 +204,8 @@ export const AIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         workspaceId,
         messagesCount: apiMessages.length,
         platform,
-        currentRoute
+        currentRoute,
+        intent
       });
       console.log("======================================");
 
@@ -215,7 +216,8 @@ export const AIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
           moduleContext,
           workspaceId,
           platform,
-          currentRoute
+          currentRoute,
+          intent
         }
       });
 

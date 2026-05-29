@@ -41,6 +41,13 @@ serve(async (req) => {
 
     // 3. Extraer y validar los parámetros del cuerpo
     const body = await req.json();
+    console.log("=== [Edge Function inno-chat] PAYLOAD RECIBIDO ===");
+    console.log("platform:", body.platform);
+    console.log("moduleContext:", body.moduleContext);
+    console.log("currentRoute:", body.currentRoute);
+    console.log("workspaceId:", body.workspaceId);
+    console.log("messagesCount:", body.messages ? body.messages.length : 0);
+    console.log("==================================================");
     const { workspaceId, platform } = body;
 
     if (!workspaceId) {
