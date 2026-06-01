@@ -67,8 +67,6 @@ export default function ProspectForm({ onClose, onSuccess, editingProspect }: Pr
 
         if (step === 1) {
             if (!formData.nombre?.trim()) newErrors.nombre = 'Nombre requerido';
-            if (!formData.empresa?.trim()) newErrors.empresa = 'Empresa requerida';
-            if (!formData.cargo?.trim()) newErrors.cargo = 'Cargo requerido';
 
             if (!formData.telefono?.trim()) {
                 newErrors.telefono = 'Teléfono requerido';
@@ -346,7 +344,7 @@ export default function ProspectForm({ onClose, onSuccess, editingProspect }: Pr
                                             <h4 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2"><Building2 size={16} className="text-gray-400" /> Información de la Empresa</h4>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <div>
-                                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Empresa <span className="text-red-500">*</span></label>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Empresa</label>
                                                     <input
                                                         name="empresa"
                                                         value={formData.empresa}
@@ -358,7 +356,7 @@ export default function ProspectForm({ onClose, onSuccess, editingProspect }: Pr
                                                 </div>
 
                                                 <div>
-                                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Cargo <span className="text-red-500">*</span></label>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Cargo</label>
                                                     <input
                                                         name="cargo"
                                                         value={formData.cargo}
