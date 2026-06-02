@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, AlertCircle } from 'lucide-react';
+import { X, Save, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useInventory } from '@/context/InventoryContext';
 import { Product } from '@/types';
 
@@ -33,6 +33,13 @@ export default function ProductForm({ onClose, productId }: ProductFormProps) {
     const [initialLocation, setInitialLocation] = useState<string>('');
 
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+
+    const showToast = (type: 'success' | 'error', text: string) => {
+        setToastMessage({ type, text });
+        setTimeout(() => setToastMessage(null), 3000);
+    };
 
     useEffect(() => {
         if (!editingProduct && activeLocations.length > 0 && !initialLocation) {
@@ -83,22 +90,39 @@ export default function ProductForm({ onClose, productId }: ProductFormProps) {
 
         if (!validate()) return;
 
-        if (editingProduct) {
-            await updateProduct(editingProduct.id, {
-                ...formData,
-            });
-        } else {
-            await addProduct({
-                ...formData,
-            }, initialStock, initialLocation);
+        setIsSaving(true);
+        try {
+            if (editingProduct) {
+                await updateProduct(editingProduct.id, {
+                    ...formData,
+                });
+                showToast('success', 'Ítem actualizado exitosamente');
+            } else {
+                await addProduct({
+                    ...formData,
+                }, initialStock, initialLocation);
+                showToast('success', 'Ítem registrado exitosamente');
+            }
+            // Wait briefly to show the success toast before closing
+            setTimeout(() => {
+                onClose();
+            }, 1000);
+        } catch (err: any) {
+            console.error("Error saving product:", err);
+            showToast('error', err?.message || 'Ocurrió un error al guardar el ítem');
+            setIsSaving(false);
         }
-
-        onClose();
     };
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col border border-gray-200 ">
+            <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col border border-gray-200 ">
+                {toastMessage && (
+                    <div className={`absolute top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-lg shadow-lg text-white font-medium z-50 flex items-center gap-2 ${toastMessage.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+                        {toastMessage.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+                        <span>{toastMessage.text}</span>
+                    </div>
+                )}
                 <div className="flex justify-between items-center p-6 border-b border-gray-100 ">
                     <h2 className="text-xl font-bold text-gray-900 ">
                         {editingProduct ? 'Editar Ítem' : 'Nuevo Ítem'}
@@ -106,7 +130,8 @@ export default function ProductForm({ onClose, productId }: ProductFormProps) {
                     <button
                         type="button"
                         onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 transition-colors"
+                        disabled={isSaving}
+                        className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
                     >
                         <X className="h-6 w-6" />
                     </button>
@@ -319,16 +344,18 @@ export default function ProductForm({ onClose, productId }: ProductFormProps) {
                     <button
                         type="button"
                         onClick={onClose}
-                        className="px-6 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+                        disabled={isSaving}
+                        className="px-6 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium disabled:opacity-50"
                     >
                         Cancelar
                     </button>
                     <button
                         onClick={handleSubmit}
-                        className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
+                        disabled={isSaving}
+                        className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <Save className="h-4 w-4" />
-                        {editingProduct ? 'Guardar Cambios' : 'Registrar Ítem'}
+                        {isSaving ? 'Guardando...' : (editingProduct ? 'Guardar Cambios' : 'Registrar Ítem')}
                     </button>
                 </div>
             </div>
