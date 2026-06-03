@@ -327,7 +327,7 @@ export default function QuoteTemplates() {
                             <input 
                               type="number" 
                               min="1" 
-                              value={item.quantity} 
+                              value={item.quantity || ''} 
                               onChange={e => handleItemChange(index, 'quantity', parseFloat(e.target.value) || 0)} 
                               className="w-full p-2 bg-gray-50 border border-gray-200 rounded text-right outline-none"
                             />
@@ -336,7 +336,7 @@ export default function QuoteTemplates() {
                             <input 
                               type="number" 
                               step="0.01" 
-                              value={item.unit_price} 
+                              value={item.unit_price || ''} 
                               onChange={e => handleItemChange(index, 'unit_price', parseFloat(e.target.value) || 0)} 
                               className="w-full p-2 bg-gray-50 border border-gray-200 rounded text-right outline-none"
                             />

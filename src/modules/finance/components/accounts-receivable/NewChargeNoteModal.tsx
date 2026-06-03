@@ -186,7 +186,7 @@ export default function NewChargeNoteModal({ onClose }: NewChargeNoteModalProps)
                                                 placeholder="Cant"
                                                 required
                                                 min="1"
-                                                value={item.quantity}
+                                                value={item.quantity || ''}
                                                 onChange={(e) => handleItemChange(item.id, 'quantity', parseInt(e.target.value) || 0)}
                                                 className="w-full px-3 py-2 text-sm border border-slate-200 rounded-md focus:ring-2 focus:ring-emerald-500 outline-none"
                                             />
@@ -201,7 +201,7 @@ export default function NewChargeNoteModal({ onClose }: NewChargeNoteModalProps)
                                                 required
                                                 min="0"
                                                 step="0.01"
-                                                value={item.unit_price}
+                                                value={item.unit_price || ''}
                                                 onChange={(e) => handleItemChange(item.id, 'unit_price', parseFloat(e.target.value) || 0)}
                                                 className="w-full pl-6 pr-2 py-2 text-sm border border-slate-200 rounded-md focus:ring-2 focus:ring-emerald-500 outline-none"
                                             />

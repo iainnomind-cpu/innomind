@@ -647,10 +647,10 @@ export default function QuoteForm() {
                           <input type="text" placeholder="Descripción adicional..." value={item.description} onChange={e => handleItemChange(index, 'description', e.target.value)} className="w-full p-2 bg-transparent border-none outline-none text-xs text-gray-500"/>
                         </td>
                         <td className="p-2 align-top pt-3">
-                          <input type="number" min="1" value={item.quantity} onChange={e => handleItemChange(index, 'quantity', parseFloat(e.target.value) || 0)} className="w-full p-2 bg-gray-50 border border-gray-200 rounded text-right outline-none"/>
+                          <input type="number" min="1" value={item.quantity || ''} onChange={e => handleItemChange(index, 'quantity', parseFloat(e.target.value) || 0)} className="w-full p-2 bg-gray-50 border border-gray-200 rounded text-right outline-none"/>
                         </td>
                         <td className="p-2 align-top pt-3">
-                          <input type="number" step="0.01" value={item.unit_price} onChange={e => handleItemChange(index, 'unit_price', parseFloat(e.target.value) || 0)} className="w-full p-2 bg-gray-50 border border-gray-200 rounded text-right outline-none"/>
+                          <input type="number" step="0.01" value={item.unit_price || ''} onChange={e => handleItemChange(index, 'unit_price', parseFloat(e.target.value) || 0)} className="w-full p-2 bg-gray-50 border border-gray-200 rounded text-right outline-none"/>
                         </td>
                         <td className="p-2 align-top pt-3 text-right">
                           <div className="p-2 font-bold text-gray-900">${item.total.toLocaleString('en-US', {minimumFractionDigits:2})}</div>

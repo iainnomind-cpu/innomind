@@ -70,7 +70,7 @@ export default function PaymentModal({ note, onClose }: PaymentModalProps) {
                                 min="0.01"
                                 max={note.balance_due}
                                 step="0.01"
-                                value={monto}
+                                value={monto || ''}
                                 onChange={e => setMonto(parseFloat(e.target.value) || 0)}
                                 className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-emerald-500 outline-none"
                                 required
