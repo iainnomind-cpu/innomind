@@ -182,7 +182,7 @@ export default function ExpenseManager() {
 function NewExpenseModal({ onClose, onAdd }: { onClose: () => void, onAdd: (expense: any) => Promise<any> }) {
     const { user } = useAuth();
     const [description, setDescription] = useState('');
-    const [amount, setAmount] = useState(0);
+    const [amount, setAmount] = useState<number | ''>('');
     const [category, setCategory] = useState('Viáticos');
     const [paidBy, setPaidBy] = useState<'employee' | 'company'>('employee');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -220,17 +220,23 @@ function NewExpenseModal({ onClose, onAdd }: { onClose: () => void, onAdd: (expe
             }
         }
 
-        await onAdd({
-            employee_id: user.id,
-            amount: amount,
-            category,
-            description,
-            expense_date: new Date(),
-            paid_by: paidBy,
-            receipt_url
-        });
-        setIsSubmitting(false);
-        onClose();
+        try {
+            await onAdd({
+                employee_id: user.id,
+                amount: Number(amount),
+                category,
+                description,
+                expense_date: new Date(),
+                paid_by: paidBy,
+                receipt_url
+            });
+            setIsSubmitting(false);
+            onClose();
+        } catch (error: any) {
+            console.error('Error adding expense:', error);
+            alert(`Error al registrar gasto: ${error.message || 'Desconocido'}`);
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -269,7 +275,10 @@ function NewExpenseModal({ onClose, onAdd }: { onClose: () => void, onAdd: (expe
                                     type="number"
                                     min="0.01" step="0.01"
                                     value={amount}
-                                    onChange={e => setAmount(parseFloat(e.target.value) || 0)}
+                                    onChange={e => {
+                                        const val = e.target.value;
+                                        setAmount(val === '' ? '' : parseFloat(val) || 0);
+                                    }}
                                     className="w-full pl-8 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all outline-none font-bold text-lg"
                                     required
                                 />
@@ -355,7 +364,7 @@ function NewExpenseModal({ onClose, onAdd }: { onClose: () => void, onAdd: (expe
                         </button>
                         <button
                             type="submit"
-                            disabled={isSubmitting || amount <= 0 || !description}
+                            disabled={isSubmitting || !amount || Number(amount) <= 0 || !description}
                             className="flex-1 px-4 py-3 bg-indigo-600 text-white font-black rounded-xl hover:bg-indigo-700 disabled:opacity-50 shadow-lg shadow-indigo-100 transition-all uppercase text-xs tracking-widest flex items-center justify-center gap-2"
                         >
                             {isSubmitting ? 'Guardando...' : 'Guardar Gasto'}
