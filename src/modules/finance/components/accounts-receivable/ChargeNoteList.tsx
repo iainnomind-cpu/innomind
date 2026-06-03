@@ -23,10 +23,20 @@ export default function ChargeNoteList() {
 
     // Active view: List or Detail
     if (selectedNote) {
-        return <ChargeNoteDetail
-            onBack={() => setSelectedNote(null)}
-            onOpenPayment={(note) => { setNoteToPay(note); setPaymentModalOpen(true); }}
-        />;
+        return (
+            <>
+                <ChargeNoteDetail
+                    onBack={() => setSelectedNote(null)}
+                    onOpenPayment={(note) => { setNoteToPay(note); setPaymentModalOpen(true); }}
+                />
+                {isPaymentModalOpen && noteToPay && (
+                    <PaymentModal
+                        note={noteToPay}
+                        onClose={() => setPaymentModalOpen(false)}
+                    />
+                )}
+            </>
+        );
     }
 
     const filteredNotes = chargeNotes.filter(n =>
