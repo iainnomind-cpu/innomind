@@ -67,17 +67,20 @@ export const AccountsReceivableProvider: React.FC<{ children: React.ReactNode }>
 
             if (notesData) {
                 setChargeNotes(notesData as unknown as ChargeNote[]);
-                if (selectedNote) {
-                    const updated = notesData.find(n => n.id === selectedNote.id);
-                    if (updated) setSelectedNote(updated as unknown as ChargeNote);
-                }
+                setSelectedNote(prev => {
+                    if (prev) {
+                        const updated = notesData.find(n => n.id === prev.id);
+                        return updated ? (updated as unknown as ChargeNote) : prev;
+                    }
+                    return prev;
+                });
             }
         } catch (error) {
             console.error('Error fetching charge notes:', error);
         } finally {
             setIsLoading(false);
         }
-    }, [authUser, workspace?.id, selectedNote]);
+    }, [authUser, workspace?.id]);
 
     const fetchBankMovements = useCallback(async () => {
         const tenantId = workspace?.id;

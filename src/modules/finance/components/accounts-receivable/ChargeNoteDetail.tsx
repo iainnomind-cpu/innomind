@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useAccountsReceivable } from '@/context/AccountsReceivableContext';
+import { useUsers } from '@/context/UserContext';
 import { ChargeNote } from '@/types';
 import { ArrowLeft, Download, Mail, DollarSign, FileText, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 import html2canvas from 'html2canvas';
@@ -12,6 +13,7 @@ interface ChargeNoteDetailProps {
 
 export default function ChargeNoteDetail({ onBack, onOpenPayment }: ChargeNoteDetailProps) {
     const { selectedNote, sendReceiptEmail } = useAccountsReceivable();
+    const { companyProfile } = useUsers();
     const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
     const [isSendingEmail, setIsSendingEmail] = useState(false);
     const pdfRef = useRef<HTMLDivElement>(null);
@@ -29,7 +31,7 @@ export default function ChargeNoteDetail({ onBack, onOpenPayment }: ChargeNoteDe
 
     const generatePDFBase64 = async (): Promise<string | null> => {
         if (!pdfRef.current) return null;
-        const canvas = await html2canvas(pdfRef.current, { scale: 2 });
+        const canvas = await html2canvas(pdfRef.current, { scale: 2, useCORS: true });
         const imgData = canvas.toDataURL('image/png');
 
         // A4 sizes
@@ -48,7 +50,7 @@ export default function ChargeNoteDetail({ onBack, onOpenPayment }: ChargeNoteDe
         setIsGeneratingPDF(true);
         try {
             if (!pdfRef.current) return;
-            const canvas = await html2canvas(pdfRef.current, { scale: 2 });
+            const canvas = await html2canvas(pdfRef.current, { scale: 2, useCORS: true });
             const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -137,14 +139,32 @@ export default function ChargeNoteDetail({ onBack, onOpenPayment }: ChargeNoteDe
             <div className="flex-1 overflow-auto flex gap-6 pb-12">
                 {/* Document Body */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 flex-1" ref={pdfRef}>
-                    <div className="flex justify-between items-start mb-10">
-                        <div>
-                            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">NOTA DE CARGO</h1>
-                            <p className="text-gray-500 mt-1">Control Interno</p>
+                    <div className="flex justify-between items-start mb-8 border-b border-gray-200 pb-6">
+                        <div className="flex items-center gap-4">
+                            {companyProfile?.logoUrl ? (
+                                <img src={companyProfile.logoUrl} alt="Logo" className="h-16 w-16 object-contain rounded-lg" crossOrigin="anonymous" />
+                            ) : (
+                                <div className="h-16 w-16 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center font-bold text-2xl">
+                                    {companyProfile?.nombreEmpresa?.charAt(0).toUpperCase() || 'E'}
+                                </div>
+                            )}
+                            <div>
+                                <h2 className="text-xl font-bold text-gray-900">{companyProfile?.nombreEmpresa || 'Mi Empresa'}</h2>
+                                {companyProfile?.rfc && <p className="text-sm text-gray-500 font-medium">RFC: {companyProfile.rfc}</p>}
+                                {companyProfile?.direccion && <p className="text-sm text-gray-500 max-w-xs">{companyProfile.direccion}</p>}
+                            </div>
                         </div>
                         <div className="text-right">
-                            <p className="text-xl font-bold text-gray-800">{selectedNote.note_number}</p>
-                            <div className={`mt-2 inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${getStatusColor(selectedNote.status)}`}>
+                            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">NOTA DE CARGO</h1>
+                            <p className="text-gray-500 mt-1">Control Interno</p>
+                            <p className="text-xl font-bold text-gray-800 mt-2">{selectedNote.note_number}</p>
+                        </div>
+                    </div>
+                    
+                    <div className="flex justify-between items-center mb-8">
+                        <div></div>
+                        <div className="text-right">
+                            <div className={`inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${getStatusColor(selectedNote.status)}`}>
                                 {selectedNote.status === 'paid' ? 'PAGADO' : selectedNote.status === 'overdue' ? 'VENCIDO' : selectedNote.status === 'partial' ? 'PAGO PARCIAL' : 'PENDIENTE'}
                             </div>
                         </div>
