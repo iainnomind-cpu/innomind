@@ -245,7 +245,7 @@ export const AccountsReceivableProvider: React.FC<{ children: React.ReactNode }>
             const { error: movError } = await supabase.rpc('create_treasury_movement', {
                 p_workspace_id: tenantId,
                 p_account_id: paymentData.account_id,
-                p_movement_type: 'payment_received',
+                p_movement_type: 'deposit',
                 p_amount: paymentData.amount,
                 p_description: `Cobro de Nota de Cargo #${currentNote.note_number || paymentData.charge_note_id} - Ref: ${paymentData.reference || 'N/A'}`,
                 p_direction: 'in',

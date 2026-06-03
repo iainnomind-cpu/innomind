@@ -497,7 +497,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 const { error: movError } = await supabase.rpc('create_treasury_movement', {
                     p_workspace_id: workspaceId,
                     p_account_id: payment.accountId,
-                    p_movement_type: representsIncome ? 'payment_received' : 'payment_sent',
+                    p_movement_type: representsIncome ? 'deposit' : 'withdrawal',
                     p_amount: payment.monto,
                     p_description: `${representsIncome ? 'Cobro' : 'Pago'} Documento (Legacy): ${targetDoc.concepto} - Ref: ${payment.referencia || 'N/A'}`,
                     p_direction: representsIncome ? 'in' : 'out',
