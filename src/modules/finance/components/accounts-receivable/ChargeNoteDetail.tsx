@@ -31,7 +31,26 @@ export default function ChargeNoteDetail({ onBack, onOpenPayment }: ChargeNoteDe
 
     const generatePDFBase64 = async (): Promise<string | null> => {
         if (!pdfRef.current) return null;
-        const canvas = await html2canvas(pdfRef.current, { scale: 2, useCORS: true });
+        const target = pdfRef.current;
+        const clone = target.cloneNode(true) as HTMLElement;
+        document.body.appendChild(clone);
+        clone.style.position = 'absolute';
+        clone.style.top = '0';
+        clone.style.left = '0';
+        clone.style.width = `${target.offsetWidth}px`;
+        clone.style.height = 'max-content';
+        clone.style.overflow = 'visible';
+        clone.style.zIndex = '-9999';
+
+        const canvas = await html2canvas(clone, { 
+            scale: 2, 
+            useCORS: true,
+            windowWidth: clone.scrollWidth,
+            windowHeight: clone.scrollHeight
+        });
+        
+        document.body.removeChild(clone);
+        
         const imgData = canvas.toDataURL('image/png');
 
         // A4 sizes
@@ -50,7 +69,26 @@ export default function ChargeNoteDetail({ onBack, onOpenPayment }: ChargeNoteDe
         setIsGeneratingPDF(true);
         try {
             if (!pdfRef.current) return;
-            const canvas = await html2canvas(pdfRef.current, { scale: 2, useCORS: true });
+            const target = pdfRef.current;
+            const clone = target.cloneNode(true) as HTMLElement;
+            document.body.appendChild(clone);
+            clone.style.position = 'absolute';
+            clone.style.top = '0';
+            clone.style.left = '0';
+            clone.style.width = `${target.offsetWidth}px`;
+            clone.style.height = 'max-content';
+            clone.style.overflow = 'visible';
+            clone.style.zIndex = '-9999';
+
+            const canvas = await html2canvas(clone, { 
+                scale: 2, 
+                useCORS: true,
+                windowWidth: clone.scrollWidth,
+                windowHeight: clone.scrollHeight
+            });
+            
+            document.body.removeChild(clone);
+            
             const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
