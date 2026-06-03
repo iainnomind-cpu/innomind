@@ -16,10 +16,13 @@ export default function PayablePaymentModal({ payable, onClose }: PayablePayment
     const [amount, setAmount] = useState(payable.balance_due);
     const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
     const [method, setMethod] = useState('Transferencia');
+    const [accountId, setAccountId] = useState('');
     const [reference, setReference] = useState('');
     const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const { accounts } = useFinance();
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -36,6 +39,12 @@ export default function PayablePaymentModal({ payable, onClose }: PayablePayment
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError(null);
+        if (!accountId) {
+            setError('Debe seleccionar una cuenta bancaria de origen');
+            return;
+        }
+
         if (amount <= 0 || amount > payable.balance_due) {
             setError('Monto inválido');
             return;
@@ -47,6 +56,7 @@ export default function PayablePaymentModal({ payable, onClose }: PayablePayment
         try {
             await addPayment({
                 account_payable_id: payable.id,
+                account_id: accountId,
                 amount: Number(amount),
                 payment_date: new Date(paymentDate),
                 payment_method: method,
@@ -123,6 +133,25 @@ export default function PayablePaymentModal({ payable, onClose }: PayablePayment
                                 </div>
                             </div>
                             <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">Cuenta de Origen (Tesorería) *</label>
+                                <select
+                                    value={accountId}
+                                    onChange={e => setAccountId(e.target.value)}
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:bg-white outline-none transition-all appearance-none font-medium"
+                                    required
+                                >
+                                    <option value="">Seleccione una cuenta bancaria</option>
+                                    {accounts.filter(a => a.activo).map(acc => (
+                                        <option key={acc.id} value={acc.id}>
+                                            {acc.nombre} ({acc.bank_name}) - Saldo: ${(acc.saldoActual || 0).toLocaleString('en-US')}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-6">
+                            <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">Fecha de Pago</label>
                                 <input
                                     type="date"
@@ -132,9 +161,6 @@ export default function PayablePaymentModal({ payable, onClose }: PayablePayment
                                     required
                                 />
                             </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-6">
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">Método de Pago</label>
                                 <select

@@ -491,6 +491,7 @@ export interface AccountsPayablePayment {
   id: string;
   account_payable_id: string;
   workspace_id: string;
+  account_id?: string;
   payment_date: Date;
   amount: number;
   payment_method: string;
@@ -628,6 +629,7 @@ export interface ChargeNotePayment {
   id: string;
   charge_note_id: string;
   client_id: string;
+  account_id?: string;
   payment_method: string;
   amount: number;
   payment_date: string;

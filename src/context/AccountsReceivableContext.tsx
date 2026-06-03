@@ -195,6 +195,28 @@ export const AccountsReceivableProvider: React.FC<{ children: React.ReactNode }>
         const tenantId = validateWorkspace(workspace?.id);
 
         try {
+            if (paymentData.amount <= 0) {
+                throw new Error('El monto del pago debe ser mayor a 0');
+            }
+            if (!paymentData.account_id) {
+                throw new Error('Debe seleccionar una cuenta bancaria de destino');
+            }
+
+            // Fetch the current note to get the correct balance
+            const { data: currentNote, error: fetchError } = await supabase
+                .from('charge_notes')
+                .select('balance_due, note_number')
+                .eq('id', paymentData.charge_note_id)
+                .single();
+
+            if (fetchError) throw fetchError;
+
+            const currentBalance = Number(currentNote?.balance_due || 0);
+
+            if (paymentData.amount > currentBalance) {
+                throw new Error(`El monto del pago excede el saldo pendiente ($${currentBalance.toLocaleString()})`);
+            }
+
             const { error: paymentError } = await supabase
                 .from('charge_note_payments')
                 .insert({
@@ -204,16 +226,6 @@ export const AccountsReceivableProvider: React.FC<{ children: React.ReactNode }>
 
             if (paymentError) throw paymentError;
 
-            // Fetch the current note to get the correct balance
-            const { data: currentNote, error: fetchError } = await supabase
-                .from('charge_notes')
-                .select('balance_due')
-                .eq('id', paymentData.charge_note_id)
-                .single();
-
-            if (fetchError) throw fetchError;
-
-            const currentBalance = Number(currentNote?.balance_due || 0);
             const newBalance = Math.max(0, currentBalance - paymentData.amount);
             const newStatus = newBalance <= 0 ? 'paid' : 'partial';
 
@@ -228,6 +240,22 @@ export const AccountsReceivableProvider: React.FC<{ children: React.ReactNode }>
                 .eq('workspace_id', tenantId);
 
             if (noteError) throw noteError;
+
+            // Generate treasury movement
+            const { error: movError } = await supabase.rpc('create_treasury_movement', {
+                p_workspace_id: tenantId,
+                p_account_id: paymentData.account_id,
+                p_movement_type: 'payment_received',
+                p_amount: paymentData.amount,
+                p_description: `Cobro de Nota de Cargo #${currentNote.note_number || paymentData.charge_note_id} - Ref: ${paymentData.reference || 'N/A'}`,
+                p_direction: 'in',
+                p_category: 'Cobro a Clientes',
+                p_source_module: 'accounts_receivable',
+                p_reference_id: paymentData.charge_note_id,
+                p_user_id: authUser?.id
+            });
+
+            if (movError) throw movError;
 
             await fetchChargeNotes();
 

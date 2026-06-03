@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAccountsReceivable } from '@/context/AccountsReceivableContext';
+import { useFinance } from '@/context/FinanceContext';
 import { ChargeNote } from '@/types';
-import { X, DollarSign } from 'lucide-react';
+import { X, DollarSign, AlertCircle } from 'lucide-react';
 
 interface PaymentModalProps {
     note: ChargeNote;
@@ -10,21 +11,31 @@ interface PaymentModalProps {
 
 export default function PaymentModal({ note, onClose }: PaymentModalProps) {
     const { addPayment } = useAccountsReceivable();
+    const { accounts } = useFinance();
 
     const [monto, setMonto] = useState(note.balance_due);
     const [fechaPago, setFechaPago] = useState(new Date().toISOString().split('T')[0]);
     const [metodoPago, setMetodoPago] = useState('Transferencia');
+    const [accountId, setAccountId] = useState('');
     const [referencia, setReferencia] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError(null);
+        if (!accountId) {
+            setError('Debe seleccionar una cuenta bancaria de destino');
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             if (monto > 0 && monto <= note.balance_due) {
                 await addPayment({
                     charge_note_id: note.id,
                     client_id: note.client_id,
+                    account_id: accountId,
                     amount: Number(monto),
                     payment_date: fechaPago,
                     payment_method: metodoPago,
@@ -32,10 +43,12 @@ export default function PaymentModal({ note, onClose }: PaymentModalProps) {
                     notes: ''
                 });
                 onClose();
+            } else {
+                setError('El monto es inválido');
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            alert('Error registrando el pago');
+            setError(err.message || 'Error registrando el pago');
         } finally {
             setIsSubmitting(false);
         }
@@ -61,6 +74,13 @@ export default function PaymentModal({ note, onClose }: PaymentModalProps) {
                         </div>
                     </div>
 
+                    {error && (
+                        <div className="p-3 bg-red-50 text-red-600 rounded-lg flex items-center gap-2 text-sm border border-red-100">
+                            <AlertCircle size={16} />
+                            {error}
+                        </div>
+                    )}
+
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Monto a Cobrar *</label>
                         <div className="relative">
@@ -72,10 +92,27 @@ export default function PaymentModal({ note, onClose }: PaymentModalProps) {
                                 step="0.01"
                                 value={monto || ''}
                                 onChange={e => setMonto(parseFloat(e.target.value) || 0)}
-                                className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-emerald-500 outline-none"
+                                className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-emerald-500 outline-none font-semibold"
                                 required
                             />
                         </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Cuenta de Destino (Tesorería) *</label>
+                        <select
+                            value={accountId}
+                            onChange={e => setAccountId(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-emerald-500 outline-none bg-white font-medium"
+                            required
+                        >
+                            <option value="">Seleccione una cuenta bancaria</option>
+                            {accounts.filter(a => a.activo).map(acc => (
+                                <option key={acc.id} value={acc.id}>
+                                    {acc.nombre} ({acc.bank_name}) - Saldo: ${(acc.saldoActual || 0).toLocaleString('en-US')}
+                                </option>
+                            ))}
+                        </select>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">

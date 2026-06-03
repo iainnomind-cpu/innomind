@@ -132,6 +132,28 @@ export const AccountsPayableProvider: React.FC<{ children: React.ReactNode }> = 
         const tenantId = validateWorkspace(workspace?.id);
 
         try {
+            if (paymentData.amount <= 0) {
+                throw new Error('El monto del pago debe ser mayor a 0');
+            }
+            if (!paymentData.account_id) {
+                throw new Error('Debe seleccionar una cuenta bancaria de origen');
+            }
+
+            // Fetch the current payable to get the correct balance
+            const { data: currentPayable, error: fetchError } = await supabase
+                .from('accounts_payable')
+                .select('balance_due, concept')
+                .eq('id', paymentData.account_payable_id)
+                .single();
+
+            if (fetchError) throw fetchError;
+
+            const currentBalance = Number(currentPayable?.balance_due || 0);
+
+            if (paymentData.amount > currentBalance) {
+                throw new Error(`El monto del pago excede el saldo pendiente ($${currentBalance.toLocaleString()})`);
+            }
+
             let evidenceUrl = paymentData.evidence_file_url;
 
             if (evidenceFile) {
@@ -161,11 +183,8 @@ export const AccountsPayableProvider: React.FC<{ children: React.ReactNode }> = 
 
             if (paymentError) throw paymentError;
 
-            const targetPayable = payables.find(p => p.id === paymentData.account_payable_id);
-            if (!targetPayable) return;
-
-            const newBalance = Math.max(0, targetPayable.balance_due - paymentData.amount);
-            const newStatus = newBalance <= 0 ? 'paid' : targetPayable.status;
+            const newBalance = Math.max(0, currentBalance - paymentData.amount);
+            const newStatus = newBalance <= 0 ? 'paid' : 'partial';
             const paidAt = newBalance <= 0 ? new Date().toISOString() : null;
 
             const { error: updateError } = await supabase
@@ -176,17 +195,36 @@ export const AccountsPayableProvider: React.FC<{ children: React.ReactNode }> = 
                     estado: newStatus,
                     paid_at: paidAt
                 })
-                .eq('id', targetPayable.id)
+                .eq('id', paymentData.account_payable_id)
                 .eq('workspace_id', tenantId);
 
             if (updateError) throw updateError;
 
-            if (newStatus === 'paid' && targetPayable.reference_id) {
-                await supabase
-                    .from('expenses')
-                    .update({ status: 'paid' })
-                    .eq('id', targetPayable.reference_id)
-                    .eq('workspace_id', tenantId);
+            // Generate treasury movement
+            const { error: movError } = await supabase.rpc('create_treasury_movement', {
+                p_workspace_id: tenantId,
+                p_account_id: paymentData.account_id,
+                p_movement_type: 'payment_sent',
+                p_amount: paymentData.amount,
+                p_description: `Pago a Proveedor: ${currentPayable.concept} - Ref: ${paymentData.reference_number || 'N/A'}`,
+                p_direction: 'out',
+                p_category: 'Pago a Proveedores',
+                p_source_module: 'accounts_payable',
+                p_reference_id: paymentData.account_payable_id,
+                p_user_id: authUser?.id
+            });
+
+            if (movError) throw movError;
+
+            if (newStatus === 'paid') {
+                const targetPayable = payables.find(p => p.id === paymentData.account_payable_id);
+                if (targetPayable?.reference_id) {
+                    await supabase
+                        .from('expenses')
+                        .update({ status: 'paid' })
+                        .eq('id', targetPayable.reference_id)
+                        .eq('workspace_id', tenantId);
+                }
             }
 
             await fetchPayables();

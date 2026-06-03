@@ -492,14 +492,22 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
             const targetAcc = accounts.find(a => a.id === payment.accountId);
             if (targetAcc) {
                 const representsIncome = targetDoc.tipo === 'NOTA_CARGO';
-                const newAccBalance = representsIncome
-                    ? targetAcc.saldoActual + payment.monto
-                    : targetAcc.saldoActual - payment.monto;
-
-                await supabase.from('finance_accounts')
-                    .update({ saldo_actual: newAccBalance })
-                    .eq('id', targetAcc.id)
-                    .eq('workspace', workspaceId);
+                
+                // Generate treasury movement
+                const { error: movError } = await supabase.rpc('create_treasury_movement', {
+                    p_workspace_id: workspaceId,
+                    p_account_id: payment.accountId,
+                    p_movement_type: representsIncome ? 'payment_received' : 'payment_sent',
+                    p_amount: payment.monto,
+                    p_description: `${representsIncome ? 'Cobro' : 'Pago'} Documento (Legacy): ${targetDoc.concepto} - Ref: ${payment.referencia || 'N/A'}`,
+                    p_direction: representsIncome ? 'in' : 'out',
+                    p_category: representsIncome ? 'Ingreso General' : 'Gasto General',
+                    p_source_module: 'finance_legacy',
+                    p_reference_id: targetDoc.id,
+                    p_user_id: authUser?.id
+                });
+                
+                if (movError) throw movError;
             }
         }
         refreshFinanceData();
