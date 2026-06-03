@@ -131,7 +131,7 @@ export default function ChargeNoteDetail({ onBack, onOpenPayment }: ChargeNoteDe
                 `Hola ${clientName}, le saluda ${companyName}.\n\n` +
                 `Le envío la Nota de Cargo *${selectedNote.note_number}* por un total de *$${Number(selectedNote.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2 })} MXN*.\n\n` +
                 `Saldo pendiente: *$${Number(selectedNote.balance_due).toLocaleString('en-US', { minimumFractionDigits: 2 })} MXN*.\n\n` +
-                `📎 _Por favor adjunte el PDF que se acaba de descargar a esta conversación._`
+                `Quedamos a sus órdenes.`
             );
 
             const whatsappUrl = phone
@@ -215,7 +215,7 @@ export default function ChargeNoteDetail({ onBack, onOpenPayment }: ChargeNoteDe
                 const message = encodeURIComponent(
                     `Hola ${clientName}, le saluda ${companyName}.\n\n` +
                     `Le envío su recibo de pago por *$${Number(payment.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })} MXN* correspondiente a la Nota de Cargo *${selectedNote.note_number}*.\n\n` +
-                    `📎 _Por favor adjunte el PDF que se acaba de descargar a esta conversación._`
+                    `Quedamos a sus órdenes.`
                 );
 
                 const whatsappUrl = phone
