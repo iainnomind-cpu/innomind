@@ -187,7 +187,7 @@ export default function BankReconciliationView() {
                                 {mappedMovements.map(m => (
                                     <tr key={m.id} className={m.isMatched ? 'bg-emerald-50/50' : 'hover:bg-gray-50'}>
                                         <td className="px-6 py-5">
-                                            <div className="font-medium text-gray-900">{m.movement_date} <span className={Number(m.amount) > 0 ? 'text-green-600 ml-2 font-bold' : 'text-red-600 ml-2 font-bold'}>${Number(m.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span></div>
+                                            <div className="font-medium text-gray-900">{m.movement_date} <span className={Number(m.amount) > 0 ? 'text-green-600 ml-2 font-bold' : 'text-red-600 ml-2 font-bold'}>${Number(m.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span></div>
                                             <div className="text-xs text-gray-500 mt-1">{m.description}</div>
                                             {m.reference && <div className="text-xs font-mono text-gray-400 mt-1">Ref: {m.reference}</div>}
                                         </td>
@@ -202,7 +202,7 @@ export default function BankReconciliationView() {
                                                 </div>
                                             ) : m.suggestedMatch ? (
                                                 <div>
-                                                    <div className="font-medium text-blue-900">Pago en Nota {m.suggestedMatch.note_number} (${Number(m.suggestedMatch.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })})</div>
+                                                    <div className="font-medium text-blue-900">Pago en Nota {m.suggestedMatch.note_number} (${Number(m.suggestedMatch.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })})</div>
                                                     <div className="text-xs text-blue-600 mt-1">Fecha: {m.suggestedMatch.payment_date} · Ref: {m.suggestedMatch.reference || 'N/A'}</div>
                                                     <div className="text-xs text-blue-600 mt-1 font-semibold">{m.suggestedMatch.client_name}</div>
                                                 </div>

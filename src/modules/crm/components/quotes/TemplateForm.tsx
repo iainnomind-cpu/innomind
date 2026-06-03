@@ -381,7 +381,7 @@ export default function TemplateForm({ onClose, editingTemplate }: TemplateFormP
                                             <div className="col-span-6 md:col-span-3">
                                                 <label className="block text-xs font-medium text-gray-700 mb-1">Subtotal (Item)</label>
                                                 <div className="w-full px-3 py-2 text-sm font-semibold bg-gray-100 text-gray-900 border border-transparent rounded-md text-right">
-                                                    ${(item.subtotal || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                    ${(item.subtotal || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                 </div>
                                             </div>
                                         </div>
@@ -399,17 +399,17 @@ export default function TemplateForm({ onClose, editingTemplate }: TemplateFormP
                                 <div className="w-full md:w-1/3 space-y-2 text-sm">
                                     <div className="flex justify-between text-gray-600">
                                         <span>Subtotal:</span>
-                                        <span>${subtotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                        <span>${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                     </div>
                                     {totalDescuentos > 0 && (
                                         <div className="flex justify-between text-red-500">
                                             <span>Descuentos Ítems:</span>
-                                            <span>-${totalDescuentos.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                            <span>-${totalDescuentos.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                         </div>
                                     )}
                                     <div className="flex justify-between text-lg font-bold text-gray-900 border-t pt-2">
                                         <span>Total:</span>
-                                        <span>${totalEstimado.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                        <span>${totalEstimado.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                     </div>
                                 </div>
                             </div>

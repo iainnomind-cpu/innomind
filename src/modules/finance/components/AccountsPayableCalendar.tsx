@@ -92,7 +92,7 @@ export default function AccountsPayableCalendar() {
                                         >
                                             <div className="font-black line-clamp-1 uppercase leading-tight">{payable.supplier?.nombreComercial || 'Esp'}</div>
                                             <div className="flex justify-between items-center mt-0.5">
-                                                <span className="font-mono">${Number(payable.amount).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                                                <span className="font-mono">${Number(payable.amount).toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
                                                 {payable.balance_due > 0 && isPast(new Date(payable.due_date)) && !isToday(new Date(payable.due_date)) && (
                                                     <AlertCircle size={8} className="text-red-600" />
                                                 )}

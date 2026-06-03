@@ -101,7 +101,7 @@ export default function TemplateDetail() {
                                         {item.cantidad}
                                     </td>
                                     <td className="px-6 py-4 text-right text-gray-700">
-                                        ${(item.precioUnitario || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        ${(item.precioUnitario || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         {item.descuento > 0 ? (
@@ -113,7 +113,7 @@ export default function TemplateDetail() {
                                         )}
                                     </td>
                                     <td className="px-6 py-4 text-right font-semibold text-gray-900">
-                                        ${(item.subtotal || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        ${(item.subtotal || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </td>
                                 </tr>
                             ))}
@@ -132,17 +132,17 @@ export default function TemplateDetail() {
                     <div className="w-full md:w-1/3 space-y-3">
                         <div className="flex justify-between text-gray-600">
                             <span>Subtotal Items:</span>
-                            <span>${(template.subtotal || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            <span>${(template.subtotal || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         </div>
                         {((template.subtotal || 0) - (template.totalEstimado || 0)) > 0 && (
                             <div className="flex justify-between text-red-500">
                                 <span>Descuento Total:</span>
-                                <span>-${((template.subtotal || 0) - (template.totalEstimado || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                <span>-${((template.subtotal || 0) - (template.totalEstimado || 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
                         )}
                         <div className="flex justify-between text-xl font-bold text-gray-900 border-t border-gray-200 pt-3">
                             <span>Total Estimado:</span>
-                            <span className="text-blue-600">${(template.totalEstimado || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            <span className="text-blue-600">${(template.totalEstimado || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         </div>
                     </div>
                 </div>

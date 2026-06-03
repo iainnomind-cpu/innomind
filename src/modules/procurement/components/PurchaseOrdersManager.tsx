@@ -184,7 +184,7 @@ export default function PurchaseOrdersManager() {
                                                 <div className="text-xs text-gray-500 truncate max-w-[200px]">{supplier?.rfc || ''}</div>
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <div className="font-bold text-gray-900">${amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                                                <div className="font-bold text-gray-900">${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex justify-center">

@@ -99,11 +99,11 @@ const QuotePDF: React.FC<QuotePDFProps> = ({ quote, prospect, company }) => {
                                 {item.descripcion && <p className="text-xs text-gray-500 mt-1">{item.descripcion}</p>}
                             </td>
                             <td className="py-4 px-4 text-center text-sm text-gray-700">{item.cantidad}</td>
-                            <td className="py-4 px-4 text-right text-sm text-gray-700">${(item.precioUnitario || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                            <td className="py-4 px-4 text-right text-sm text-gray-700">${(item.precioUnitario || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                             <td className="py-4 px-4 text-right text-xs text-gray-500">
                                 {item.descuento ? (item.tipoDescuento === 'porcentaje' ? `${item.descuento}%` : `$${item.descuento}`) : '-'}
                             </td>
-                            <td className="py-4 px-4 text-right font-medium text-sm text-gray-900">${(item.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                            <td className="py-4 px-4 text-right font-medium text-sm text-gray-900">${(item.total || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                         </tr>
                     ))}
                 </tbody>
@@ -114,15 +114,15 @@ const QuotePDF: React.FC<QuotePDFProps> = ({ quote, prospect, company }) => {
                 <div className="w-1/2 md:w-1/3">
                     <div className="flex justify-between py-2 border-b border-gray-100">
                         <span className="text-sm font-semibold text-gray-600">Subtotal:</span>
-                        <span className="text-sm font-medium text-gray-900">${(quote.subtotal || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        <span className="text-sm font-medium text-gray-900">${(quote.subtotal || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-gray-100">
                         <span className="text-sm font-semibold text-gray-600">IVA ({quote.ivaPorcentaje}%):</span>
-                        <span className="text-sm font-medium text-gray-900">${(quote.ivaTotal || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        <span className="text-sm font-medium text-gray-900">${(quote.ivaTotal || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
                     <div className="flex justify-between py-3 border-b-2" style={{ borderColor: primaryColor }}>
                         <span className="text-lg font-black text-gray-900">Total:</span>
-                        <span className="text-xl font-black" style={{ color: primaryColor }}>${(quote.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        <span className="text-xl font-black" style={{ color: primaryColor }}>${(quote.total || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
                 </div>
             </div>

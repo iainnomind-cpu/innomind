@@ -466,7 +466,7 @@ export default function QuoteForm({ onClose, editingQuote, initialProspectId }: 
                                         </div>
                                         <div className="col-span-1 text-right">
                                             <label className="text-xs text-gray-400 block mb-1">Subtotal</label>
-                                            <div className="font-bold text-gray-900 mt-2">${(item.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                                            <div className="font-bold text-gray-900 mt-2">${(item.total || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -526,29 +526,29 @@ export default function QuoteForm({ onClose, editingQuote, initialProspectId }: 
                             <div className="space-y-3 text-sm">
                                 <div className="flex justify-between text-gray-600">
                                     <span>Subtotal Base</span>
-                                    <span>${subtotalBruto.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                    <span>${subtotalBruto.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                 </div>
                                 {totalDescuentos > 0 && (
                                     <div className="flex justify-between text-red-500 font-medium">
                                         <span>Descuentos</span>
-                                        <span>-${totalDescuentos.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                        <span>-${totalDescuentos.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between text-gray-800 font-medium pt-2 border-t border-dashed">
                                     <span>Subtotal Final</span>
-                                    <span>${subtotalConDescuentos.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                    <span>${subtotalConDescuentos.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                 </div>
                                 <div className="flex justify-between items-center text-gray-600 pb-3 border-b">
                                     <div className="flex items-center gap-2">
                                         <span>IVA</span>
                                         <input type="number" value={ivaPorcentaje} onChange={(e) => setIvaPorcentaje(parseFloat(e.target.value) || 0)} disabled={isReadOnly} className="w-14 px-1 py-0.5 border rounded text-xs text-center" /> %
                                     </div>
-                                    <span>${ivaTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                    <span>${ivaTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                 </div>
                                 <div className="flex justify-between items-center pt-2">
                                     <span className="text-gray-500 font-semibold uppercase tracking-wider text-xs">Total</span>
                                     <span className="text-3xl font-black text-blue-600 tracking-tight">
-                                        ${totalVenta.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        ${totalVenta.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </span>
                                 </div>
                             </div>

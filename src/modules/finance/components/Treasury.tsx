@@ -108,7 +108,7 @@ export default function Treasury() {
                     <div>
                         <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Efectivo Total Disponible</span>
                         <div className="flex items-baseline gap-2 mt-1">
-                            <span className="text-3xl font-black text-slate-900">${totalCash.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                            <span className="text-3xl font-black text-slate-900">${totalCash.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                             <span className="text-xs font-bold text-slate-400">MXN</span>
                         </div>
                     </div>
@@ -302,7 +302,7 @@ export default function Treasury() {
                                         else if (name === 'balanceOptimista') label = 'Optimista';
                                         else if (name === 'balanceCritico') label = 'Crítico';
                                         else if (name === 'balanceConservador') label = 'Conservador';
-                                        return [`$${Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`, label];
+                                        return [`$${Number(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, label];
                                     }}
                                 />
                                 <ReferenceLine y={0} stroke="#cbd5e1" strokeWidth={1} />
@@ -613,7 +613,7 @@ export default function Treasury() {
                                     <div>
                                         <span className="text-[10px] font-bold text-slate-400 block">Saldo Actual</span>
                                         <p className="text-lg font-black text-slate-950">
-                                            ${(acc.saldoActual || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                            ${(acc.saldoActual || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                         </p>
                                     </div>
                                     <div className="flex gap-1">
@@ -1091,7 +1091,7 @@ function CSVImportModal({
                                                             {row.reference && <span className="text-[10px] text-slate-400 block truncate">Ref: {row.reference}</span>}
                                                         </td>
                                                         <td className={`px-4 py-3 text-right font-bold ${row.amount >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                                            {row.amount >= 0 ? '+' : ''}${row.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                            {row.amount >= 0 ? '+' : ''}${row.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                                         </td>
                                                         <td className="px-4 py-3 text-center whitespace-nowrap">
                                                             {row.isDuplicate ? (

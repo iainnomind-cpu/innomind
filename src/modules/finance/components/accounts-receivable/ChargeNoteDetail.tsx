@@ -287,8 +287,8 @@ export default function ChargeNoteDetail({ onBack, onOpenPayment }: ChargeNoteDe
                                             {item.description && <p className="text-sm text-gray-500 mt-1">{item.description}</p>}
                                         </td>
                                         <td className="py-4 px-2 text-right text-gray-700">{item.quantity}</td>
-                                        <td className="py-4 px-2 text-right text-gray-700">${Number(item.unit_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                                        <td className="py-4 px-2 text-right font-medium text-gray-900">${Number(item.total).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                        <td className="py-4 px-2 text-right text-gray-700">${Number(item.unit_price).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                                        <td className="py-4 px-2 text-right font-medium text-gray-900">${Number(item.total).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -299,21 +299,21 @@ export default function ChargeNoteDetail({ onBack, onOpenPayment }: ChargeNoteDe
                         <div className="w-64 space-y-3">
                             <div className="flex justify-between text-gray-600">
                                 <span>Subtotal</span>
-                                <span className="font-medium">${Number(selectedNote.subtotal).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                <span className="font-medium">${Number(selectedNote.subtotal).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                             </div>
                             <div className="flex justify-between text-gray-900 font-bold text-lg pt-3 border-t border-gray-200">
                                 <span>Total M.N.</span>
-                                <span>${Number(selectedNote.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                <span>${Number(selectedNote.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                             </div>
                             {Number(selectedNote.paid_amount) > 0 && (
                                 <div className="flex justify-between text-green-600 font-medium pt-2">
                                     <span>Pagado</span>
-                                    <span>-${Number(selectedNote.paid_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                    <span>-${Number(selectedNote.paid_amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                                 </div>
                             )}
                             <div className="flex justify-between text-emerald-700 font-bold text-xl pt-3 border-t border-gray-200 bg-emerald-50 px-3 py-2 rounded-lg mt-2">
                                 <span>Saldo Pendiente</span>
-                                <span>${Number(selectedNote.balance_due).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                <span>${Number(selectedNote.balance_due).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                             </div>
                         </div>
                     </div>
@@ -336,7 +336,7 @@ export default function ChargeNoteDetail({ onBack, onOpenPayment }: ChargeNoteDe
                                     <div key={idx} className="bg-gray-50 border border-gray-100 p-4 rounded-lg relative overflow-hidden">
                                         <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
                                         <div className="flex justify-between items-start mb-2">
-                                            <span className="font-bold text-gray-900">${Number(p.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                            <span className="font-bold text-gray-900">${Number(p.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                                             <div className="flex items-center gap-2">
                                                 <span className="text-xs font-semibold text-gray-500 bg-white px-2 py-1 rounded shadow-sm border border-gray-200">
                                                     {p.payment_date}
@@ -418,7 +418,7 @@ export default function ChargeNoteDetail({ onBack, onOpenPayment }: ChargeNoteDe
                                     )}
                                     <div className="flex justify-between text-emerald-900 font-bold text-2xl pt-4 border-t border-emerald-200/60 mt-4">
                                         <span>Total Recibido:</span>
-                                        <span>${Number(receiptPayment.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })} MXN</span>
+                                        <span>${Number(receiptPayment.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })} MXN</span>
                                     </div>
                                 </div>
                             </div>

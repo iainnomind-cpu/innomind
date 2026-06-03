@@ -133,7 +133,7 @@ export default function ApprovalsManager() {
                                                 <div className="text-sm text-gray-600">{format(new Date(date), "dd MMM yyyy", { locale: es })}</div>
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <div className="font-bold text-gray-900 text-lg">${amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                                                <div className="font-bold text-gray-900 text-lg">${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
                                             </td>
                                             <td className="px-6 py-4 text-center">
                                                 {order.evidencia_url ? (

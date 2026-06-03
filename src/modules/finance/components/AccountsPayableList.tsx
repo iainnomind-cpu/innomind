@@ -159,10 +159,10 @@ export default function AccountsPayableList({ onSelectPayable, onAddPayment }: A
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-right font-medium text-gray-900">
-                                            ${Number(p.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                            ${Number(p.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                         </td>
                                         <td className="px-6 py-4 text-right font-bold text-red-600">
-                                            ${Number(p.balance_due).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                            ${Number(p.balance_due).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex justify-center">

@@ -383,7 +383,7 @@ const QuoteDetail: React.FC<QuoteDetailProps> = ({ quote, onClose, onEdit }) => 
                             {(quote.items || []).map((item) => (
                                 <div key={item.id} className="p-4 bg-gray-50 border border-gray-200 rounded-xl relative">
                                     <div className="absolute top-4 right-4 font-bold text-gray-900">
-                                        ${(item.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        ${(item.total || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </div>
                                     <div className="pr-24">
                                         <h4 className="font-bold text-gray-900 mb-1">{item.nombre}</h4>
@@ -407,16 +407,16 @@ const QuoteDetail: React.FC<QuoteDetailProps> = ({ quote, onClose, onEdit }) => 
                         <div className="mt-6 pt-4 border-t-2 border-dashed border-gray-200">
                             <div className="flex justify-between items-center text-gray-600 mb-2">
                                 <span>Subtotal:</span>
-                                <span>${(quote.subtotal || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                <span>${(quote.subtotal || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
                             <div className="flex justify-between items-center text-gray-600 mb-4">
                                 <span>IVA ({quote.ivaPorcentaje}%):</span>
-                                <span>${(quote.ivaTotal || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                <span>${(quote.ivaTotal || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-xl font-bold text-gray-900">Total Venta:</span>
                                 <span className="text-3xl font-black text-blue-600">
-                                    ${(quote.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    ${(quote.total || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </span>
                             </div>
                         </div>

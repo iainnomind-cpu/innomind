@@ -131,7 +131,7 @@ export default function ExpenseManager() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-right font-bold text-gray-900">
-                                            ${exp.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                            ${exp.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex justify-center">

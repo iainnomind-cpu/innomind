@@ -313,7 +313,7 @@ export default function PurchaseOrderDetail() {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-right text-slate-900 font-bold">
-                                                ${(item.total_linea || item.totalLinea || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                ${(item.total_linea || item.totalLinea || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                             </td>
                                         </tr>
                                     ))}
@@ -324,16 +324,16 @@ export default function PurchaseOrderDetail() {
                             <div className="w-64 space-y-3">
                                 <div className="flex justify-between text-sm text-slate-500">
                                     <span>Subtotal Estimado</span>
-                                    <span className="font-medium text-slate-900">${(order.subtotal || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                    <span className="font-medium text-slate-900">${(order.subtotal || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                                 </div>
                                 <div className="flex justify-between text-sm text-slate-500">
                                     <span>IVA (16%)</span>
-                                    <span className="font-medium text-slate-900">${(order.impuestos || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                    <span className="font-medium text-slate-900">${(order.impuestos || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                                 </div>
                                 <div className="pt-3 border-t border-slate-200 flex justify-between">
                                     <span className="text-lg font-bold text-slate-900">Total Est.</span>
                                     <span className="text-lg font-bold text-blue-600">
-                                        ${(order.monto_total || order.total_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })} {order.currency || 'MXN'}
+                                        ${(order.monto_total || order.total_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })} {order.currency || 'MXN'}
                                     </span>
                                 </div>
                             </div>

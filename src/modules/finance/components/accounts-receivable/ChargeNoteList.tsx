@@ -145,10 +145,10 @@ export default function ChargeNoteList() {
                                             <div className="text-sm text-gray-900">{note.due_date}</div>
                                         </td>
                                         <td className="px-6 py-4 text-right font-medium text-gray-900">
-                                            ${Number(note.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                            ${Number(note.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                         </td>
                                         <td className="px-6 py-4 text-right font-medium text-amber-600">
-                                            ${Number(note.balance_due).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                            ${Number(note.balance_due).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex justify-center">

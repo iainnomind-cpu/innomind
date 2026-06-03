@@ -276,7 +276,7 @@ export default function PurchaseOrderForm({ orderId, onClose }: PurchaseOrderFor
                                                 </select>
                                             </td>
                                             <td className="p-3 text-right font-medium text-gray-900 border-l border-gray-50 bg-gray-50/50">
-                                                ${(item.cantidadSolicitada * item.precioUnitario).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                ${(item.cantidadSolicitada * item.precioUnitario).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                             </td>
                                             <td className="p-3 text-center">
                                                 <button type="button" onClick={() => handleRemoveItem(item.id)} className="p-1.5 text-gray-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50">
@@ -294,15 +294,15 @@ export default function PurchaseOrderForm({ orderId, onClose }: PurchaseOrderFor
                         <div className="w-64 space-y-3">
                             <div className="flex justify-between text-sm text-gray-600">
                                 <span>Subtotal:</span>
-                                <span>${subtotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                <span>${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
                             <div className="flex justify-between text-sm text-gray-600">
                                 <span>IVA Est.:</span>
-                                <span>${impuestos.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                <span>${impuestos.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
                             <div className="flex justify-between text-lg font-bold text-gray-900 pt-3 border-t border-gray-200 mt-3">
                                 <span>Total a Pagar:</span>
-                                <span>${montoTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                <span>${montoTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
                             {montoTotal > 50000 && (
                                 <p className="text-[10px] text-amber-600 font-medium text-right leading-tight">

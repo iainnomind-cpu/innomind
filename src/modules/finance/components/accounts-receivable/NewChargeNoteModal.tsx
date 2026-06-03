@@ -226,7 +226,7 @@ export default function NewChargeNoteModal({ onClose }: NewChargeNoteModalProps)
                                 <div className="bg-slate-100 p-4 rounded-xl min-w-[200px]">
                                     <div className="flex justify-between items-center text-lg font-black text-slate-900">
                                         <span>Total:</span>
-                                        <span>${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                        <span>${totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                                     </div>
                                 </div>
                             </div>

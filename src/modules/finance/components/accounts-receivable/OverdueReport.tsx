@@ -33,7 +33,7 @@ export default function OverdueReport() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
                 <div className={`px-6 py-4 border-b border-gray-100 flex justify-between items-center ${colorClass}`}>
                     <h3 className="font-bold text-gray-900">{title}</h3>
-                    <span className="font-bold rounded-lg px-3 py-1 bg-white/50">${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    <span className="font-bold rounded-lg px-3 py-1 bg-white/50">${total.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                 </div>
                 {notes.length === 0 ? (
                     <div className="p-6 text-center text-gray-500">
@@ -60,7 +60,7 @@ export default function OverdueReport() {
                                             {note.due_date} ({differenceInDays(today, parseISO(note.due_date))} días)
                                         </td>
                                         <td className="px-6 py-4 text-right font-bold text-gray-900">
-                                            ${Number(note.balance_due).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                            ${Number(note.balance_due).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                         </td>
                                     </tr>
                                 ))}
@@ -88,7 +88,7 @@ export default function OverdueReport() {
                 </div>
                 <div className="text-right">
                     <p className="text-red-500 uppercase font-bold text-sm tracking-wider">Deuda Total Vencida</p>
-                    <p className="text-4xl font-extrabold text-red-700">${totalDebt.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                    <p className="text-4xl font-extrabold text-red-700">${totalDebt.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                 </div>
             </div>
 
