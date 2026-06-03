@@ -16,7 +16,9 @@ export default function ChargeNoteDetail({ onBack, onOpenPayment }: ChargeNoteDe
     const { companyProfile } = useUsers();
     const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
     const [isSendingEmail, setIsSendingEmail] = useState(false);
+    const [receiptPayment, setReceiptPayment] = useState<any>(null);
     const pdfRef = useRef<HTMLDivElement>(null);
+    const receiptRef = useRef<HTMLDivElement>(null);
 
     if (!selectedNote) return null;
 
@@ -105,62 +107,42 @@ export default function ChargeNoteDetail({ onBack, onOpenPayment }: ChargeNoteDe
     };
 
     const handleDownloadReceipt = (payment: any) => {
-        const pdf = new jsPDF('p', 'mm', 'a4');
+        setReceiptPayment(payment);
         
-        pdf.setFontSize(22);
-        pdf.setTextColor(40, 40, 40);
-        pdf.text('RECIBO DE PAGO', 20, 30);
-        
-        pdf.setFontSize(10);
-        pdf.setTextColor(100, 100, 100);
-        pdf.text(`Fecha de Impresión: ${new Date().toLocaleDateString()}`, 20, 40);
-        
-        pdf.setDrawColor(200, 200, 200);
-        pdf.line(20, 45, 190, 45);
+        // Wait for React to render the template
+        setTimeout(async () => {
+            if (!receiptRef.current) return;
+            const target = receiptRef.current;
+            const clone = target.cloneNode(true) as HTMLElement;
+            document.body.appendChild(clone);
+            clone.style.position = 'absolute';
+            clone.style.top = '0';
+            clone.style.left = '0';
+            clone.style.width = '800px';
+            clone.style.height = 'max-content';
+            clone.style.overflow = 'visible';
+            clone.style.display = 'block';
+            clone.style.zIndex = '-9999';
 
-        pdf.setFontSize(12);
-        pdf.setTextColor(60, 60, 60);
-        pdf.setFont(undefined, 'bold');
-        pdf.text('Datos de la Empresa:', 20, 55);
-        
-        pdf.setFontSize(10);
-        pdf.setFont(undefined, 'normal');
-        pdf.text(companyProfile?.nombreEmpresa || 'Mi Empresa', 20, 63);
-        if (companyProfile?.rfc) pdf.text(`RFC: ${companyProfile.rfc}`, 20, 69);
-        if (companyProfile?.direccion) {
-            const splitAddress = pdf.splitTextToSize(companyProfile.direccion, 80);
-            pdf.text(splitAddress, 20, 75);
-        }
-        
-        pdf.setFontSize(12);
-        pdf.setFont(undefined, 'bold');
-        pdf.text('Datos del Cliente:', 120, 55);
-        
-        pdf.setFontSize(10);
-        pdf.setFont(undefined, 'normal');
-        pdf.text(selectedNote.prospect?.nombre || 'Desconocido', 120, 63);
-        if (selectedNote.prospect?.empresa) pdf.text(selectedNote.prospect.empresa, 120, 69);
+            const canvas = await html2canvas(clone, { 
+                scale: 2, 
+                useCORS: true,
+                windowWidth: clone.scrollWidth,
+                windowHeight: clone.scrollHeight
+            });
+            
+            document.body.removeChild(clone);
+            
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
-        pdf.setDrawColor(200, 200, 200);
-        pdf.line(20, 90, 190, 90);
-
-        pdf.setFontSize(12);
-        pdf.setFont(undefined, 'bold');
-        pdf.text('Detalles del Pago', 20, 105);
-        
-        pdf.setFontSize(11);
-        pdf.setFont(undefined, 'normal');
-        pdf.text(`Nota de Cargo Asociada: ${selectedNote.note_number}`, 20, 115);
-        pdf.text(`Fecha del Pago: ${payment.payment_date}`, 20, 123);
-        pdf.text(`Método de Pago: ${payment.payment_method}`, 20, 131);
-        if (payment.reference) pdf.text(`Referencia/Comentarios: ${payment.reference}`, 20, 139);
-
-        pdf.setFontSize(16);
-        pdf.setFont(undefined, 'bold');
-        pdf.setTextColor(16, 185, 129); // emerald-500
-        pdf.text(`Monto Pagado: $${Number(payment.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })} MXN`, 20, 160);
-
-        pdf.save(`Recibo_${selectedNote.note_number}_${payment.payment_date}.pdf`);
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, Math.min(pdfHeight, pdf.internal.pageSize.getHeight()));
+            pdf.save(`Recibo_${selectedNote.note_number}_${payment.payment_date}.pdf`);
+            
+            setReceiptPayment(null);
+        }, 100);
     };
 
     const handleSendEmail = async () => {
@@ -377,6 +359,71 @@ export default function ChargeNoteDetail({ onBack, onOpenPayment }: ChargeNoteDe
                             </div>
                         )}
                     </div>
+                </div>
+            </div>
+
+            {/* Hidden Receipt Template for PDF Generation */}
+            <div className="hidden">
+                <div ref={receiptRef} className="bg-white p-8 w-[800px] font-sans">
+                    {receiptPayment && (
+                        <>
+                            <div className="flex justify-between items-start mb-8 border-b border-gray-200 pb-6">
+                                <div className="flex items-center gap-4">
+                                    {companyProfile?.logoUrl ? (
+                                        <img src={companyProfile.logoUrl} alt="Logo" className="h-16 w-16 object-contain rounded-lg" crossOrigin="anonymous" />
+                                    ) : (
+                                        <div className="h-16 w-16 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center font-bold text-2xl">
+                                            {companyProfile?.nombreEmpresa?.charAt(0).toUpperCase() || 'E'}
+                                        </div>
+                                    )}
+                                    <div>
+                                        <h2 className="text-xl font-bold text-gray-900">{companyProfile?.nombreEmpresa || 'Mi Empresa'}</h2>
+                                        {companyProfile?.rfc && <p className="text-sm text-gray-500 font-medium">RFC: {companyProfile.rfc}</p>}
+                                        {companyProfile?.direccion && <p className="text-sm text-gray-500 max-w-xs">{companyProfile.direccion}</p>}
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">RECIBO DE PAGO</h1>
+                                    <p className="text-gray-500 mt-1">Comprobante de Ingreso</p>
+                                    <p className="text-xl font-bold text-gray-800 mt-2">NC-{selectedNote.note_number}</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-8 mb-10">
+                                <div>
+                                    <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Cliente</p>
+                                    <h3 className="text-lg font-bold text-gray-900">{selectedNote.prospect?.nombre || 'Desconocido'}</h3>
+                                    <p className="text-gray-600 mt-1">{selectedNote.prospect?.empresa}</p>
+                                </div>
+                                <div className="text-right">
+                                    <div className="mb-4">
+                                        <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-1">Fecha de Pago</p>
+                                        <p className="text-gray-800 font-medium">{receiptPayment.payment_date}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mb-10 p-6 bg-emerald-50 rounded-xl border border-emerald-100">
+                                <h4 className="text-lg font-bold text-emerald-900 mb-4">Detalles del Cobro</h4>
+                                <div className="space-y-3">
+                                    <div className="flex justify-between text-emerald-800">
+                                        <span className="font-medium">Método de Pago:</span>
+                                        <span>{receiptPayment.payment_method}</span>
+                                    </div>
+                                    {receiptPayment.reference && (
+                                        <div className="flex justify-between text-emerald-800">
+                                            <span className="font-medium">Referencia:</span>
+                                            <span>{receiptPayment.reference}</span>
+                                        </div>
+                                    )}
+                                    <div className="flex justify-between text-emerald-900 font-bold text-2xl pt-4 border-t border-emerald-200/60 mt-4">
+                                        <span>Total Recibido:</span>
+                                        <span>${Number(receiptPayment.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })} MXN</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
         </div>
