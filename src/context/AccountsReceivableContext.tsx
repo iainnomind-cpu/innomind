@@ -204,11 +204,24 @@ export const AccountsReceivableProvider: React.FC<{ children: React.ReactNode }>
 
             if (paymentError) throw paymentError;
 
+            // Fetch the current note to get the correct balance
+            const { data: currentNote, error: fetchError } = await supabase
+                .from('charge_notes')
+                .select('balance_due')
+                .eq('id', paymentData.charge_note_id)
+                .single();
+
+            if (fetchError) throw fetchError;
+
+            const currentBalance = Number(currentNote?.balance_due || 0);
+            const newBalance = Math.max(0, currentBalance - paymentData.amount);
+            const newStatus = newBalance <= 0 ? 'paid' : 'partial';
+
             const { error: noteError } = await supabase
                 .from('charge_notes')
                 .update({
-                    status: 'paid',
-                    balance_due: 0,
+                    status: newStatus,
+                    balance_due: newBalance,
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', paymentData.charge_note_id)

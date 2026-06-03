@@ -104,6 +104,65 @@ export default function ChargeNoteDetail({ onBack, onOpenPayment }: ChargeNoteDe
         }
     };
 
+    const handleDownloadReceipt = (payment: any) => {
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        
+        pdf.setFontSize(22);
+        pdf.setTextColor(40, 40, 40);
+        pdf.text('RECIBO DE PAGO', 20, 30);
+        
+        pdf.setFontSize(10);
+        pdf.setTextColor(100, 100, 100);
+        pdf.text(`Fecha de Impresión: ${new Date().toLocaleDateString()}`, 20, 40);
+        
+        pdf.setDrawColor(200, 200, 200);
+        pdf.line(20, 45, 190, 45);
+
+        pdf.setFontSize(12);
+        pdf.setTextColor(60, 60, 60);
+        pdf.setFont(undefined, 'bold');
+        pdf.text('Datos de la Empresa:', 20, 55);
+        
+        pdf.setFontSize(10);
+        pdf.setFont(undefined, 'normal');
+        pdf.text(companyProfile?.nombreEmpresa || 'Mi Empresa', 20, 63);
+        if (companyProfile?.rfc) pdf.text(`RFC: ${companyProfile.rfc}`, 20, 69);
+        if (companyProfile?.direccion) {
+            const splitAddress = pdf.splitTextToSize(companyProfile.direccion, 80);
+            pdf.text(splitAddress, 20, 75);
+        }
+        
+        pdf.setFontSize(12);
+        pdf.setFont(undefined, 'bold');
+        pdf.text('Datos del Cliente:', 120, 55);
+        
+        pdf.setFontSize(10);
+        pdf.setFont(undefined, 'normal');
+        pdf.text(selectedNote.prospect?.nombre || 'Desconocido', 120, 63);
+        if (selectedNote.prospect?.empresa) pdf.text(selectedNote.prospect.empresa, 120, 69);
+
+        pdf.setDrawColor(200, 200, 200);
+        pdf.line(20, 90, 190, 90);
+
+        pdf.setFontSize(12);
+        pdf.setFont(undefined, 'bold');
+        pdf.text('Detalles del Pago', 20, 105);
+        
+        pdf.setFontSize(11);
+        pdf.setFont(undefined, 'normal');
+        pdf.text(`Nota de Cargo Asociada: ${selectedNote.note_number}`, 20, 115);
+        pdf.text(`Fecha del Pago: ${payment.payment_date}`, 20, 123);
+        pdf.text(`Método de Pago: ${payment.payment_method}`, 20, 131);
+        if (payment.reference) pdf.text(`Referencia/Comentarios: ${payment.reference}`, 20, 139);
+
+        pdf.setFontSize(16);
+        pdf.setFont(undefined, 'bold');
+        pdf.setTextColor(16, 185, 129); // emerald-500
+        pdf.text(`Monto Pagado: $${Number(payment.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })} MXN`, 20, 160);
+
+        pdf.save(`Recibo_${selectedNote.note_number}_${payment.payment_date}.pdf`);
+    };
+
     const handleSendEmail = async () => {
         if (!selectedNote.prospect?.correo) {
             alert('El cliente no tiene un email registrado.');
@@ -296,9 +355,18 @@ export default function ChargeNoteDetail({ onBack, onOpenPayment }: ChargeNoteDe
                                         <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
                                         <div className="flex justify-between items-start mb-2">
                                             <span className="font-bold text-gray-900">${Number(p.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                                            <span className="text-xs font-semibold text-gray-500 bg-white px-2 py-1 rounded shadow-sm border border-gray-200">
-                                                {p.payment_date}
-                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs font-semibold text-gray-500 bg-white px-2 py-1 rounded shadow-sm border border-gray-200">
+                                                    {p.payment_date}
+                                                </span>
+                                                <button 
+                                                    onClick={() => handleDownloadReceipt(p)}
+                                                    className="p-1.5 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors"
+                                                    title="Descargar Recibo"
+                                                >
+                                                    <Download size={14} />
+                                                </button>
+                                            </div>
                                         </div>
                                         <div className="text-sm text-gray-600">
                                             <p><span className="font-medium">Método:</span> {p.payment_method}</p>
