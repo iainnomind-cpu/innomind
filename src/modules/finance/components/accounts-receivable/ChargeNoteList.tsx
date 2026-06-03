@@ -100,8 +100,8 @@ export default function ChargeNoteList() {
             </div>
 
             {/* List */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex-1">
-                <div className="overflow-x-auto h-full">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex-1 flex flex-col">
+                <div className="overflow-auto flex-1">
                     <table className="w-full relative">
                         <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
                             <tr>
