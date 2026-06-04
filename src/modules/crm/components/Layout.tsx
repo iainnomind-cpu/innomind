@@ -127,16 +127,16 @@ export default function Layout() {
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-2 hover:bg-gray-100 rounded-lg text-gray-600"
-            >
-              <Menu size={24} />
-            </button>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center flex-1 max-w-2xl gap-4">
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="lg:hidden p-2 hover:bg-gray-100 rounded-lg text-gray-600"
+              >
+                <Menu size={24} />
+              </button>
 
-            <div className="flex-1 max-w-2xl">
-              <div className="relative">
+              <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <input
                   type="text"
@@ -145,7 +145,9 @@ export default function Layout() {
                 />
               </div>
             </div>
-            <CoreNotifications />
+            <div className="flex items-center gap-4 shrink-0">
+              <CoreNotifications />
+            </div>
           </div>
         </header>
 
