@@ -123,9 +123,9 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             }
 
             const [spacesRes, tasksRes, notesRes] = await Promise.all([
-                supabase.from('workspace_spaces').select('*').eq('workspace_id', workspaceId).order('created_at', { ascending: true }),
-                supabase.from('workspace_tasks').select('*').eq('workspace_id', workspaceId).order('created_at', { ascending: false }),
-                supabase.from('workspace_notes').select('*').eq('workspace_id', workspaceId).order('updated_at', { ascending: false })
+                supabase.from('workspace_spaces').select('*').eq('workspace', workspaceId).order('created_at', { ascending: true }),
+                supabase.from('workspace_tasks').select('*').eq('workspace', workspaceId).order('created_at', { ascending: false }),
+                supabase.from('workspace_notes').select('*').eq('workspace', workspaceId).order('updated_at', { ascending: false })
             ]);
 
             if (spacesRes.data) {
@@ -155,7 +155,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                 .from('workspace_messages')
                 .select('*, sender:sender_id (id, first_name, last_name, avatar_url)')
                 .eq('space_id', activeSpace.id)
-                .eq('workspace_id', workspace.id)
+                .eq('workspace', workspace.id)
                 .order('created_at', { ascending: true });
 
             if (data && !error) {
@@ -199,7 +199,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         if (!FEATURES.enableNodo) return null;
         const workspaceId = validateWorkspace(workspace?.id);
         const { data, error } = await supabase.from('workspace_spaces').insert([{
-            workspace_id: workspaceId,
+            workspace: workspaceId,
             name,
             type,
             is_private: isPrivate,
@@ -226,7 +226,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         if (!FEATURES.enableNodo) return;
         const workspaceId = validateWorkspace(workspace?.id);
         const { error } = await supabase.from('workspace_messages').insert([{
-            workspace_id: workspaceId,
+            workspace: workspaceId,
             space_id: spaceId,
             sender_id: authUser?.id,
             content,
@@ -241,7 +241,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         if (!activeSpace) return;
 
         const { data: taskData, error: taskError } = await supabase.from('workspace_tasks').insert([{
-            workspace_id: workspaceId,
+            workspace: workspaceId,
             title,
             description,
             assigned_to: assignedTo,
@@ -256,7 +256,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         await supabase.from('workspace_messages')
             .update({ task_id: taskData.id })
             .eq('id', messageId)
-            .eq('workspace_id', workspaceId);
+            .eq('workspace', workspaceId);
 
         setTasks(prev => [mapTask(taskData), ...prev]);
         setMessages(prev => prev.map(m => m.id === messageId ? { ...m, taskId: taskData.id } : m));
@@ -266,7 +266,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         if (!FEATURES.enableNodo) return null;
         const workspaceId = validateWorkspace(workspace?.id);
         const { data, error } = await supabase.from('workspace_tasks').insert([{
-            workspace_id: workspaceId,
+            workspace: workspaceId,
             title,
             description,
             priority,
@@ -286,7 +286,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         if (!FEATURES.enableNodo) return null;
         const workspaceId = validateWorkspace(workspace?.id);
         const { data, error } = await supabase.from('workspace_notes').insert([{
-            workspace_id: workspaceId,
+            workspace: workspaceId,
             space_id: spaceId,
             title,
             content_json: contentJson,
@@ -309,7 +309,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         const { error } = await supabase.from('workspace_notes')
             .update(updates)
             .eq('id', noteId)
-            .eq('workspace_id', workspaceId);
+            .eq('workspace', workspaceId);
 
         if (error) throw error;
         setNotes(prev => prev.map(n => n.id === noteId ? { ...n, ...updates } : n));
@@ -321,7 +321,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         const { error } = await supabase.from('workspace_notes')
             .delete()
             .eq('id', noteId)
-            .eq('workspace_id', workspaceId);
+            .eq('workspace', workspaceId);
 
         if (error) throw error;
         setNotes(prev => prev.filter(n => n.id !== noteId));
