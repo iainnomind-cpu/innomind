@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useWorkspace } from '@/context/WorkspaceContext';
 import { FileText, Save, Clock, Search, Hash, Edit3 } from 'lucide-react';
-import { WorkspaceNote } from '@/types';
+import { WorkspaceNote, WorkspaceSpace } from '@/types';
 
 export default function NotesEditor() {
     const { activeSpace, spaces, createSpace, notes, createNote, updateNote } = useWorkspace();
@@ -40,7 +40,7 @@ export default function NotesEditor() {
 
         // Si es nota personal o no hay espacio activo, usar/crear espacio "Personal" privado
         if (isPersonal || !targetSpaceId) {
-            let personalSpace = spaces.find(s => s.isPrivate && s.name === "Personal");
+            let personalSpace: WorkspaceSpace | null | undefined = spaces.find(s => s.isPrivate && s.name === "Personal");
             if (!personalSpace) {
                 personalSpace = await createSpace("Personal", "GENERAL", true);
             }

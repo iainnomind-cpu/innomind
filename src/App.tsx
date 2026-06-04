@@ -24,6 +24,7 @@ import ProjectDetail from '@/modules/trak/components/projects/ProjectDetail';
 import GlobalTaskList from '@/modules/trak/components/tasks/GlobalTaskList';
 import TrakQuoteList from '@/modules/trak/components/quotes/QuoteList';
 import TrakQuoteForm from '@/modules/trak/components/quotes/QuoteForm';
+import TrakFinanceDashboard from '@/modules/trak/components/finance/TrakFinanceDashboard';
 import ReportsDashboard from '@/modules/trak/components/reports/ReportsDashboard';
 import EmployeeList from '@/modules/trak/components/hr/EmployeeList';
 import EmployeeForm from '@/modules/trak/components/hr/EmployeeForm';
@@ -101,6 +102,7 @@ function App() {
             <Route path="tasks" element={<GlobalTaskList />} />
             <Route path="quotes" element={<TrakQuoteList />} />
             <Route path="quotes/:id" element={<TrakQuoteForm />} />
+            <Route path="finance" element={<TrakFinanceDashboard />} />
             <Route path="reports" element={<ReportsDashboard />} />
             <Route path="hr" element={<EmployeeList />} />
             <Route path="hr/:id" element={<EmployeeForm />} />

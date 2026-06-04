@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useTrak } from '../../context/TrakContext';
-import { Bell, Package, CheckSquare, Info, Check, Trash2 } from 'lucide-react';
+import { Bell, Package, CheckSquare, Info, Check, Trash2, CircleDollarSign } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function TrakNotifications() {
@@ -91,6 +91,7 @@ export default function TrakNotifications() {
     switch (type) {
       case 'inventory': return <Package size={16} className="text-amber-500" />;
       case 'task': return <CheckSquare size={16} className="text-red-500" />;
+      case 'finance': return <CircleDollarSign size={16} className="text-emerald-500" />;
       default: return <Info size={16} className="text-blue-500" />;
     }
   };

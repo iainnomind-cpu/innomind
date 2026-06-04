@@ -7,6 +7,7 @@ import {
     WorkspaceSpace,
     WorkspaceMessage,
     WorkspaceTask,
+    TaskPriority,
     SpaceType,
     WorkspaceNote
 } from '@/types';

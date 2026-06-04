@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { FileText, Plus, Search, MoreHorizontal, ArrowUpRight, CheckCircle2, Clock, LayoutTemplate, Package } from 'lucide-react';
 import QuoteTemplates from './QuoteTemplates';
 import ProductCatalog from '../catalog/ProductCatalog';
+import { ensureAcceptedQuoteFinance } from '../../services/financeAutomation';
 
 const statusConfig: Record<string, { label: string, color: string }> = {
   draft: { label: 'Borrador', color: 'bg-slate-100 text-slate-700' },
@@ -15,7 +16,7 @@ const statusConfig: Record<string, { label: string, color: string }> = {
 };
 
 export default function QuoteList() {
-  const { workspaceId, refreshClients } = useTrak();
+  const { workspaceId, refreshClients, refreshProjects } = useTrak();
   const navigate = useNavigate();
   const [quotes, setQuotes] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -50,10 +51,23 @@ export default function QuoteList() {
     const quote = quotes.find(q => q.id === quoteId);
     if (quote && quote.client_id) {
       if (newStatus === 'accepted') {
+        const userId = (await supabase.auth.getUser()).data.user?.id;
+        await ensureAcceptedQuoteFinance({
+          quoteId,
+          workspaceId,
+          clientId: quote.client_id,
+          projectId: quote.project_id,
+          title: quote.title,
+          quoteNumber: quote.quote_number,
+          total: Number(quote.total || 0),
+          paymentTerms: quote.payment_terms,
+          userId
+        });
         await supabase
           .from('trak_clients')
           .update({ status: 'active', pipeline_stage: 'won' })
           .eq('id', quote.client_id);
+        if (refreshProjects) await refreshProjects();
       } else if (newStatus === 'rejected') {
         await supabase
           .from('trak_clients')

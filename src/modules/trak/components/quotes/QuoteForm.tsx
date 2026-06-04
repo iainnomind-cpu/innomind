@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { ChevronLeft, Plus, Trash2, Save, FileText, PackageSearch, Download, LayoutTemplate, X, Mail, MessageSquare } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { ensureAcceptedQuoteFinance } from '../../services/financeAutomation';
 
 export default function QuoteForm() {
   const { id } = useParams();
@@ -308,6 +309,27 @@ export default function QuoteForm() {
           order_index: index
         }));
         await supabase.from('trak_quote_items').insert(itemsToInsert);
+      }
+
+      if (nextStatus === 'accepted') {
+        const userId = (await supabase.auth.getUser()).data.user?.id;
+        const finalProjectId = await ensureAcceptedQuoteFinance({
+          quoteId: currentQuoteId,
+          workspaceId,
+          clientId: form.client_id,
+          projectId: projectIdToLink,
+          title: form.title,
+          quoteNumber: form.quote_number,
+          total,
+          paymentTerms: form.payment_terms,
+          userId
+        });
+
+        if (finalProjectId) {
+          projectIdToLink = finalProjectId;
+          setForm(prev => ({ ...prev, project_id: finalProjectId }));
+        }
+        if (refreshProjects) await refreshProjects();
       }
 
       // Sincronizar estado del lead/cliente de forma reactiva

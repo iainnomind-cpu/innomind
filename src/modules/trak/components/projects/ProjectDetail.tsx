@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import {
   ChevronLeft, LayoutTemplate, CheckSquare, Clock, FileText, DollarSign,
   Calendar, Users, Briefcase, Plus, Play, Pause, Trash2, Target,
-  TrendingUp, AlertTriangle, MessageSquare, Edit3, FolderOpen, GitCommit
+  TrendingUp, AlertTriangle, MessageSquare, Edit3, FolderOpen, GitCommit, CheckCircle2
 } from 'lucide-react';
 import ProjectTasks from './ProjectTasks';
 import ProjectTime from './ProjectTime';
@@ -15,6 +15,7 @@ import ProjectPhases from './ProjectPhases';
 import ProjectFinances from './ProjectFinances';
 import ProjectFiles from './ProjectFiles';
 import ProjectGantt from './ProjectGantt';
+import { completeProjectFinancialCloseout } from '../../services/financeAutomation';
 
 const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
   planning:  { label: 'Planificación', color: 'text-slate-700',   bg: 'bg-slate-100' },
@@ -27,7 +28,7 @@ const statusConfig: Record<string, { label: string; color: string; bg: string }>
 export default function ProjectDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { tasks, workspaceId, refreshClients } = useTrak();
+  const { tasks, workspaceId, refreshClients, refreshProjects } = useTrak();
 
   const [project, setProject] = useState<TrakProject | null>(null);
   const [phases, setPhases] = useState<TrakPhase[]>([]);
@@ -115,6 +116,15 @@ export default function ProjectDetail() {
     fetchProjectData();
   };
 
+  const handleCompleteProject = async () => {
+    if (!project || !window.confirm('Marcar este proyecto como completado y ejecutar cierre financiero?')) return;
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    await completeProjectFinancialCloseout(project.id, workspaceId, userId);
+    await refreshProjects();
+    fetchProjectData();
+    fetchIssueCount();
+  };
+
   const handleAddPhase = async () => {
     const name = prompt('Nombre de la nueva fase:');
     if (!name || !project) return;
@@ -186,6 +196,11 @@ export default function ProjectDetail() {
                 <button onClick={handleToggleStatus} className={`px-3.5 py-2 font-medium rounded-xl text-sm transition-all flex items-center gap-2 ${project.status === 'on_hold' ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'}`}>
                   {project.status === 'on_hold' ? <Play size={15} /> : <Pause size={15} />}
                   {project.status === 'on_hold' ? 'Reanudar' : 'Pausar'}
+                </button>
+              )}
+              {(project.status === 'active' || project.status === 'on_hold') && (
+                <button onClick={handleCompleteProject} className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl text-sm transition-all flex items-center gap-2 shadow-sm shadow-emerald-600/20">
+                  <CheckCircle2 size={15} /> Completar
                 </button>
               )}
               <button onClick={() => navigate(`/trak/projects/${project.id}/edit`)} className="px-3.5 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-medium rounded-xl text-sm transition-colors flex items-center gap-2">
