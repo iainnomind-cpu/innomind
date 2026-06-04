@@ -321,7 +321,7 @@ export async function generateChargeNoteFromMilestone(
       await supabase.from('trak_clients').update({ prospect_id: prospectId }).eq('id', project.client_id);
     } else {
       console.error('Error auto-creating prospect:', prospectError);
-      return { success: false, error: 'No se pudo crear el prospecto en CRM automáticamente para vincular la factura.' };
+      return { success: false, error: `Error DB al crear cliente: ${prospectError?.message || prospectError?.details || 'Desconocido'}` };
     }
   }
 

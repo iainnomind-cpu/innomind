@@ -67,8 +67,13 @@ export default function ProjectFinances({ projectId }: { projectId: string }) {
   };
 
   const handleMilestoneStatus = async (id: string, currentStatus: string) => {
-    const statuses = ['pending', 'invoiced', 'paid'];
-    const next = statuses[(statuses.indexOf(currentStatus) + 1) % statuses.length];
+    // Only allow manual toggle from 'invoiced' to 'paid' and back.
+    // 'pending' -> 'invoiced' happens ONLY via the 'Facturar' button.
+    if (currentStatus === 'pending') {
+      alert('Para cambiar a Facturado, utiliza el botón de "Facturar" que generará la Cuenta por Cobrar.');
+      return;
+    }
+    const next = currentStatus === 'invoiced' ? 'paid' : 'invoiced';
     await supabase.from('trak_project_milestones').update({ 
       status: next, 
       paid_date: next === 'paid' ? new Date().toISOString() : null 
