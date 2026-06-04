@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useUsers } from '@/context/UserContext';
 import { FEATURES } from '@/config/features';
 import InnoAIChat from '@/components/ai/InnoAIChat';
+import CoreNotifications from './notifications/CoreNotifications';
 
 import { CoreLogo } from '@/components/brand/CoreLogo';
 import { motion } from 'framer-motion';
@@ -145,6 +146,7 @@ export default function Layout() {
                 />
               </div>
             </div>
+            <CoreNotifications />
           </div>
         </header>
 
