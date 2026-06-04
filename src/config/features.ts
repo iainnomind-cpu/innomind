@@ -1,4 +1,4 @@
 export const FEATURES = {
   enableCompras: false, // Desactivar visualmente el módulo de Compras
-  enableNodo: false,    // Desactivar visualmente el módulo de Nodo
+  enableNodo: true,    // Activar Nodo (ahora integrado en Calendario)
 };

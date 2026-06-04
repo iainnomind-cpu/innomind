@@ -244,17 +244,15 @@ const CompanySettings: React.FC = () => {
                             { id: 'prospectos', label: 'Prospectos', desc: 'Gestión de contactos pre-venta' },
                             { id: 'prospectos?tab=clientes', label: 'Clientes', desc: 'Cartera de clientes activos' },
                             { id: 'quotes', label: 'Cotizaciones', desc: 'Propuestas comerciales y presupuestos' },
-                            { id: 'calendar', label: 'Calendario', desc: 'Eventos, reuniones y recordatorios' },
+                            { id: 'calendar', label: 'Calendario + Nodo', desc: 'Eventos, reuniones, tareas, notas y conversaciones' },
                             { id: 'finance', label: 'Finanzas', desc: 'Tesorería, Cobros, Pagos, Gastos' },
                             { id: 'procurement', label: 'Compras', desc: 'Órdenes de compra y proveedores' },
                             { id: 'inventory', label: 'Inventario', desc: 'Productos, stock y movimientos' },
-                            { id: 'workspace', label: 'Nodo', desc: 'Conversaciones, tareas y notas' },
                         ].filter(mod => {
                             if (mod.id === 'procurement' && !FEATURES.enableCompras) return false;
-                            if (mod.id === 'workspace' && !FEATURES.enableNodo) return false;
                             return true;
                         }).map(mod => {
-                            const isActive = enabledModules.length === 0 || enabledModules.includes(mod.id);
+                            const isActive = enabledModules.length === 0 || enabledModules.includes(mod.id) || (mod.id === 'calendar' && enabledModules.includes('workspace'));
                             return (
                                 <div
                                     key={mod.id}
@@ -262,14 +260,13 @@ const CompanySettings: React.FC = () => {
                                         let newModules: string[];
                                         if (enabledModules.length === 0) {
                                             // First toggle: activate all except this one
-                                            newModules = ['embudo', 'prospectos', 'prospectos?tab=clientes', 'quotes', 'calendar', 'finance', 'procurement', 'inventory', 'workspace']
+                                            newModules = ['embudo', 'prospectos', 'prospectos?tab=clientes', 'quotes', 'calendar', 'finance', 'procurement', 'inventory']
                                                 .filter(m => {
                                                     if (m === 'procurement' && !FEATURES.enableCompras) return false;
-                                                    if (m === 'workspace' && !FEATURES.enableNodo) return false;
                                                     return m !== mod.id;
                                                 });
                                         } else if (isActive) {
-                                            newModules = enabledModules.filter(m => m !== mod.id);
+                                            newModules = enabledModules.filter(m => m !== mod.id && !(mod.id === 'calendar' && m === 'workspace'));
                                         } else {
                                             newModules = [...enabledModules, mod.id];
                                         }

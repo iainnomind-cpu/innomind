@@ -1,4 +1,4 @@
-import { Users, LayoutDashboard, Menu, Search, Building2, Trello, LogOut, FileText, Settings, Calendar as CalendarIcon, Package, Receipt, ShoppingCart, Hash, LifeBuoy } from 'lucide-react';
+import { Users, LayoutDashboard, Menu, Search, Building2, Trello, LogOut, FileText, Settings, Calendar as CalendarIcon, Package, Receipt, ShoppingCart, LifeBuoy } from 'lucide-react';
 import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -27,18 +27,17 @@ export default function Layout() {
     { id: 'inventory', label: 'Inventario', icon: Package },
     { id: 'finance', label: 'Finanzas', icon: Receipt },
     { id: 'procurement', label: 'Compras', icon: ShoppingCart },
-    { id: 'workspace', label: 'Nodo', icon: Hash },
-    { id: 'calendar', label: 'Calendario', icon: CalendarIcon },
+    { id: 'calendar', label: 'Calendario + Nodo', icon: CalendarIcon },
     { id: 'support', label: 'Soporte', icon: LifeBuoy, alwaysVisible: true },
     { id: 'settings', label: 'Mi Empresa', icon: Settings, adminOnly: true, alwaysVisible: true },
   ];
 
   const visibleMenuItems = menuItems.filter(item => {
     if (item.id === 'procurement' && !FEATURES.enableCompras) return false;
-    if (item.id === 'workspace' && !FEATURES.enableNodo) return false;
     if (item.adminOnly && currentUser?.role !== 'ADMIN') return false;
     if (item.alwaysVisible) return true;
     if (!enabledModules || enabledModules.length === 0) return true;
+    if (item.id === 'calendar') return enabledModules.includes('calendar') || enabledModules.includes('workspace');
     return enabledModules.includes(item.id);
   });
 

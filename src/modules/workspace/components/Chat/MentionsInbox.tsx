@@ -59,7 +59,7 @@ export default function MentionsInbox() {
         const space = (spaces || []).find(s => s.id === spaceId);
         if (space) {
             setActiveSpace(space);
-            navigate(`/crm/workspace/chat/${spaceId}`);
+            navigate(`/crm/calendar/nodo/chat/${spaceId}`);
         }
     };
 

@@ -44,14 +44,13 @@ import QuoteDetailView from '@/modules/crm/components/quotes/QuoteDetailView';
 import QuoteTemplates from '@/modules/crm/components/quotes/QuoteTemplates';
 import TemplateDetail from '@/modules/crm/components/quotes/TemplateDetail';
 import CompanySettings from '@/modules/crm/components/CompanySettings';
-import Calendar from '@/modules/crm/components/calendar/Calendar';
+import CalendarWorkspaceHub from '@/modules/crm/components/calendar/CalendarWorkspaceHub';
 import InventoryLayout from '@/modules/inventory/InventoryLayout';
 import ProductMasterList from '@/modules/inventory/components/ProductMasterList';
 import StockControl from '@/modules/inventory/components/StockControl';
 import InventoryMovements from '@/modules/inventory/components/InventoryMovements';
 import FinanceLayout from '@/modules/finance/FinanceLayout';
 import ProcurementLayout from '@/modules/procurement/ProcurementLayout';
-import WorkspaceLayout from '@/modules/workspace/WorkspaceLayout';
 import Login from './components/auth/Login';
 import ResetPassword from './components/auth/ResetPassword';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -124,7 +123,7 @@ function App() {
             <Route path="prospectos" element={<ProspectTable />} />
             <Route path="prospectos/kanban" element={<KanbanBoard />} />
             <Route path="prospectos/detalle" element={<ProspectDetail />} />
-            <Route path="calendar" element={<Calendar />} />
+            <Route path="calendar/*" element={<CalendarWorkspaceHub />} />
             <Route path="settings" element={<CompanySettings />} />
 
             {/* Rutas de Soporte */}
@@ -153,8 +152,8 @@ function App() {
             {/* Rutas de Finanzas y Tesorería */}
             <Route path="finance/*" element={<FinanceLayout />} />
 
-            {/* Rutas de Workspace (Nodo) */}
-            <Route path="workspace/*" element={FEATURES.enableNodo ? <WorkspaceLayout /> : <Navigate to="/crm/dashboard" replace />} />
+            {/* Nodo ahora vive dentro de Calendario */}
+            <Route path="workspace/*" element={<Navigate to={FEATURES.enableNodo ? "/crm/calendar/tasks" : "/crm/calendar"} replace />} />
           </Route>
 
           {/* Módulo de Compras (Ruta Raíz /compras) */}

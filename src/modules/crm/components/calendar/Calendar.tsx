@@ -5,7 +5,7 @@ import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterv
 import { es } from 'date-fns/locale';
 import { EventType } from '@/types';
 
-export default function Calendar() {
+export default function Calendar({ embedded = false }: { embedded?: boolean }) {
     const { calendarEvents, prospects, deleteCalendarEvent } = useCRM();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [isEventModalOpen, setIsEventModalOpen] = useState(false);
@@ -56,29 +56,49 @@ export default function Calendar() {
 
     return (
         <div className="flex-1 flex flex-col h-full overflow-y-auto bg-slate-50 relative">
-            {/* Header */}
-            <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0">
-                <div className="flex items-center gap-4">
-                    <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                        <CalendarIcon className="text-blue-600" />
-                        Calendario
-                    </h1>
-                    <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-lg">
+            {!embedded && (
+                <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0">
+                    <div className="flex items-center gap-4">
+                        <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                            <CalendarIcon className="text-blue-600" />
+                            Calendario
+                        </h1>
+                        <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-lg">
+                            <button onClick={prevMonth} className="p-1 hover:bg-white rounded-md transition-colors"><ChevronLeft size={20} /></button>
+                            <span className="min-w-[120px] text-center font-bold text-slate-700 text-sm capitalize">
+                                {format(currentDate, 'MMMM yyyy', { locale: es })}
+                            </span>
+                            <button onClick={nextMonth} className="p-1 hover:bg-white rounded-md transition-colors"><ChevronRight size={20} /></button>
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => openModalForDate(new Date())}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm shadow-blue-600/20"
+                    >
+                        <Plus size={18} />
+                        Nuevo Evento
+                    </button>
+                </div>
+            )}
+
+            {embedded && (
+                <div className="bg-white border-b border-slate-200 px-6 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between shrink-0">
+                    <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-lg w-max">
                         <button onClick={prevMonth} className="p-1 hover:bg-white rounded-md transition-colors"><ChevronLeft size={20} /></button>
                         <span className="min-w-[120px] text-center font-bold text-slate-700 text-sm capitalize">
                             {format(currentDate, 'MMMM yyyy', { locale: es })}
                         </span>
                         <button onClick={nextMonth} className="p-1 hover:bg-white rounded-md transition-colors"><ChevronRight size={20} /></button>
                     </div>
+                    <button
+                        onClick={() => openModalForDate(new Date())}
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm shadow-blue-600/20"
+                    >
+                        <Plus size={18} />
+                        Nuevo Evento
+                    </button>
                 </div>
-                <button
-                    onClick={() => openModalForDate(new Date())}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm shadow-blue-600/20"
-                >
-                    <Plus size={18} />
-                    Nuevo Evento
-                </button>
-            </div>
+            )}
 
             {/* Grid Container */}
             <div className="flex-1 overflow-auto p-6">

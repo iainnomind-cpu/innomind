@@ -320,7 +320,7 @@ export default function CoreNotifications() {
                 category: 'workspace',
                 sourceLabel: 'Nodo',
                 actionLabel: 'Ver tarea',
-                actionPath: '/crm/workspace/tasks',
+                actionPath: '/crm/calendar/tasks',
                 dueAt,
                 score: (isMine ? 82 : 68) + (days < 0 ? Math.abs(days) : 0)
             }));
