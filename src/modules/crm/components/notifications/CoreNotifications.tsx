@@ -690,7 +690,7 @@ export default function CoreNotifications() {
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 mt-3 w-[min(92vw,420px)] bg-white rounded-lg shadow-2xl border border-gray-200 z-50 overflow-hidden flex flex-col max-h-[82vh]">
+                <div className="absolute right-0 mt-3 w-[min(92vw,420px)] bg-white rounded-lg shadow-2xl border border-gray-200 z-[60] overflow-hidden flex flex-col max-h-[calc(100vh-120px)]">
                     <div className="p-4 border-b border-gray-100 bg-gray-50">
                         <div className="flex items-start justify-between gap-3">
                             <div>
