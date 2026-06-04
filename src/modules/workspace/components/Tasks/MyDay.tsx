@@ -9,6 +9,7 @@ export default function MyDay() {
     const [isCreating, setIsCreating] = useState(false);
     const [newTaskTitle, setNewTaskTitle] = useState('');
     const [newTaskDesc, setNewTaskDesc] = useState('');
+    const [newTaskPriority, setNewTaskPriority] = useState('MEDIA');
 
     const handleCreateTask = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -16,9 +17,10 @@ export default function MyDay() {
         
         // Asignar fecha de vencimiento a hoy por defecto ya que estamos en "Mi Día"
         const today = new Date();
-        await createTask(newTaskTitle, newTaskDesc, 'MEDIA', today);
+        await createTask(newTaskTitle, newTaskDesc, newTaskPriority as any, today);
         setNewTaskTitle('');
         setNewTaskDesc('');
+        setNewTaskPriority('MEDIA');
         setIsCreating(false);
     };
 
@@ -101,6 +103,22 @@ export default function MyDay() {
                             className="w-full px-3 py-2 border border-gray-200 rounded-lg mb-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
                             autoFocus
                         />
+                        <div className="flex gap-3 mb-4">
+                            <div className="flex-1">
+                                <label className="block text-xs text-gray-500 mb-1">Prioridad</label>
+                                <select 
+                                    value={newTaskPriority} 
+                                    onChange={e => setNewTaskPriority(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm bg-white"
+                                >
+                                    <option value="BAJA">Baja</option>
+                                    <option value="MEDIA">Media</option>
+                                    <option value="ALTA">Alta</option>
+                                    <option value="URGENTE">Urgente</option>
+                                </select>
+                            </div>
+                            <div className="flex-1"></div>
+                        </div>
                         <div className="flex justify-end gap-2">
                             <button type="button" onClick={() => setIsCreating(false)} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
                                 Cancelar

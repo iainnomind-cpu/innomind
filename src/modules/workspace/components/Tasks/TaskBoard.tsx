@@ -25,14 +25,20 @@ export default function TaskBoard() {
     const [isCreating, setIsCreating] = useState(false);
     const [newTaskTitle, setNewTaskTitle] = useState('');
     const [newTaskDesc, setNewTaskDesc] = useState('');
+    const [newTaskPriority, setNewTaskPriority] = useState('MEDIA');
+    const [newTaskDueDate, setNewTaskDueDate] = useState('');
 
     const handleCreateTask = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newTaskTitle.trim()) return;
         
-        await createTask(newTaskTitle, newTaskDesc);
+        let dueDateObj = newTaskDueDate ? new Date(newTaskDueDate + 'T12:00:00Z') : undefined;
+        
+        await createTask(newTaskTitle, newTaskDesc, newTaskPriority as any, dueDateObj);
         setNewTaskTitle('');
         setNewTaskDesc('');
+        setNewTaskPriority('MEDIA');
+        setNewTaskDueDate('');
         setIsCreating(false);
     };
 
@@ -172,6 +178,30 @@ export default function TaskBoard() {
                             className="w-full px-3 py-2 border border-gray-200 rounded-lg mb-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm resize-none"
                             rows={2}
                         />
+                        <div className="flex gap-3 mb-4">
+                            <div className="flex-1">
+                                <label className="block text-xs text-gray-500 mb-1">Prioridad</label>
+                                <select 
+                                    value={newTaskPriority} 
+                                    onChange={e => setNewTaskPriority(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm bg-white"
+                                >
+                                    <option value="BAJA">Baja</option>
+                                    <option value="MEDIA">Media</option>
+                                    <option value="ALTA">Alta</option>
+                                    <option value="URGENTE">Urgente</option>
+                                </select>
+                            </div>
+                            <div className="flex-1">
+                                <label className="block text-xs text-gray-500 mb-1">Vencimiento (Opcional)</label>
+                                <input 
+                                    type="date"
+                                    value={newTaskDueDate}
+                                    onChange={e => setNewTaskDueDate(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm text-gray-700"
+                                />
+                            </div>
+                        </div>
                         <div className="flex justify-end gap-2">
                             <button type="button" onClick={() => setIsCreating(false)} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
                                 Cancelar
