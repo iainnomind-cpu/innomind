@@ -190,7 +190,32 @@ export async function completeProjectFinancialCloseout(projectId: string, worksp
       .eq('id', project.client_id)
       .single();
 
-    const prospectId = trakClient?.prospect_id || null;
+    let prospectId = trakClient?.prospect_id || null;
+
+    if (!prospectId && trakClient) {
+      const { data: newProspect, error: prospectError } = await supabase
+        .from('prospects')
+        .insert({
+          workspace: workspaceId,
+          nombre: trakClient.company_name || 'Cliente Trak',
+          empresa: trakClient.company_name || 'Cliente Trak',
+          estado: 'Cliente Activo',
+          correo: 'sin-correo@trak.local',
+          telefono: '0000000000',
+          servicioInteres: project.name || 'Proyecto Trak',
+          plataforma: 'WhatsApp',
+          responsable: userId || 'auto'
+        })
+        .select('id')
+        .single();
+
+      if (!prospectError && newProspect) {
+        prospectId = newProspect.id;
+        await supabase.from('trak_clients').update({ prospect_id: prospectId }).eq('id', project.client_id);
+      } else {
+        console.error('Error auto-creating prospect:', prospectError);
+      }
+    }
 
     if (prospectId) {
       try {
@@ -272,9 +297,36 @@ export async function generateChargeNoteFromMilestone(
     .eq('id', project.client_id)
     .single();
 
-  const prospectId = trakClient?.prospect_id || null;
+  let prospectId = trakClient?.prospect_id || null;
+
+  if (!prospectId && trakClient) {
+    const { data: newProspect, error: prospectError } = await supabase
+      .from('prospects')
+      .insert({
+        workspace: workspaceId,
+        nombre: trakClient.company_name || 'Cliente Trak',
+        empresa: trakClient.company_name || 'Cliente Trak',
+        estado: 'Cliente Activo',
+        correo: 'sin-correo@trak.local',
+        telefono: '0000000000',
+        servicioInteres: project.name || 'Proyecto Trak',
+        plataforma: 'WhatsApp',
+        responsable: userId || 'auto'
+      })
+      .select('id')
+      .single();
+
+    if (!prospectError && newProspect) {
+      prospectId = newProspect.id;
+      await supabase.from('trak_clients').update({ prospect_id: prospectId }).eq('id', project.client_id);
+    } else {
+      console.error('Error auto-creating prospect:', prospectError);
+      return { success: false, error: 'No se pudo crear el prospecto en CRM automáticamente para vincular la factura.' };
+    }
+  }
+
   if (!prospectId) {
-    return { success: false, error: 'El cliente del proyecto no está vinculado a un prospecto del CRM. Vincúlalo primero en la ficha del cliente.' };
+    return { success: false, error: 'El cliente del proyecto no está vinculado a un prospecto del CRM y no se pudo autogenerar.' };
   }
 
   try {
