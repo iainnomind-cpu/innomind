@@ -4,6 +4,7 @@ import { crearCotizacion, leerCotizaciones, crearCliente, leerClientes } from ".
 import { leerInventario, crearProducto } from "./inventory.ts";
 import { leerEmpleados, crearEmpleado } from "./hr.ts";
 import { leerFinanzas, crearGasto, crearCuentaPagar, crearCuentaCobrar } from "./finance.ts";
+import { crearNota, crearRecordatorio } from "./workspace.ts";
 
 /**
  * Esquemas de herramientas compatibles con la API de OpenAI
@@ -93,6 +94,39 @@ export const openAiTools = [
           fecha_limite: { type: "string", description: "Fecha límite YYYY-MM-DD (opcional)" },
         },
         required: ["titulo"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "crear_nota",
+      description: "Crea una nueva nota en la Base de Conocimiento (Nodo/Workspace).",
+      parameters: {
+        type: "object",
+        properties: {
+          titulo: { type: "string", description: "Título de la nota" },
+          contenido: { type: "string", description: "Contenido de texto o markdown de la nota" },
+        },
+        required: ["titulo"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "crear_recordatorio",
+      description: "Crea un nuevo evento o recordatorio en el calendario de CRM-ERP.",
+      parameters: {
+        type: "object",
+        properties: {
+          titulo: { type: "string", description: "Título del evento o recordatorio" },
+          descripcion: { type: "string", description: "Descripción opcional" },
+          fecha_inicio: { type: "string", description: "Fecha (y hora opcional) de inicio YYYY-MM-DD o YYYY-MM-DDTHH:MM:SSZ" },
+          fecha_fin: { type: "string", description: "Fecha (y hora opcional) de fin (opcional)" },
+          tipo: { type: "string", enum: ["recordatorio", "reunión", "llamada"], description: "Tipo de evento" },
+        },
+        required: ["titulo", "fecha_inicio"],
       },
     },
   },
@@ -339,7 +373,7 @@ export function getAllowedToolsForContext(platform: "track" | "crm_erp", moduleC
     ];
 
     if (!moduleContext) {
-      return [...readTools, "crear_cotizacion", "crear_cliente", "crear_producto", "crear_tarea", "crear_gasto", "crear_cuenta_pagar", "crear_cuenta_cobrar"];
+      return [...readTools, "crear_cotizacion", "crear_cliente", "crear_producto", "crear_tarea", "crear_nota", "crear_recordatorio", "crear_gasto", "crear_cuenta_pagar", "crear_cuenta_cobrar"];
     }
 
     const contextLower = moduleContext.toLowerCase();
@@ -375,13 +409,13 @@ export function getAllowedToolsForContext(platform: "track" | "crm_erp", moduleC
     }
 
     // Tareas / Calendario del Nodo
-    if (contextLower.includes("tarea") || contextLower.includes("calendario") || contextLower.includes("nodo") || contextLower.includes("workspace") || contextLower.includes("colabora")) {
-      writeTools.push("crear_tarea");
+    if (contextLower.includes("tarea") || contextLower.includes("calendario") || contextLower.includes("nodo") || contextLower.includes("workspace") || contextLower.includes("colabora") || contextLower.includes("nota")) {
+      writeTools.push("crear_tarea", "crear_nota", "crear_recordatorio");
     }
 
     // Dashboard general - dar todas las herramientas de escritura
     if (contextLower.includes("dashboard")) {
-      writeTools.push("crear_cotizacion", "crear_cliente", "crear_producto", "crear_tarea", "crear_gasto", "crear_cuenta_pagar", "crear_cuenta_cobrar");
+      writeTools.push("crear_cotizacion", "crear_cliente", "crear_producto", "crear_tarea", "crear_nota", "crear_recordatorio", "crear_gasto", "crear_cuenta_pagar", "crear_cuenta_cobrar");
     }
 
     // Deduplicar y combinar
@@ -407,6 +441,10 @@ export async function executeTool(
       return await leerProyectos(supabase, workspaceId, platform);
     case "crear_tarea":
       return await crearTarea(supabase, workspaceId, args, platform);
+    case "crear_nota":
+      return await crearNota(supabase, workspaceId, args, platform);
+    case "crear_recordatorio":
+      return await crearRecordatorio(supabase, workspaceId, args, platform);
     case "obtener_tareas_pendientes":
       return await obtenerTareasPendientes(supabase, workspaceId, platform);
     case "obtener_eventos_calendario":
