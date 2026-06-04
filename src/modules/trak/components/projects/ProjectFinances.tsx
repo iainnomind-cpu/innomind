@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useTrak } from '../../context/TrakContext';
-import { DollarSign, Plus, Trash2, X, Package, Receipt, TrendingUp, CreditCard, CheckCircle2 } from 'lucide-react';
+import { DollarSign, Plus, Trash2, X, Package, Receipt, TrendingUp, CreditCard, CheckCircle2, FileText, Send } from 'lucide-react';
+import { generateChargeNoteFromMilestone, createPayableFromProjectExpense } from '../../services/financeAutomation';
 
 const expenseCategories = ['general', 'materiales', 'transporte', 'subcontrato', 'permisos', 'herramientas', 'otro'];
 const catLabels: Record<string, string> = {
@@ -16,7 +17,9 @@ export default function ProjectFinances({ projectId }: { projectId: string }) {
   const [timeEntries, setTimeEntries] = useState<any[]>([]);
   const [milestones, setMilestones] = useState<any[]>([]);
   const [budget, setBudget] = useState(0);
+  const [project, setProject] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [invoicingId, setInvoicingId] = useState<string | null>(null);
 
   // Modals
   const [showExpenseForm, setShowExpenseForm] = useState(false);
@@ -32,13 +35,13 @@ export default function ProjectFinances({ projectId }: { projectId: string }) {
       supabase.from('trak_project_expenses').select('*').eq('project_id', projectId).order('date', { ascending: false }),
       supabase.from('trak_time_entries').select('duration_minutes, billable, hourly_rate').eq('project_id', projectId),
       supabase.from('trak_project_milestones').select('*').eq('project_id', projectId).order('created_at'),
-      supabase.from('trak_projects').select('budget').eq('id', projectId).single(),
+      supabase.from('trak_projects').select('id, name, client_id, budget').eq('id', projectId).single(),
     ]);
     if (matRes.data) setMaterials(matRes.data);
     if (expRes.data) setExpenses(expRes.data);
     if (timeRes.data) setTimeEntries(timeRes.data);
     if (mileRes.data) setMilestones(mileRes.data);
-    if (projRes.data) setBudget(projRes.data.budget || 0);
+    if (projRes.data) { setBudget(projRes.data.budget || 0); setProject(projRes.data); }
     setIsLoading(false);
   };
 
@@ -71,6 +74,29 @@ export default function ProjectFinances({ projectId }: { projectId: string }) {
       paid_date: next === 'paid' ? new Date().toISOString() : null 
     }).eq('id', id);
     fetchAll();
+  };
+
+  const handleInvoiceMilestone = async (milestone: any) => {
+    if (!project) return;
+    if (milestone.status === 'invoiced' || milestone.status === 'paid') {
+      alert('Este hito ya fue facturado.');
+      return;
+    }
+    setInvoicingId(milestone.id);
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    const result = await generateChargeNoteFromMilestone(
+      { id: milestone.id, name: milestone.name, amount: Number(milestone.amount), due_date: milestone.due_date, percentage: milestone.percentage },
+      { id: project.id, name: project.name, client_id: project.client_id },
+      workspaceId,
+      userId
+    );
+    setInvoicingId(null);
+    if (result.success) {
+      alert('✅ Cuenta por Cobrar generada exitosamente en Finanzas.');
+      fetchAll();
+    } else {
+      alert(`Error: ${result.error}`);
+    }
   };
 
   if (isLoading) return <div className="p-8 text-center text-gray-400">Cargando datos financieros...</div>;
@@ -144,6 +170,17 @@ export default function ProjectFinances({ projectId }: { projectId: string }) {
                     <div className="text-right">
                       <p className="font-black text-gray-900">${Number(m.amount).toLocaleString()}</p>
                     </div>
+                    {m.status === 'pending' && (
+                      <button 
+                        onClick={() => handleInvoiceMilestone(m)}
+                        disabled={invoicingId === m.id}
+                        className="px-2.5 py-1 text-[10px] font-bold uppercase rounded-full border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors flex items-center gap-1 disabled:opacity-50"
+                        title="Generar Cuenta por Cobrar en Finanzas"
+                      >
+                        <FileText size={12} />
+                        {invoicingId === m.id ? 'Generando...' : 'Facturar'}
+                      </button>
+                    )}
                     <button 
                       onClick={() => handleMilestoneStatus(m.id, m.status)}
                       className={`px-3 py-1 text-[10px] font-bold uppercase rounded-full border flex items-center gap-1 transition-colors
@@ -221,7 +258,7 @@ export default function ProjectFinances({ projectId }: { projectId: string }) {
 
       </div>
 
-      {showExpenseForm && <ExpenseFormModal projectId={projectId} onClose={() => setShowExpenseForm(false)} onSaved={() => { setShowExpenseForm(false); fetchAll(); }} />}
+      {showExpenseForm && <ExpenseFormModal projectId={projectId} project={project} workspaceId={workspaceId} onClose={() => setShowExpenseForm(false)} onSaved={() => { setShowExpenseForm(false); fetchAll(); }} />}
       {showMaterialPicker && <MaterialPickerModal projectId={projectId} workspaceId={workspaceId!} onClose={() => setShowMaterialPicker(false)} onSaved={() => { setShowMaterialPicker(false); fetchAll(); }} />}
       {showMilestoneForm && <MilestoneFormModal projectId={projectId} totalBudget={budget} onClose={() => setShowMilestoneForm(false)} onSaved={() => { setShowMilestoneForm(false); fetchAll(); }} />}
     </div>
@@ -295,15 +332,26 @@ function MilestoneFormModal({ projectId, totalBudget, onClose, onSaved }: any) {
 }
 
 // Re-use ExpenseFormModal and MaterialPickerModal from before
-function ExpenseFormModal({ projectId, onClose, onSaved }: any) {
+function ExpenseFormModal({ projectId, project, workspaceId, onClose, onSaved }: any) {
   const [saving, setSaving] = useState(false);
+  const [sendToAP, setSendToAP] = useState(false);
   const [form, setForm] = useState({ category: 'general', description: '', amount: 0, date: new Date().toISOString().split('T')[0] });
 
   const handleSave = async () => {
     if (!form.description || form.amount <= 0) return;
     setSaving(true);
     const userId = (await supabase.auth.getUser()).data.user?.id;
-    await supabase.from('trak_project_expenses').insert({ project_id: projectId, ...form, created_by: userId });
+    const { data: newExpense } = await supabase.from('trak_project_expenses').insert({ project_id: projectId, ...form, created_by: userId }).select('id').single();
+    
+    // If checkbox is checked and we have the expense id, create the AP record
+    if (sendToAP && newExpense?.id && project && workspaceId) {
+      await createPayableFromProjectExpense(
+        { id: newExpense.id, ...form },
+        { id: project.id, name: project.name },
+        workspaceId,
+        userId
+      );
+    }
     setSaving(false);
     onSaved();
   };
@@ -338,6 +386,12 @@ function ExpenseFormModal({ projectId, onClose, onSaved }: any) {
               <input type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})}
                 className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none" />
             </div>
+          </div>
+          <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl p-3">
+            <input type="checkbox" id="sendToAP" checked={sendToAP} onChange={e => setSendToAP(e.target.checked)} className="w-4 h-4 accent-blue-600 rounded" />
+            <label htmlFor="sendToAP" className="text-sm text-blue-800 font-medium cursor-pointer flex items-center gap-2">
+              <Send size={14} /> Registrar también como Cuenta por Pagar en Finanzas
+            </label>
           </div>
         </div>
         <div className="p-5 bg-gray-50 border-t flex justify-end gap-3">
