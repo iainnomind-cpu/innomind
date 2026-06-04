@@ -89,9 +89,9 @@ export default function NotesEditor() {
                         <button
                             key={note.id}
                             onClick={() => { setSelectedNote(note); setIsEditing(false); }}
-                            className={`w - full text - left p - 3 rounded - xl transition - all border ${selectedNote?.id === note.id ? 'bg-white border-gray-200 shadow-sm' : 'border-transparent hover:bg-gray-100'} `}
+                            className={`w-full text-left p-3 rounded-xl transition-all border block ${selectedNote?.id === note.id ? 'bg-white border-gray-200 shadow-sm' : 'border-transparent hover:bg-gray-100'}`}
                         >
-                            <h4 className={`font - semibold text - sm truncate ${selectedNote?.id === note.id ? 'text-gray-900' : 'text-gray-700'} `}>{note.title}</h4>
+                            <h4 className={`font-semibold text-sm truncate ${selectedNote?.id === note.id ? 'text-gray-900' : 'text-gray-700'}`}>{note.title}</h4>
                             <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
                                 <span className="flex items-center gap-1"><Clock size={12} /> {note.updatedAt.toLocaleDateString()}</span>
                             </div>
