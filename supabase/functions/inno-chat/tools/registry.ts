@@ -328,64 +328,8 @@ export function getAllowedToolsForContext(platform: "track" | "crm_erp", moduleC
     ];
   } else {
     // plataforma crm_erp
-    if (!moduleContext) {
-      return [
-        "leer_cotizaciones",
-        "leer_clientes",
-        "obtener_tareas_pendientes",
-        "obtener_eventos_calendario",
-        "leer_inventario",
-        "leer_finanzas",
-      ];
-    }
-
-    const contextLower = moduleContext.toLowerCase();
-
-    // Módulos Financieros (Finanzas, Tesorería, AP/AR, Gastos)
-    if (contextLower.includes("finan") || contextLower.includes("tesor") || contextLower.includes("banco") || contextLower.includes("caja")) {
-      return ["leer_finanzas"];
-    }
-    if (contextLower.includes("gasto") || contextLower.includes("reembolso")) {
-      return ["leer_finanzas", "crear_gasto"];
-    }
-    if (contextLower.includes("cobrar") || contextLower.includes("cxc")) {
-      return ["leer_finanzas", "crear_cuenta_cobrar"];
-    }
-    if (contextLower.includes("pagar") || contextLower.includes("cxp")) {
-      return ["leer_finanzas", "crear_cuenta_pagar"];
-    }
-
-    // Módulo de Compras / Proveedores
-    if (contextLower.includes("compra") || contextLower.includes("abastec") || contextLower.includes("proveedor")) {
-      return ["leer_finanzas", "crear_cuenta_pagar", "leer_inventario"];
-    }
-
-    // Ventas, Prospectos, Cotizaciones y Clientes
-    if (contextLower.includes("crm") || contextLower.includes("embudo") || contextLower.includes("prospecto") || contextLower.includes("cliente") || contextLower.includes("cotizaci")) {
-      return [
-        "crear_cotizacion",
-        "leer_cotizaciones",
-        "crear_cliente",
-        "leer_clientes",
-      ];
-    }
-
-    // Inventarios, Bodegas, Stock
-    if (contextLower.includes("inventario") || contextLower.includes("stock") || contextLower.includes("movimiento") || contextLower.includes("almacen") || contextLower.includes("bodega")) {
-      return ["leer_inventario", "crear_producto"];
-    }
-
-    // Tareas / Calendario del Nodo
-    if (contextLower.includes("tarea") || contextLower.includes("calendario") || contextLower.includes("nodo") || contextLower.includes("workspace") || contextLower.includes("colabora")) {
-      return [
-        "crear_tarea",
-        "obtener_tareas_pendientes",
-        "obtener_eventos_calendario"
-      ];
-    }
-
-    // Por defecto, herramientas de lectura para CRM-ERP
-    return [
+    // SIEMPRE incluir TODAS las herramientas de lectura para que Inno pueda responder preguntas cross-módulo
+    const readTools = [
       "leer_cotizaciones",
       "leer_clientes",
       "obtener_tareas_pendientes",
@@ -393,6 +337,56 @@ export function getAllowedToolsForContext(platform: "track" | "crm_erp", moduleC
       "leer_inventario",
       "leer_finanzas",
     ];
+
+    if (!moduleContext) {
+      return [...readTools, "crear_cotizacion", "crear_cliente", "crear_producto", "crear_tarea", "crear_gasto", "crear_cuenta_pagar", "crear_cuenta_cobrar"];
+    }
+
+    const contextLower = moduleContext.toLowerCase();
+    const writeTools: string[] = [];
+
+    // Módulos Financieros (Finanzas, Tesorería, AP/AR, Gastos)
+    if (contextLower.includes("finan") || contextLower.includes("tesor") || contextLower.includes("banco") || contextLower.includes("caja")) {
+      writeTools.push("crear_gasto", "crear_cuenta_pagar", "crear_cuenta_cobrar");
+    }
+    if (contextLower.includes("gasto") || contextLower.includes("reembolso")) {
+      writeTools.push("crear_gasto");
+    }
+    if (contextLower.includes("cobrar") || contextLower.includes("cxc")) {
+      writeTools.push("crear_cuenta_cobrar");
+    }
+    if (contextLower.includes("pagar") || contextLower.includes("cxp")) {
+      writeTools.push("crear_cuenta_pagar");
+    }
+
+    // Módulo de Compras / Proveedores
+    if (contextLower.includes("compra") || contextLower.includes("abastec") || contextLower.includes("proveedor")) {
+      writeTools.push("crear_cuenta_pagar", "crear_producto");
+    }
+
+    // Ventas, Prospectos, Cotizaciones y Clientes
+    if (contextLower.includes("crm") || contextLower.includes("embudo") || contextLower.includes("prospecto") || contextLower.includes("cliente") || contextLower.includes("cotizaci") || contextLower.includes("venta")) {
+      writeTools.push("crear_cotizacion", "crear_cliente");
+    }
+
+    // Inventarios, Bodegas, Stock
+    if (contextLower.includes("inventario") || contextLower.includes("stock") || contextLower.includes("movimiento") || contextLower.includes("almacen") || contextLower.includes("bodega")) {
+      writeTools.push("crear_producto");
+    }
+
+    // Tareas / Calendario del Nodo
+    if (contextLower.includes("tarea") || contextLower.includes("calendario") || contextLower.includes("nodo") || contextLower.includes("workspace") || contextLower.includes("colabora")) {
+      writeTools.push("crear_tarea");
+    }
+
+    // Dashboard general - dar todas las herramientas de escritura
+    if (contextLower.includes("dashboard")) {
+      writeTools.push("crear_cotizacion", "crear_cliente", "crear_producto", "crear_tarea", "crear_gasto", "crear_cuenta_pagar", "crear_cuenta_cobrar");
+    }
+
+    // Deduplicar y combinar
+    const allTools = [...new Set([...readTools, ...writeTools])];
+    return allTools;
   }
 }
 
