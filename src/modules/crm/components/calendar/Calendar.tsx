@@ -5,10 +5,12 @@ import { useWorkspace } from '@/context/WorkspaceContext';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { EventType } from '@/types';
+import { useNavigate } from 'react-router-dom';
 
 export default function Calendar({ embedded = false }: { embedded?: boolean }) {
     const { calendarEvents, prospects, deleteCalendarEvent } = useCRM();
     const { tasks } = useWorkspace();
+    const navigate = useNavigate();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [isEventModalOpen, setIsEventModalOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -182,6 +184,7 @@ export default function Calendar({ embedded = false }: { embedded?: boolean }) {
                                                 title={`Tarea: ${task.title}\nPrioridad: ${task.priority}\n${task.description || ''}`}
                                                 onClick={(e) => {
                                                     e.stopPropagation();
+                                                    navigate('/crm/calendar/tasks/board');
                                                 }}
                                             >
                                                 <div className="font-bold flex items-center truncate">
