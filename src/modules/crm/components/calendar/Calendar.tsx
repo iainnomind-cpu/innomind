@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Plus, Phone, Video, Bell, X } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Plus, Phone, Video, Bell, X, CheckSquare } from 'lucide-react';
 import { useCRM } from '@/context/CRMContext';
+import { useWorkspace } from '@/context/WorkspaceContext';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { EventType } from '@/types';
 
 export default function Calendar({ embedded = false }: { embedded?: boolean }) {
     const { calendarEvents, prospects, deleteCalendarEvent } = useCRM();
+    const { tasks } = useWorkspace();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [isEventModalOpen, setIsEventModalOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -33,7 +35,9 @@ export default function Calendar({ embedded = false }: { embedded?: boolean }) {
     const days = eachDayOfInterval({ start: startDate, end: endDate });
 
     const getEventsForDay = (day: Date) => {
-        return calendarEvents.filter(event => isSameDay(new Date(event.startTime), day));
+        const crmEvents = calendarEvents.filter(event => isSameDay(new Date(event.startTime), day));
+        const dayTasks = tasks.filter(task => task.dueDate && isSameDay(new Date(task.dueDate), day));
+        return { crmEvents, dayTasks };
     };
 
     const getEventTypeColor = (type: EventType) => {
@@ -116,7 +120,7 @@ export default function Calendar({ embedded = false }: { embedded?: boolean }) {
                     <div className="grid grid-cols-7 flex-1 auto-rows-fr">
                         {days.map((day, idx) => {
                             const isCurrentMonth = isSameMonth(day, monthStart);
-                            const dayEvents = getEventsForDay(day);
+                            const { crmEvents, dayTasks } = getEventsForDay(day);
                             return (
                                 <div
                                     key={day.toString()}
@@ -135,7 +139,7 @@ export default function Calendar({ embedded = false }: { embedded?: boolean }) {
                                         </span>
                                     </div>
                                     <div className="space-y-1.5 overflow-y-auto max-h-[80px] custom-scrollbar">
-                                        {dayEvents.map(event => {
+                                        {crmEvents.map(event => {
                                             const prospect = prospects.find(p => p.id === event.prospectId);
                                             return (
                                                 <div
@@ -166,6 +170,26 @@ export default function Calendar({ embedded = false }: { embedded?: boolean }) {
                                                 </div>
                                             )
                                         })}
+                                        {dayTasks.map(task => (
+                                            <div
+                                                key={`task-${task.id}`}
+                                                className={`text-xs px-2 py-1.5 rounded-md border shadow-sm truncate flex flex-col gap-0.5 hover:opacity-80 transition-opacity ${
+                                                    task.status === 'COMPLETADA' ? 'bg-green-50 text-green-700 border-green-200 opacity-60 line-through' :
+                                                    task.priority === 'URGENTE' ? 'bg-red-50 text-red-700 border-red-200' :
+                                                    task.priority === 'ALTA' ? 'bg-orange-50 text-orange-700 border-orange-200' :
+                                                    'bg-slate-50 text-slate-700 border-slate-200'
+                                                }`}
+                                                title={`Tarea: ${task.title}\nPrioridad: ${task.priority}\n${task.description || ''}`}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                }}
+                                            >
+                                                <div className="font-bold flex items-center truncate">
+                                                    <CheckSquare size={12} className="mr-1 shrink-0" />
+                                                    <span className="truncate">{task.title}</span>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             );
