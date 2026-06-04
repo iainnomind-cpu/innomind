@@ -202,9 +202,9 @@ export async function completeProjectFinancialCloseout(projectId: string, worksp
           estado: 'Cliente Activo',
           correo: 'sin-correo@trak.local',
           telefono: '0000000000',
-          servicioInteres: project.name || 'Proyecto Trak',
+          servicio_interes: project.name || 'Proyecto Trak',
           plataforma: 'WhatsApp',
-          responsable: userId || 'auto'
+          responsable: userId || null
         })
         .select('id')
         .single();
@@ -309,9 +309,9 @@ export async function generateChargeNoteFromMilestone(
         estado: 'Cliente Activo',
         correo: 'sin-correo@trak.local',
         telefono: '0000000000',
-        servicioInteres: project.name || 'Proyecto Trak',
+        servicio_interes: project.name || 'Proyecto Trak',
         plataforma: 'WhatsApp',
-        responsable: userId || 'auto'
+        responsable: userId || null
       })
       .select('id')
       .single();
