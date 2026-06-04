@@ -291,7 +291,7 @@ export async function generateChargeNoteFromMilestone(
   }
 
   // Find the prospect linked to the trak client
-  const { data: trakClient } = await supabase
+  const { data: trakClient, error: clientError } = await supabase
     .from('trak_clients')
     .select('prospect_id, company_name')
     .eq('id', project.client_id)
@@ -326,7 +326,10 @@ export async function generateChargeNoteFromMilestone(
   }
 
   if (!prospectId) {
-    return { success: false, error: 'El cliente del proyecto no está vinculado a un prospecto del CRM y no se pudo autogenerar.' };
+    return { 
+      success: false, 
+      error: `Debug: client_id=${project.client_id}, trakClientFound=${!!trakClient}, err=${clientError?.message}. El cliente no tiene prospecto y falló la autogeneración.` 
+    };
   }
 
   try {
