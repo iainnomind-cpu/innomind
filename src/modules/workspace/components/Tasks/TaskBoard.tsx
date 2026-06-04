@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useWorkspace } from '@/context/WorkspaceContext';
 import { WorkspaceTask } from '@/types';
-import { CheckSquare, Calendar, AlertCircle, Clock, Trash2, Edit2, Play, CheckCircle2, AlertTriangle, User } from 'lucide-react';
+import { CheckSquare, Calendar, AlertCircle, Clock, Trash2, Edit2, Play, CheckCircle2, AlertTriangle, User, Plus, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 // Status colors mapping
@@ -20,8 +20,21 @@ const priorityColors = {
 };
 
 export default function TaskBoard() {
-    const { tasks, isLoading, refreshWorkspace } = useWorkspace();
+    const { tasks, isLoading, refreshWorkspace, createTask } = useWorkspace();
     const [viewMode, setViewMode] = useState<'KANBAN' | 'LIST'>('KANBAN');
+    const [isCreating, setIsCreating] = useState(false);
+    const [newTaskTitle, setNewTaskTitle] = useState('');
+    const [newTaskDesc, setNewTaskDesc] = useState('');
+
+    const handleCreateTask = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newTaskTitle.trim()) return;
+        
+        await createTask(newTaskTitle, newTaskDesc);
+        setNewTaskTitle('');
+        setNewTaskDesc('');
+        setIsCreating(false);
+    };
 
     const updateTaskStatus = async (taskId: string, newStatus: string) => {
         try {
@@ -114,21 +127,62 @@ export default function TaskBoard() {
                     <h2 className="text-2xl font-bold text-gray-900">Tareas Globales</h2>
                     <p className="text-gray-500 mt-1">Gestiona y da seguimiento a los items de acción de todo el equipo.</p>
                 </div>
-                <div className="flex bg-gray-100 p-1 rounded-xl">
-                    <button
-                        onClick={() => setViewMode('KANBAN')}
-                        className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${viewMode === 'KANBAN' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
-                    >
-                        Kanban
+                <div className="flex items-center gap-2">
+                    <button onClick={() => setIsCreating(true)} className="flex items-center gap-2 px-4 py-1.5 bg-blue-600 text-white font-medium rounded-lg text-sm transition-colors hover:bg-blue-700 shadow-sm mr-2">
+                        <Plus size={16} /> Nueva Tarea
                     </button>
-                    <button
-                        onClick={() => setViewMode('LIST')}
-                        className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${viewMode === 'LIST' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
-                    >
-                        Lista
-                    </button>
+                    <div className="flex bg-gray-100 p-1 rounded-xl">
+                        <button
+                            onClick={() => setViewMode('KANBAN')}
+                            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${viewMode === 'KANBAN' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+                        >
+                            Kanban
+                        </button>
+                        <button
+                            onClick={() => setViewMode('LIST')}
+                            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${viewMode === 'LIST' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+                        >
+                            Lista
+                        </button>
+                    </div>
                 </div>
             </div>
+
+            {isCreating && (
+                <div className="px-8 pb-4">
+                    <form onSubmit={handleCreateTask} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm max-w-2xl">
+                        <div className="flex items-start justify-between mb-3">
+                            <h3 className="font-bold text-gray-900">Crear Nueva Tarea</h3>
+                            <button type="button" onClick={() => setIsCreating(false)} className="text-gray-400 hover:text-gray-600">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Título de la tarea"
+                            value={newTaskTitle}
+                            onChange={(e) => setNewTaskTitle(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg mb-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
+                            autoFocus
+                        />
+                        <textarea
+                            placeholder="Descripción (opcional)"
+                            value={newTaskDesc}
+                            onChange={(e) => setNewTaskDesc(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg mb-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm resize-none"
+                            rows={2}
+                        />
+                        <div className="flex justify-end gap-2">
+                            <button type="button" onClick={() => setIsCreating(false)} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                                Cancelar
+                            </button>
+                            <button type="submit" disabled={!newTaskTitle.trim()} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                Guardar Tarea
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
 
             <div className="flex-1 overflow-x-auto overflow-y-hidden px-8 pb-8">
                 {viewMode === 'KANBAN' ? (

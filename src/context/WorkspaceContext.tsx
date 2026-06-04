@@ -23,6 +23,7 @@ interface WorkspaceContextType {
     sendMessage: (content: string, spaceId: string, parentId?: string) => Promise<void>;
     createSpace: (name: string, type: SpaceType, isPrivate?: boolean, linkedObjectType?: string, linkedObjectId?: string) => Promise<WorkspaceSpace | null>;
     createTaskFromMessage: (messageId: string, title: string, description?: string, assignedTo?: string, dueDate?: Date) => Promise<void>;
+    createTask: (title: string, description?: string, priority?: TaskPriority, dueDate?: Date) => Promise<WorkspaceTask | null>;
     createNote: (title: string, spaceId: string, contentJson?: string) => Promise<WorkspaceNote | null>;
     updateNote: (noteId: string, title?: string, contentJson?: string) => Promise<void>;
     deleteNote: (noteId: string) => Promise<void>;
@@ -261,6 +262,26 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setMessages(prev => prev.map(m => m.id === messageId ? { ...m, taskId: taskData.id } : m));
     };
 
+    const createTask = async (title: string, description?: string, priority: TaskPriority = 'MEDIA', dueDate?: Date) => {
+        if (!FEATURES.enableNodo) return null;
+        const workspaceId = validateWorkspace(workspace?.id);
+        const { data, error } = await supabase.from('workspace_tasks').insert([{
+            workspace_id: workspaceId,
+            title,
+            description,
+            priority,
+            due_date: dueDate?.toISOString(),
+            status: 'PENDIENTE',
+            created_by: authUser?.id,
+            assigned_to: authUser?.id // assign to self by default
+        }]).select().single();
+
+        if (error) throw error;
+        const newTask = mapTask(data);
+        setTasks(prev => [newTask, ...prev]);
+        return newTask;
+    };
+
     const createNote = async (title: string, spaceId: string, contentJson?: string) => {
         if (!FEATURES.enableNodo) return null;
         const workspaceId = validateWorkspace(workspace?.id);
@@ -309,7 +330,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return (
         <WorkspaceContext.Provider value={{
             spaces, activeSpace, setActiveSpace, messages, tasks, notes, isLoading,
-            sendMessage, createSpace, createTaskFromMessage, createNote, updateNote, deleteNote,
+            sendMessage, createSpace, createTaskFromMessage, createTask, createNote, updateNote, deleteNote,
             refreshWorkspace: loadData, workspace
         }}>
             {children}

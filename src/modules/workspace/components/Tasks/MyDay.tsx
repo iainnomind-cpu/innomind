@@ -1,11 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useWorkspace } from '@/context/WorkspaceContext';
-import { Calendar, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import { Calendar, CheckCircle2, Clock, AlertCircle, Plus, X } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 export default function MyDay() {
-    const { tasks, isLoading } = useWorkspace();
+    const { tasks, isLoading, createTask } = useWorkspace();
     const { user } = useAuth();
+    const [isCreating, setIsCreating] = useState(false);
+    const [newTaskTitle, setNewTaskTitle] = useState('');
+    const [newTaskDesc, setNewTaskDesc] = useState('');
+
+    const handleCreateTask = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newTaskTitle.trim()) return;
+        
+        // Asignar fecha de vencimiento a hoy por defecto ya que estamos en "Mi Día"
+        const today = new Date();
+        await createTask(newTaskTitle, newTaskDesc, 'MEDIA', today);
+        setNewTaskTitle('');
+        setNewTaskDesc('');
+        setIsCreating(false);
+    };
 
     if (isLoading) {
         return <div className="p-8 text-gray-400">Cargando Mi Día...</div>;
@@ -57,13 +72,45 @@ export default function MyDay() {
             <div className="max-w-3xl mx-auto space-y-8">
 
                 {/* Header */}
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                        Mi Día
-                        <span className="text-sm font-medium text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">{myTasks.length}</span>
-                    </h1>
-                    <p className="text-gray-500 mt-1">Concéntrate en lo que importa hoy.</p>
+                <div className="flex items-start justify-between">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                            Mi Día
+                            <span className="text-sm font-medium text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">{myTasks.length}</span>
+                        </h1>
+                        <p className="text-gray-500 mt-1">Concéntrate en lo que importa hoy.</p>
+                    </div>
+                    <button onClick={() => setIsCreating(true)} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg text-sm transition-colors hover:bg-blue-700 shadow-sm">
+                        <Plus size={16} /> Agregar Tarea
+                    </button>
                 </div>
+
+                {isCreating && (
+                    <form onSubmit={handleCreateTask} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                        <div className="flex items-start justify-between mb-3">
+                            <h3 className="font-bold text-gray-900">Agregar Tarea para Hoy</h3>
+                            <button type="button" onClick={() => setIsCreating(false)} className="text-gray-400 hover:text-gray-600">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="¿Qué necesitas hacer hoy?"
+                            value={newTaskTitle}
+                            onChange={(e) => setNewTaskTitle(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg mb-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
+                            autoFocus
+                        />
+                        <div className="flex justify-end gap-2">
+                            <button type="button" onClick={() => setIsCreating(false)} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                                Cancelar
+                            </button>
+                            <button type="submit" disabled={!newTaskTitle.trim()} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                Guardar
+                            </button>
+                        </div>
+                    </form>
+                )}
 
                 {/* Overdue */}
                 {overdueTasks.length > 0 && (

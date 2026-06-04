@@ -4,7 +4,7 @@ import { FileText, Save, Clock, Search, Hash, Edit3 } from 'lucide-react';
 import { WorkspaceNote } from '@/types';
 
 export default function NotesEditor() {
-    const { activeSpace, notes, createNote, updateNote } = useWorkspace();
+    const { activeSpace, spaces, createSpace, notes, createNote, updateNote } = useWorkspace();
 
     const [selectedNote, setSelectedNote] = useState<WorkspaceNote | null>(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -35,14 +35,25 @@ export default function NotesEditor() {
         setIsEditing(false);
     };
 
-    const handleCreateNew = async () => {
-        if (!activeSpace) {
-            alert("Por favor selecciona un canal o espacio del panel lateral derecho primero para crear la nota ahí.");
+    const handleCreateNew = async (isPersonal: boolean = false) => {
+        let targetSpaceId = activeSpace?.id;
+
+        // Si es nota personal o no hay espacio activo, usar/crear espacio "Personal" privado
+        if (isPersonal || !targetSpaceId) {
+            let personalSpace = spaces.find(s => s.isPrivate && s.name === "Personal");
+            if (!personalSpace) {
+                personalSpace = await createSpace("Personal", "GENERAL", true);
+            }
+            if (personalSpace) targetSpaceId = personalSpace.id;
+        }
+
+        if (!targetSpaceId) {
+            alert("No se pudo determinar el espacio para la nota.");
             return;
         }
 
         const newNoteTitle = "Nueva Nota sin título";
-        const newNote = await createNote(newNoteTitle, activeSpace.id, "");
+        const newNote = await createNote(newNoteTitle, targetSpaceId, "");
         if (newNote) {
             setSelectedNote(newNote);
             setEditTitle(newNoteTitle);
@@ -86,9 +97,14 @@ export default function NotesEditor() {
                             </div>
                         </button>
                     ))}
-                    <button onClick={handleCreateNew} className="w-full mt-4 border-2 border-dashed border-gray-200 rounded-xl p-4 text-center text-gray-500 text-sm font-medium hover:text-blue-600 hover:bg-blue-50 transition-colors">
-                        + Nueva Nota
-                    </button>
+                    <div className="mt-4 space-y-2">
+                        <button onClick={() => handleCreateNew(true)} className="w-full border-2 border-dashed border-gray-200 rounded-xl p-3 text-center text-gray-500 text-sm font-medium hover:text-blue-600 hover:bg-blue-50 transition-colors">
+                            + Nota Personal
+                        </button>
+                        <button onClick={() => handleCreateNew(false)} className="w-full border-2 border-solid border-gray-200 rounded-xl p-3 text-center text-gray-500 text-sm font-medium hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Crear en el canal actual seleccionado">
+                            + Nota en Canal
+                        </button>
+                    </div>
                 </div>
             </div>
 
