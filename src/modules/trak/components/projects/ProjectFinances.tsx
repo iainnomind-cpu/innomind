@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useTrak } from '../../context/TrakContext';
-import { DollarSign, Plus, Trash2, X, Package, Receipt, TrendingUp, CreditCard, CheckCircle2, FileText, Send } from 'lucide-react';
+import { useUsers } from '@/context/UserContext';
+import { DollarSign, Plus, Trash2, X, Package, Receipt, TrendingUp, CreditCard, CheckCircle2, FileText, Send, Download } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import { generateChargeNoteFromMilestone, createPayableFromProjectExpense } from '../../services/financeAutomation';
 
 const expenseCategories = ['general', 'materiales', 'transporte', 'subcontrato', 'permisos', 'herramientas', 'otro'];
@@ -12,6 +15,7 @@ const catLabels: Record<string, string> = {
 
 export default function ProjectFinances({ projectId }: { projectId: string }) {
   const { workspaceId } = useTrak();
+  const { companyProfile } = useUsers();
   const [materials, setMaterials] = useState<any[]>([]);
   const [expenses, setExpenses] = useState<any[]>([]);
   const [timeEntries, setTimeEntries] = useState<any[]>([]);
@@ -20,6 +24,10 @@ export default function ProjectFinances({ projectId }: { projectId: string }) {
   const [project, setProject] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [invoicingId, setInvoicingId] = useState<string | null>(null);
+
+  // PDF Receipt State
+  const [receiptMilestone, setReceiptMilestone] = useState<any>(null);
+  const receiptRef = useRef<HTMLDivElement>(null);
 
   // Modals
   const [showExpenseForm, setShowExpenseForm] = useState(false);
@@ -35,7 +43,7 @@ export default function ProjectFinances({ projectId }: { projectId: string }) {
       supabase.from('trak_project_expenses').select('*').eq('project_id', projectId).order('date', { ascending: false }),
       supabase.from('trak_time_entries').select('duration_minutes, billable, hourly_rate').eq('project_id', projectId),
       supabase.from('trak_project_milestones').select('*').eq('project_id', projectId).order('created_at'),
-      supabase.from('trak_projects').select('id, name, client_id, budget').eq('id', projectId).single(),
+      supabase.from('trak_projects').select('id, name, client_id, budget, client:trak_clients(company_name)').eq('id', projectId).single(),
     ]);
     if (matRes.data) setMaterials(matRes.data);
     if (expRes.data) setExpenses(expRes.data);
@@ -60,6 +68,47 @@ export default function ProjectFinances({ projectId }: { projectId: string }) {
   // Profitability
   const profitMargin = totalExpectedIncome > 0 ? ((totalExpectedIncome - totalCost) / totalExpectedIncome) * 100 : 0;
   const isProfitable = totalExpectedIncome >= totalCost;
+
+  // PDF Helper
+  const renderElementToPDF = async (element: HTMLElement, width?: number): Promise<jsPDF> => {
+    const clone = element.cloneNode(true) as HTMLElement;
+    document.body.appendChild(clone);
+    clone.style.position = 'absolute';
+    clone.style.top = '0';
+    clone.style.left = '0';
+    clone.style.width = width ? `${width}px` : `${element.offsetWidth}px`;
+    clone.style.height = 'max-content';
+    clone.style.overflow = 'visible';
+    clone.style.display = 'block';
+    clone.style.zIndex = '-9999';
+
+    const canvas = await html2canvas(clone, { scale: 2, useCORS: true, windowWidth: clone.scrollWidth, windowHeight: clone.scrollHeight });
+    document.body.removeChild(clone);
+
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, Math.min(pdfHeight, pdf.internal.pageSize.getHeight()));
+    return pdf;
+  };
+
+  const handleDownloadReceipt = (milestone: any) => {
+    setReceiptMilestone(milestone);
+    setTimeout(async () => {
+      if (!receiptRef.current) return;
+      try {
+        const pdf = await renderElementToPDF(receiptRef.current, 800);
+        const dateStr = milestone.paid_date ? milestone.paid_date.split('T')[0] : new Date().toISOString().split('T')[0];
+        pdf.save(`Recibo_${project.name}_${dateStr}.pdf`);
+        alert('✅ Recibo descargado exitosamente.');
+      } catch (e) {
+        console.error(e);
+        alert('Error al generar el recibo');
+      }
+      setReceiptMilestone(null);
+    }, 150);
+  };
 
   const handleDelete = async (table: string, id: string) => {
     await supabase.from(table).delete().eq('id', id);
@@ -231,6 +280,13 @@ export default function ProjectFinances({ projectId }: { projectId: string }) {
                           <span className="px-3 py-1.5 text-[11px] font-bold uppercase rounded-lg bg-emerald-100 text-emerald-800 flex items-center gap-1.5">
                             <CheckCircle2 size={12} /> Pagado
                           </span>
+                          <button
+                            onClick={() => handleDownloadReceipt(m)}
+                            className="p-1.5 text-gray-400 hover:text-blue-600 rounded-lg bg-gray-50 hover:bg-blue-50 transition-colors"
+                            title="Descargar Recibo (PDF)"
+                          >
+                            <Download size={14} />
+                          </button>
                           <button 
                             onClick={() => handleMilestoneStatus(m.id, m.status)}
                             className="text-[10px] text-gray-400 hover:text-red-500 underline"
@@ -314,6 +370,72 @@ export default function ProjectFinances({ projectId }: { projectId: string }) {
       {showExpenseForm && <ExpenseFormModal projectId={projectId} project={project} workspaceId={workspaceId} onClose={() => setShowExpenseForm(false)} onSaved={() => { setShowExpenseForm(false); fetchAll(); }} />}
       {showMaterialPicker && <MaterialPickerModal projectId={projectId} workspaceId={workspaceId!} onClose={() => setShowMaterialPicker(false)} onSaved={() => { setShowMaterialPicker(false); fetchAll(); }} />}
       {showMilestoneForm && <MilestoneFormModal projectId={projectId} totalBudget={budget} onClose={() => setShowMilestoneForm(false)} onSaved={() => { setShowMilestoneForm(false); fetchAll(); }} />}
+
+      {/* Hidden Receipt Template for PDF Generation */}
+      <div className="hidden">
+        <div ref={receiptRef} className="bg-white p-8 w-[800px] font-sans">
+          {receiptMilestone && project && (
+            <>
+              <div className="flex justify-between items-start mb-8 border-b border-gray-200 pb-6">
+                <div className="flex items-center gap-4">
+                  {companyProfile?.logoUrl ? (
+                    <img src={companyProfile.logoUrl} alt="Logo" className="h-16 w-16 object-contain rounded-lg" crossOrigin="anonymous" />
+                  ) : (
+                    <div className="h-16 w-16 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center font-bold text-2xl">
+                      {companyProfile?.nombreEmpresa?.charAt(0).toUpperCase() || 'E'}
+                    </div>
+                  )}
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">{companyProfile?.nombreEmpresa || 'Mi Empresa'}</h2>
+                    {companyProfile?.rfc && <p className="text-sm text-gray-500 font-medium">RFC: {companyProfile.rfc}</p>}
+                    {companyProfile?.direccion && <p className="text-sm text-gray-500 max-w-xs">{companyProfile.direccion}</p>}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">RECIBO DE PAGO</h1>
+                  <p className="text-gray-500 mt-1">Comprobante de Ingreso</p>
+                  <p className="text-xl font-bold text-gray-800 mt-2">
+                    {receiptMilestone.charge_note_id ? `NC-${receiptMilestone.charge_note_id.substring(0, 8).toUpperCase()}` : `PRY-${project.name.substring(0, 6).toUpperCase()}`}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-8 mb-10">
+                <div>
+                  <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Cliente</p>
+                  <h3 className="text-lg font-bold text-gray-900">{project.client?.company_name || 'Cliente de Proyecto'}</h3>
+                  <p className="text-gray-600 mt-1">Proyecto: {project.name}</p>
+                </div>
+                <div className="text-right">
+                  <div className="mb-4">
+                    <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-1">Fecha de Pago</p>
+                    <p className="text-gray-800 font-medium">{receiptMilestone.paid_date ? new Date(receiptMilestone.paid_date).toLocaleDateString() : new Date().toLocaleDateString()}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-10 p-6 bg-emerald-50 rounded-xl border border-emerald-100">
+                <h4 className="text-lg font-bold text-emerald-900 mb-4">Detalles del Cobro</h4>
+                <div className="space-y-3">
+                  <div className="flex justify-between text-emerald-800">
+                    <span className="font-medium">Concepto:</span>
+                    <span>{receiptMilestone.name}</span>
+                  </div>
+                  <div className="flex justify-between text-emerald-900 font-bold text-2xl pt-4 border-t border-emerald-200/60 mt-4">
+                    <span>Total Pagado:</span>
+                    <span>${Number(receiptMilestone.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })} MXN</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-16 text-center text-gray-500 text-sm">
+                <p>Este documento es un comprobante de pago generado por el sistema.</p>
+                <p>Si tienes alguna duda, contáctanos.</p>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
