@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useTrak } from '../../context/TrakContext';
 import { useUsers } from '@/context/UserContext';
-import { DollarSign, Plus, Trash2, X, Package, Receipt, TrendingUp, CreditCard, CheckCircle2, FileText, Send, Download } from 'lucide-react';
+import { DollarSign, Plus, Trash2, X, Package, Receipt, TrendingUp, CreditCard, CheckCircle2, FileText, Send, Download, Mail, MessageCircle } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { generateChargeNoteFromMilestone, createPayableFromProjectExpense } from '../../services/financeAutomation';
@@ -43,7 +43,7 @@ export default function ProjectFinances({ projectId }: { projectId: string }) {
       supabase.from('trak_project_expenses').select('*').eq('project_id', projectId).order('date', { ascending: false }),
       supabase.from('trak_time_entries').select('duration_minutes, billable, hourly_rate').eq('project_id', projectId),
       supabase.from('trak_project_milestones').select('*').eq('project_id', projectId).order('created_at'),
-      supabase.from('trak_projects').select('id, name, client_id, budget, client:trak_clients(company_name)').eq('id', projectId).single(),
+      supabase.from('trak_projects').select('id, name, client_id, budget, client:trak_clients(company_name, email, phone)').eq('id', projectId).single(),
     ]);
     if (matRes.data) setMaterials(matRes.data);
     if (expRes.data) setExpenses(expRes.data);
@@ -105,6 +105,67 @@ export default function ProjectFinances({ projectId }: { projectId: string }) {
       } catch (e) {
         console.error(e);
         alert('Error al generar el recibo');
+      }
+      setReceiptMilestone(null);
+    }, 150);
+  };
+
+  const handleEmailReceipt = (milestone: any) => {
+    setReceiptMilestone(milestone);
+    setTimeout(async () => {
+      if (!receiptRef.current) return;
+      try {
+        const pdf = await renderElementToPDF(receiptRef.current, 800);
+        const dateStr = milestone.paid_date ? milestone.paid_date.split('T')[0] : new Date().toISOString().split('T')[0];
+        pdf.save(`Recibo_${project.name}_${dateStr}.pdf`);
+
+        const clientEmail = project.client?.email || '';
+        const clientName = project.client?.company_name || 'Cliente';
+        const companyName = companyProfile?.nombreEmpresa || 'Mi Empresa';
+        const subject = encodeURIComponent(`Recibo de Pago - Proyecto ${project.name} - ${companyName}`);
+        const body = encodeURIComponent(
+          `Estimado/a ${clientName},\n\n` +
+          `Le envío adjunto el recibo de pago por $${Number(milestone.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })} MXN correspondiente al concepto: ${milestone.name}.\n\n` +
+          `Proyecto: ${project.name}\n` +
+          `Fecha de pago: ${dateStr}\n\n` +
+          `Por favor, adjunte el archivo PDF que se acaba de descargar a este correo antes de enviarlo.\n\n` +
+          `Saludos cordiales,\n${companyName}`
+        );
+
+        window.open(`mailto:${clientEmail}?subject=${subject}&body=${body}`, '_blank');
+        alert('📧 Se descargó el recibo y se abrió tu cliente de correo.\n\n⚠️ Recuerda adjuntar el archivo PDF descargado.');
+      } catch (e) {
+        console.error(e);
+        alert('Error al preparar el correo del recibo');
+      }
+      setReceiptMilestone(null);
+    }, 150);
+  };
+
+  const handleWhatsAppReceipt = (milestone: any) => {
+    setReceiptMilestone(milestone);
+    setTimeout(async () => {
+      if (!receiptRef.current) return;
+      try {
+        const pdf = await renderElementToPDF(receiptRef.current, 800);
+        const dateStr = milestone.paid_date ? milestone.paid_date.split('T')[0] : new Date().toISOString().split('T')[0];
+        pdf.save(`Recibo_${project.name}_${dateStr}.pdf`);
+
+        const clientName = project.client?.company_name || 'Cliente';
+        const companyName = companyProfile?.nombreEmpresa || 'Mi Empresa';
+        const phone = (project.client?.phone || '').replace(/\D/g, '');
+        const message = encodeURIComponent(
+          `Hola ${clientName}, le saluda ${companyName}.\n\n` +
+          `Le envío su recibo de pago por *$${Number(milestone.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })} MXN* correspondiente al concepto: *${milestone.name}* (Proyecto: ${project.name}).\n\n` +
+          `Quedamos a sus órdenes.`
+        );
+
+        const whatsappUrl = phone ? `https://wa.me/${phone}?text=${message}` : `https://wa.me/?text=${message}`;
+        window.open(whatsappUrl, '_blank');
+        alert('✅ Se descargó el recibo y se abrió WhatsApp.\n\n⚠️ Recuerda adjuntar el PDF descargado en la conversación.');
+      } catch (e) {
+        console.error(e);
+        alert('Error al preparar WhatsApp');
       }
       setReceiptMilestone(null);
     }, 150);
@@ -280,13 +341,29 @@ export default function ProjectFinances({ projectId }: { projectId: string }) {
                           <span className="px-3 py-1.5 text-[11px] font-bold uppercase rounded-lg bg-emerald-100 text-emerald-800 flex items-center gap-1.5">
                             <CheckCircle2 size={12} /> Pagado
                           </span>
-                          <button
-                            onClick={() => handleDownloadReceipt(m)}
-                            className="p-1.5 text-gray-400 hover:text-blue-600 rounded-lg bg-gray-50 hover:bg-blue-50 transition-colors"
-                            title="Descargar Recibo (PDF)"
-                          >
-                            <Download size={14} />
-                          </button>
+                          <div className="flex gap-1 items-center border-l border-gray-200 pl-2 ml-1">
+                            <button
+                              onClick={() => handleDownloadReceipt(m)}
+                              className="p-1.5 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
+                              title="Descargar Recibo (PDF)"
+                            >
+                              <Download size={14} />
+                            </button>
+                            <button
+                              onClick={() => handleEmailReceipt(m)}
+                              className="p-1.5 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
+                              title="Enviar por Email"
+                            >
+                              <Mail size={14} />
+                            </button>
+                            <button
+                              onClick={() => handleWhatsAppReceipt(m)}
+                              className="p-1.5 text-gray-400 hover:text-green-600 rounded-lg hover:bg-green-50 transition-colors"
+                              title="Enviar por WhatsApp"
+                            >
+                              <MessageCircle size={14} />
+                            </button>
+                          </div>
                           <button 
                             onClick={() => handleMilestoneStatus(m.id, m.status)}
                             className="text-[10px] text-gray-400 hover:text-red-500 underline"
