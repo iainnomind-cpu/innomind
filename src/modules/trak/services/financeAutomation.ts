@@ -364,11 +364,17 @@ export async function generateChargeNoteFromMilestone(
       });
     }
 
-    // Update milestone status to 'invoiced'
+    // Update milestone status to 'invoiced' (critical - always do this first)
     await supabase.from('trak_project_milestones').update({
-      status: 'invoiced',
-      charge_note_id: noteId || null
+      status: 'invoiced'
     }).eq('id', milestone.id);
+
+    // Try to store the charge_note_id link (optional - column may not exist yet)
+    if (noteId) {
+      await supabase.from('trak_project_milestones').update({
+        charge_note_id: noteId
+      }).eq('id', milestone.id).then(() => {});
+    }
 
     // Activity log
     await supabase.from('trak_project_activity').insert({

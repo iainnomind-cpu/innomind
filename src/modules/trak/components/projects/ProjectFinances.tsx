@@ -68,9 +68,9 @@ export default function ProjectFinances({ projectId }: { projectId: string }) {
 
   const handleMilestoneStatus = async (id: string, currentStatus: string) => {
     // Only allow manual toggle from 'invoiced' to 'paid' and back.
-    // 'pending' -> 'invoiced' happens ONLY via the 'Facturar' button.
+    // 'pending' -> 'invoiced' happens ONLY via the 'Generar CxC' button.
     if (currentStatus === 'pending') {
-      alert('Para cambiar a Facturado, utiliza el botón de "Facturar" que generará la Cuenta por Cobrar.');
+      alert('Para cambiar a Facturado, utiliza el botón de "Generar CxC" que generará la Cuenta por Cobrar.');
       return;
     }
     const next = currentStatus === 'invoiced' ? 'paid' : 'invoiced';
@@ -78,15 +78,42 @@ export default function ProjectFinances({ projectId }: { projectId: string }) {
       status: next, 
       paid_date: next === 'paid' ? new Date().toISOString() : null 
     }).eq('id', id);
+
+    // Sync with Finanzas: if marking paid and there's a linked charge note, update it too
+    if (next === 'paid') {
+      const { data: ms } = await supabase.from('trak_project_milestones').select('charge_note_id, amount').eq('id', id).single();
+      if (ms?.charge_note_id) {
+        // Register a full payment on the charge note
+        const userId = (await supabase.auth.getUser()).data.user?.id;
+        await supabase.from('charge_note_payments').insert({
+          charge_note_id: ms.charge_note_id,
+          amount: Number(ms.amount),
+          payment_date: new Date().toISOString().split('T')[0],
+          payment_method: 'Registrado desde Proyecto',
+          reference: 'Marcado como pagado en Plan de Pagos',
+          workspace_id: workspaceId
+        });
+      }
+    }
+
     fetchAll();
   };
 
   const handleInvoiceMilestone = async (milestone: any) => {
     if (!project) return;
     if (milestone.status === 'invoiced' || milestone.status === 'paid') {
-      alert('Este hito ya fue facturado.');
+      alert('Este pago ya fue enviado a Finanzas.');
       return;
     }
+
+    // Double-check at DB level to prevent duplicates from stale UI
+    const { data: freshMs } = await supabase.from('trak_project_milestones').select('status').eq('id', milestone.id).single();
+    if (freshMs && freshMs.status !== 'pending') {
+      alert('Este pago ya fue enviado a Finanzas. Recarga la página para ver el estado actualizado.');
+      fetchAll();
+      return;
+    }
+
     setInvoicingId(milestone.id);
     const userId = (await supabase.auth.getUser()).data.user?.id;
     const result = await generateChargeNoteFromMilestone(
@@ -97,7 +124,7 @@ export default function ProjectFinances({ projectId }: { projectId: string }) {
     );
     setInvoicingId(null);
     if (result.success) {
-      alert('✅ Cuenta por Cobrar generada exitosamente en Finanzas.');
+      alert('✅ Cuenta por Cobrar generada exitosamente en Finanzas. Puedes verla en el módulo de Cuentas por Cobrar.');
       fetchAll();
     } else {
       alert(`Error: ${result.error}`);
