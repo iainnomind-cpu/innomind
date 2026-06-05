@@ -145,12 +145,12 @@ export default function ProjectFinances({ projectId }: { projectId: string }) {
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         
-        {/* HITOS DE COBRANZA */}
+        {/* PLAN DE PAGOS */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
           <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
             <div>
-              <h3 className="font-bold text-gray-900 flex items-center gap-2"><CreditCard size={16} /> Hitos de Cobranza</h3>
-              <p className="text-xs text-gray-500 mt-0.5">Pagos esperados del cliente</p>
+              <h3 className="font-bold text-gray-900 flex items-center gap-2"><CreditCard size={16} /> Plan de Pagos del Cliente</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Define los cobros, porcentajes o anticipos</p>
             </div>
             <button onClick={() => setShowMilestoneForm(true)}
               className="text-xs font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg flex items-center gap-1">
@@ -175,28 +175,49 @@ export default function ProjectFinances({ projectId }: { projectId: string }) {
                     <div className="text-right">
                       <p className="font-black text-gray-900">${Number(m.amount).toLocaleString()}</p>
                     </div>
-                    {m.status === 'pending' && (
-                      <button 
-                        onClick={() => handleInvoiceMilestone(m)}
-                        disabled={invoicingId === m.id}
-                        className="px-2.5 py-1 text-[10px] font-bold uppercase rounded-full border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors flex items-center gap-1 disabled:opacity-50"
-                        title="Generar Cuenta por Cobrar en Finanzas"
-                      >
-                        <FileText size={12} />
-                        {invoicingId === m.id ? 'Generando...' : 'Facturar'}
+                    <div className="flex items-center gap-2">
+                      {m.status === 'pending' ? (
+                        <button 
+                          onClick={() => handleInvoiceMilestone(m)}
+                          disabled={invoicingId === m.id}
+                          className="px-3 py-1.5 text-[11px] font-bold uppercase rounded-lg bg-purple-600 hover:bg-purple-700 text-white transition-colors flex items-center gap-1.5 disabled:opacity-50 shadow-sm"
+                          title="Enviar a Finanzas como Cuenta por Cobrar"
+                        >
+                          <Send size={12} />
+                          {invoicingId === m.id ? 'Generando...' : 'Generar CxC'}
+                        </button>
+                      ) : m.status === 'invoiced' ? (
+                        <>
+                          <span className="text-[10px] font-medium text-gray-400 flex items-center gap-1 px-2" title="Sincronizado con Finanzas">
+                            <FileText size={12} className="text-blue-500" /> CxC Generada
+                          </span>
+                          <button 
+                            onClick={() => handleMilestoneStatus(m.id, m.status)}
+                            className="px-3 py-1.5 text-[11px] font-bold uppercase rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors flex items-center gap-1.5"
+                          >
+                            <DollarSign size={12} />
+                            Marcar Pagado
+                          </button>
+                        </>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span className="px-3 py-1.5 text-[11px] font-bold uppercase rounded-lg bg-emerald-100 text-emerald-800 flex items-center gap-1.5">
+                            <CheckCircle2 size={12} /> Pagado
+                          </span>
+                          <button 
+                            onClick={() => handleMilestoneStatus(m.id, m.status)}
+                            className="text-[10px] text-gray-400 hover:text-red-500 underline"
+                            title="Deshacer pago"
+                          >
+                            Deshacer
+                          </button>
+                        </div>
+                      )}
+                      
+                      <button onClick={() => handleDelete('trak_project_milestones', m.id)} className="p-1.5 text-gray-300 hover:text-red-500 ml-2">
+                        <Trash2 size={14} />
                       </button>
-                    )}
-                    <button 
-                      onClick={() => handleMilestoneStatus(m.id, m.status)}
-                      className={`px-3 py-1 text-[10px] font-bold uppercase rounded-full border flex items-center gap-1 transition-colors
-                        ${m.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 
-                          m.status === 'invoiced' ? 'bg-blue-50 text-blue-700 border-blue-200' : 
-                          'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'}`}
-                    >
-                      {m.status === 'paid' && <CheckCircle2 size={12} />}
-                      {m.status === 'paid' ? 'Pagado' : m.status === 'invoiced' ? 'Facturado' : 'Pendiente'}
-                    </button>
-                    <button onClick={() => handleDelete('trak_project_milestones', m.id)} className="p-1.5 text-gray-300 hover:text-red-500"><Trash2 size={14} /></button>
+                    </div>
                   </li>
                 ))}
               </ul>
