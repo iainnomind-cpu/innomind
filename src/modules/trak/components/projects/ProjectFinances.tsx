@@ -189,23 +189,6 @@ export default function ProjectFinances({ projectId }: { projectId: string }) {
       paid_date: next === 'paid' ? new Date().toISOString() : null 
     }).eq('id', id);
 
-    // Sync with Finanzas: if marking paid and there's a linked charge note, update it too
-    if (next === 'paid') {
-      const { data: ms } = await supabase.from('trak_project_milestones').select('charge_note_id, amount').eq('id', id).single();
-      if (ms?.charge_note_id) {
-        // Register a full payment on the charge note
-        const userId = (await supabase.auth.getUser()).data.user?.id;
-        await supabase.from('charge_note_payments').insert({
-          charge_note_id: ms.charge_note_id,
-          amount: Number(ms.amount),
-          payment_date: new Date().toISOString().split('T')[0],
-          payment_method: 'Registrado desde Proyecto',
-          reference: 'Marcado como pagado en Plan de Pagos',
-          workspace_id: workspaceId
-        });
-      }
-    }
-
     fetchAll();
   };
 
@@ -234,7 +217,7 @@ export default function ProjectFinances({ projectId }: { projectId: string }) {
     );
     setInvoicingId(null);
     if (result.success) {
-      alert('✅ Cuenta por Cobrar generada exitosamente en Finanzas. Puedes verla en el módulo de Cuentas por Cobrar.');
+      alert('✅ Hito marcado como Cuenta por Cobrar. Puedes darle seguimiento en la pestaña de Finanzas Trak.');
       fetchAll();
     } else {
       alert(`Error: ${result.error}`);
@@ -472,7 +455,7 @@ export default function ProjectFinances({ projectId }: { projectId: string }) {
                   <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">RECIBO DE PAGO</h1>
                   <p className="text-gray-500 mt-1">Comprobante de Ingreso</p>
                   <p className="text-xl font-bold text-gray-800 mt-2">
-                    {receiptMilestone.charge_note_id ? `NC-${receiptMilestone.charge_note_id.substring(0, 8).toUpperCase()}` : `PRY-${project.name.substring(0, 6).toUpperCase()}`}
+                    {`PRY-${project.name.substring(0, 10).replace(/\s/g, '').toUpperCase()}`}
                   </p>
                 </div>
               </div>

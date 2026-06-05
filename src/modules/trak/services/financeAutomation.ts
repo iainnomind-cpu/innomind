@@ -161,6 +161,11 @@ export async function ensureAcceptedQuoteFinance(input: QuoteAutomationInput) {
   return projectId;
 }
 
+/**
+ * Completes the financial closeout of a project.
+ * Now stays 100% within Trak: only updates trak_project_milestones
+ * and trak_project_activity. Does NOT write to Core tables.
+ */
 export async function completeProjectFinancialCloseout(projectId: string, workspaceId: string | null, userId?: string | null) {
   const [{ data: milestones }, { data: project }] = await Promise.all([
     supabase.from('trak_project_milestones').select('id, status, amount, name').eq('project_id', projectId),
@@ -181,77 +186,11 @@ export async function completeProjectFinancialCloseout(projectId: string, worksp
     })
     .eq('id', projectId);
 
-  // If there's pending amount and a linked client, auto-generate a final Charge Note
-  if (workspaceId && pendingAmount > 0 && project?.client_id) {
-    // Lookup prospect linked to this trak client
-    const { data: trakClient } = await supabase
-      .from('trak_clients')
-      .select('prospect_id, company_name')
-      .eq('id', project.client_id)
-      .single();
-
-    let prospectId = trakClient?.prospect_id || null;
-
-    if (!prospectId && trakClient) {
-      const { data: newProspect, error: prospectError } = await supabase
-        .from('prospects')
-        .insert({
-          workspace: workspaceId,
-          nombre: trakClient.company_name || 'Cliente Trak',
-          empresa: trakClient.company_name || 'Cliente Trak',
-          estado: 'Cliente Activo',
-          correo: 'sin-correo@trak.local',
-          telefono: '0000000000',
-          servicio_interes: project.name || 'Proyecto Trak',
-          plataforma: 'WhatsApp',
-          responsable: userId || null
-        })
-        .select('id')
-        .single();
-
-      if (!prospectError && newProspect) {
-        prospectId = newProspect.id;
-        await supabase.from('trak_clients').update({ prospect_id: prospectId }).eq('id', project.client_id);
-      } else {
-        console.error('Error auto-creating prospect:', prospectError);
-      }
-    }
-
-    if (prospectId) {
-      try {
-        const noteNumber = `NC-PROY-${project?.name?.slice(0, 10).replace(/\s/g, '')}-LIQ`;
-        const today = new Date().toISOString().split('T')[0];
-        const dueDateObj = new Date();
-        dueDateObj.setDate(dueDateObj.getDate() + 30);
-        const dueDate = dueDateObj.toISOString().split('T')[0];
-
-        const pendingMilestones = (milestones || []).filter(m => m.status !== 'paid');
-        const items = pendingMilestones.map(m => ({
-          item_name: m.name || 'Hito de proyecto',
-          description: `Liquidación - ${project?.name || 'Proyecto'}`,
-          quantity: 1,
-          unit_price: Number(m.amount || 0),
-          total: Number(m.amount || 0)
-        }));
-
-        await supabase.rpc('create_manual_charge_note', {
-          p_workspace_id: workspaceId,
-          p_prospect_id: prospectId,
-          p_note_number: noteNumber,
-          p_issue_date: today,
-          p_due_date: dueDate,
-          p_subtotal: pendingAmount,
-          p_total_amount: pendingAmount
-        }).then(async ({ data: noteId }) => {
-          if (noteId && items.length > 0) {
-            await supabase.from('charge_note_items').insert(
-              items.map(item => ({ ...item, charge_note_id: noteId }))
-            );
-          }
-        });
-      } catch (err) {
-        console.error('Error creating closeout charge note:', err);
-      }
+  // Mark all pending milestones as 'invoiced' so they show as pending-to-collect in Trak Finance
+  if (pendingAmount > 0) {
+    const pendingIds = (milestones || []).filter(m => m.status === 'pending').map(m => m.id);
+    if (pendingIds.length > 0) {
+      await supabase.from('trak_project_milestones').update({ status: 'invoiced' }).in('id', pendingIds);
     }
   }
 
@@ -261,7 +200,7 @@ export async function completeProjectFinancialCloseout(projectId: string, worksp
     type: pendingAmount > 0 ? 'milestone' : 'status_change',
     is_resolved: pendingAmount <= 0,
     content: pendingAmount > 0
-      ? `Proyecto completado. Se generó Cuenta por Cobrar de liquidación por ${money(pendingAmount)}.`
+      ? `Proyecto completado. Quedan ${money(pendingAmount)} pendientes de cobrar en Plan de Pagos.`
       : 'Proyecto completado y sin cobranza pendiente registrada.'
   });
 
@@ -269,16 +208,17 @@ export async function completeProjectFinancialCloseout(projectId: string, worksp
     await supabase.from('trak_notifications').insert({
       workspace_id: workspaceId,
       type: 'finance',
-      title: 'Liquidación de proyecto generada',
-      message: `Se creó una Cuenta por Cobrar de ${money(pendingAmount)} por la liquidación de "${project?.name}".`,
-      link_url: `/crm/finance/receivables`
+      title: 'Proyecto completado con saldo pendiente',
+      message: `"${project?.name}" fue completado. Quedan ${money(pendingAmount)} por cobrar en el Plan de Pagos.`,
+      link_url: `/trak/projects/${projectId}`
     });
   }
 }
 
 /**
- * Generates a Charge Note (Account Receivable) from a project milestone.
- * Called when user clicks "Facturar" on a milestone in ProjectFinances.
+ * Marks a project milestone as 'invoiced' (Cuenta por Cobrar generated).
+ * Now stays 100% within Trak: only updates trak_project_milestones.
+ * Does NOT write to Core charge_notes or prospects tables.
  */
 export async function generateChargeNoteFromMilestone(
   milestone: { id: string; name: string; amount: number; due_date?: string | null; percentage?: number },
@@ -290,98 +230,27 @@ export async function generateChargeNoteFromMilestone(
     return { success: false, error: 'Proyecto sin cliente o workspace asignado.' };
   }
 
-  // Find the prospect linked to the trak client
-  const { data: trakClient, error: clientError } = await supabase
-    .from('trak_clients')
-    .select('prospect_id, company_name')
-    .eq('id', project.client_id)
-    .single();
-
-  let prospectId = trakClient?.prospect_id || null;
-
-  if (!prospectId && trakClient) {
-    const { data: newProspect, error: prospectError } = await supabase
-      .from('prospects')
-      .insert({
-        workspace: workspaceId,
-        nombre: trakClient.company_name || 'Cliente Trak',
-        empresa: trakClient.company_name || 'Cliente Trak',
-        estado: 'Cliente Activo',
-        correo: 'sin-correo@trak.local',
-        telefono: '0000000000',
-        servicio_interes: project.name || 'Proyecto Trak',
-        plataforma: 'WhatsApp',
-        responsable: userId || null
-      })
-      .select('id')
-      .single();
-
-    if (!prospectError && newProspect) {
-      prospectId = newProspect.id;
-      await supabase.from('trak_clients').update({ prospect_id: prospectId }).eq('id', project.client_id);
-    } else {
-      console.error('Error auto-creating prospect:', prospectError);
-      return { success: false, error: `Error DB al crear cliente: ${prospectError?.message || prospectError?.details || 'Desconocido'}` };
-    }
-  }
-
-  if (!prospectId) {
-    return { 
-      success: false, 
-      error: `Debug: client_id=${project.client_id}, trakClientFound=${!!trakClient}, err=${clientError?.message}. El cliente no tiene prospecto y falló la autogeneración.` 
-    };
-  }
-
   try {
-    const noteNumber = `NC-${project.name.slice(0, 8).replace(/\s/g, '').toUpperCase()}-${milestone.name.slice(0, 6).replace(/\s/g, '').toUpperCase()}`;
-    const today = new Date().toISOString().split('T')[0];
-    const dueDate = milestone.due_date || (() => {
-      const d = new Date();
-      d.setDate(d.getDate() + 15);
-      return d.toISOString().split('T')[0];
-    })();
-
-    const { data: noteId, error: noteError } = await supabase.rpc('create_manual_charge_note', {
-      p_workspace_id: workspaceId,
-      p_prospect_id: prospectId,
-      p_note_number: noteNumber,
-      p_issue_date: today,
-      p_due_date: dueDate,
-      p_subtotal: milestone.amount,
-      p_total_amount: milestone.amount
-    });
-
-    if (noteError) throw noteError;
-
-    if (noteId) {
-      await supabase.from('charge_note_items').insert({
-        charge_note_id: noteId,
-        item_name: milestone.name,
-        description: `Proyecto: ${project.name}${milestone.percentage ? ` (${milestone.percentage}%)` : ''}`,
-        quantity: 1,
-        unit_price: milestone.amount,
-        total: milestone.amount
-      });
-    }
-
-    // Update milestone status to 'invoiced' (critical - always do this first)
+    // Update milestone status to 'invoiced'
     await supabase.from('trak_project_milestones').update({
       status: 'invoiced'
     }).eq('id', milestone.id);
-
-    // Try to store the charge_note_id link (optional - column may not exist yet)
-    if (noteId) {
-      await supabase.from('trak_project_milestones').update({
-        charge_note_id: noteId
-      }).eq('id', milestone.id).then(() => {});
-    }
 
     // Activity log
     await supabase.from('trak_project_activity').insert({
       project_id: project.id,
       user_id: userId || null,
       type: 'milestone',
-      content: `Hito "${milestone.name}" facturado por ${money(milestone.amount)}. Cuenta por Cobrar generada.`
+      content: `Hito "${milestone.name}" marcado como Cuenta por Cobrar por ${money(milestone.amount)}.`
+    });
+
+    // Notification
+    await supabase.from('trak_notifications').insert({
+      workspace_id: workspaceId,
+      type: 'finance',
+      title: 'Cuenta por Cobrar generada',
+      message: `Hito "${milestone.name}" del proyecto "${project.name}" por ${money(milestone.amount)} está pendiente de cobro.`,
+      link_url: `/trak/projects/${project.id}`
     });
 
     return { success: true };
@@ -443,4 +312,3 @@ export async function createPayableFromProjectExpense(
     return { success: false, error: err.message || 'Error al crear la Cuenta por Pagar.' };
   }
 }
-
