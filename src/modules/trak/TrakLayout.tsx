@@ -85,10 +85,10 @@ export default function TrakLayout() {
               <button
                 key={item.id}
                 onClick={() => { navigate(item.path); setSidebarOpen(false); }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all tracking-wide ${
                   active
                     ? 'bg-purple-500/20 text-purple-300 shadow-[inset_0_0_0_1px_rgba(168,85,247,0.2)]'
-                    : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                    : 'text-slate-200 hover:bg-white/10 hover:text-white'
                 }`}
               >
                 <Icon size={20} />
@@ -123,8 +123,8 @@ export default function TrakLayout() {
         <div className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Main Content Area (White Card) */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden lg:rounded-l-[2rem] lg:my-2 lg:mr-2 bg-slate-50 shadow-2xl relative z-10 border border-slate-200">
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50 shadow-2xl relative z-10 border-l border-white/10">
         {/* Topbar */}
         <header className="h-14 bg-white/80 backdrop-blur-md border-b border-gray-200 flex items-center justify-between px-4 lg:px-8 shrink-0">
           <div className="flex items-center gap-4">
