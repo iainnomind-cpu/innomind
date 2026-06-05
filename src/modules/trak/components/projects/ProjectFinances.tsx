@@ -154,13 +154,13 @@ export default function ProjectFinances({ projectId }: { projectId: string }) {
             </div>
             <button onClick={() => setShowMilestoneForm(true)}
               className="text-xs font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg flex items-center gap-1">
-              <Plus size={14} /> Nuevo Hito
+              <Plus size={14} /> Nuevo Pago
             </button>
           </div>
           
           <div className="flex-1 overflow-y-auto">
             {milestones.length === 0 ? (
-              <div className="p-8 text-center text-gray-400 text-sm">Sin hitos de cobranza. Añade el primer anticipo.</div>
+              <div className="p-8 text-center text-gray-400 text-sm">Sin pagos programados. Puedes agregar anticipos, pagos parciales o el cobro total (opcional).</div>
             ) : (
               <ul className="divide-y divide-gray-100">
                 {milestones.map(m => (
@@ -316,19 +316,19 @@ function MilestoneFormModal({ projectId, totalBudget, onClose, onSaved }: any) {
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl" onClick={e => e.stopPropagation()}>
         <div className="p-5 border-b border-gray-100 flex justify-between items-center">
-          <h2 className="font-bold text-lg">Nuevo Hito de Cobranza</h2>
+          <h2 className="font-bold text-lg">Nuevo Pago Programado</h2>
           <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-900 rounded-lg"><X size={20} /></button>
         </div>
         <div className="p-5 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Nombre / Concepto *</label>
             <input value={form.name} onChange={e => setForm({...form, name: e.target.value})}
-              className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none" placeholder="Ej. Anticipo (30%)" />
+              className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none" placeholder="Ej. Anticipo, Segundo pago, Liquidación final" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             {totalBudget > 0 && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Porcentaje (%)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Porcentaje (%) <span className="text-gray-400 font-normal">opcional</span></label>
                 <input type="number" step="0.01" value={form.percentage} onChange={e => handlePercentageChange(e.target.value)}
                   className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none" placeholder="Ej. 30" />
               </div>
@@ -349,7 +349,7 @@ function MilestoneFormModal({ projectId, totalBudget, onClose, onSaved }: any) {
           <button onClick={onClose} className="px-4 py-2 text-gray-700 text-sm font-medium rounded-xl">Cancelar</button>
           <button onClick={handleSave} disabled={saving || !form.name || form.amount <= 0}
             className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-sm font-medium">
-            {saving ? 'Guardando...' : 'Crear Hito'}
+            {saving ? 'Guardando...' : 'Agregar Pago'}
           </button>
         </div>
       </div>
