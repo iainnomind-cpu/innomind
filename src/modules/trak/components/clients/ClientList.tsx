@@ -113,7 +113,11 @@ export default function ClientList() {
                 </tr>
               ) : (
                 filtered.map(client => (
-                  <tr key={client.id} className="hover:bg-gray-50/50 transition-colors">
+                  <tr 
+                    key={client.id} 
+                    className="hover:bg-gray-50/50 transition-colors cursor-pointer"
+                    onClick={() => navigate(`/trak/clients/${client.id}`)}
+                  >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-sm shrink-0">
@@ -141,13 +145,22 @@ export default function ClientList() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => handleEdit(client)}
-                        className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                        title="Editar"
-                      >
-                        <MoreHorizontal size={16} />
-                      </button>
+                      <div className="flex items-center justify-end gap-1" onClick={e => e.stopPropagation()}>
+                        <button
+                          onClick={() => navigate(`/trak/clients/${client.id}`)}
+                          className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                          title="Ver Perfil"
+                        >
+                          <ArrowUpRight size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleEdit(client)}
+                          className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                          title="Editar"
+                        >
+                          <MoreHorizontal size={16} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

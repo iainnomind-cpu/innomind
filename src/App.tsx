@@ -11,6 +11,19 @@ import SoportePage from './components/landing/SoportePage';
 import PreciosPage from './components/landing/PreciosPage';
 import CorePage from './components/landing/platform/CorePage';
 import TrakPage from './components/landing/platform/TrakPage';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import LandingPage from './components/landing/LandingPage';
+import RetailPage from './components/landing/industries/RetailPage';
+import ServicesPage from './components/landing/industries/ServicesPage';
+import ManufacturePage from './components/landing/industries/ManufacturePage';
+import LogisticsPage from './components/landing/industries/LogisticsPage';
+import HealthPage from './components/landing/industries/HealthPage';
+import EducationPage from './components/landing/industries/EducationPage';
+import FAQPage from './components/landing/FAQPage';
+import SoportePage from './components/landing/SoportePage';
+import PreciosPage from './components/landing/PreciosPage';
+import CorePage from './components/landing/platform/CorePage';
+import TrakPage from './components/landing/platform/TrakPage';
 import ChatbotsPage from './components/landing/platform/ChatbotsPage';
 import MensajeriaPage from './components/landing/platform/MensajeriaPage';
 import FreeTrialModal from './components/ui/FreeTrialModal';
@@ -18,6 +31,7 @@ import DemoRequestModal from './components/ui/DemoRequestModal';
 import TrakLayout from '@/modules/trak/TrakLayout';
 import TrakDashboard from '@/modules/trak/TrakDashboard';
 import ClientList from '@/modules/trak/components/clients/ClientList';
+import ClientProfile from '@/modules/trak/components/clients/ClientProfile';
 import ProjectList from '@/modules/trak/components/projects/ProjectList';
 import ProjectForm from '@/modules/trak/components/projects/ProjectForm';
 import ProjectDetail from '@/modules/trak/components/projects/ProjectDetail';
@@ -95,6 +109,7 @@ function App() {
           <Route path="/trak" element={<TrakLayout />}>
             <Route index element={<TrakDashboard />} />
             <Route path="clients" element={<ClientList />} />
+            <Route path="clients/:id" element={<ClientProfile />} />
             <Route path="projects" element={<ProjectList />} />
             <Route path="projects/new" element={<ProjectForm />} />
             <Route path="projects/:id" element={<ProjectDetail />} />
