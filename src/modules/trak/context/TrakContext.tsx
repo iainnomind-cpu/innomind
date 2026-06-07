@@ -68,6 +68,8 @@ export interface TrakTask {
   parent_task_id?: string;
   title: string;
   description?: string;
+  sub_activities?: string;
+  pending_items?: string;
   status: 'todo' | 'in_progress' | 'in_review' | 'blocked' | 'done';
   priority: 'low' | 'medium' | 'high' | 'critical';
   assigned_to?: string;

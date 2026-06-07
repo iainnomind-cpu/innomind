@@ -201,6 +201,8 @@ function TaskFormModal({ task, projectId, workspaceId, phases, employees, onClos
   const [form, setForm] = useState({
     title: task?.title || '',
     description: task?.description || '',
+    sub_activities: task?.sub_activities || '',
+    pending_items: task?.pending_items || '',
     status: task?.status || 'todo',
     priority: task?.priority || 'medium',
     due_date: task?.due_date || '',
@@ -216,6 +218,8 @@ function TaskFormModal({ task, projectId, workspaceId, phases, employees, onClos
       const payload = {
         title: form.title,
         description: form.description || null,
+        sub_activities: form.sub_activities || null,
+        pending_items: form.pending_items || null,
         status: form.status,
         priority: form.priority,
         due_date: form.due_date || null,
@@ -267,6 +271,34 @@ function TaskFormModal({ task, projectId, workspaceId, phases, employees, onClos
             <textarea value={form.description} onChange={e=>setForm({...form, description:e.target.value})} 
               className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none resize-none focus:ring-2 focus:ring-purple-500" rows={3}
               placeholder="Agrega contexto, requisitos o notas..." />
+          </div>
+
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-emerald-700 mb-1">
+              <span className="inline-flex items-center justify-center w-5 h-5 bg-emerald-100 rounded-full text-emerald-600 text-xs font-bold">✓</span>
+              Sub-actividades realizadas
+            </label>
+            <textarea
+              value={form.sub_activities}
+              onChange={e => setForm({...form, sub_activities: e.target.value})}
+              className="w-full p-3 bg-emerald-50/60 border border-emerald-200 rounded-xl text-sm outline-none resize-none focus:ring-2 focus:ring-emerald-400 text-gray-700 placeholder-emerald-300"
+              rows={3}
+              placeholder="- Croquis realizados&#10;- Reunión con cliente&#10;- Revisión de planos..."
+            />
+          </div>
+
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-amber-700 mb-1">
+              <span className="inline-flex items-center justify-center w-5 h-5 bg-amber-100 rounded-full text-amber-600 text-xs font-bold">!</span>
+              Pendientes
+            </label>
+            <textarea
+              value={form.pending_items}
+              onChange={e => setForm({...form, pending_items: e.target.value})}
+              className="w-full p-3 bg-amber-50/60 border border-amber-200 rounded-xl text-sm outline-none resize-none focus:ring-2 focus:ring-amber-400 text-gray-700 placeholder-amber-300"
+              rows={3}
+              placeholder="- Aprobar presupuesto&#10;- Recibir material&#10;- Confirmar fecha de entrega..."
+            />
           </div>
           
           <div className="grid grid-cols-2 gap-4">
