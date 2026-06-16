@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import {
   LayoutDashboard, Users, FolderKanban, CheckSquare,
   Clock, FileText, BarChart3, Settings, LogOut, Menu, X,
-  ChevronLeft, CalendarDays, Package, Boxes, LifeBuoy, CircleDollarSign
+  ChevronLeft, CalendarDays, Package, Boxes, LifeBuoy, CircleDollarSign, Loader2
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import TrakNotifications from './components/ui/TrakNotifications';
@@ -34,7 +34,7 @@ export default function TrakLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut } = useAuth();
-  const { trialDaysRemaining, companyProfile } = useUsers();
+  const { trialDaysRemaining, companyProfile, isLoadingProfile } = useUsers();
 
   const menuItems = [
     ...baseMenuItems.slice(0, 6), // before reports
@@ -78,7 +78,11 @@ export default function TrakLayout() {
 
         {/* Nav */}
         <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
-          {menuItems.map(item => {
+          {isLoadingProfile ? (
+            <div className="flex justify-center p-6 text-purple-300">
+              <Loader2 className="animate-spin" size={24} />
+            </div>
+          ) : menuItems.map(item => {
             const Icon = item.icon;
             const active = isActive(item.path);
             return (

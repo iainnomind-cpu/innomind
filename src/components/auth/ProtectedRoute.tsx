@@ -2,6 +2,7 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useUsers } from '@/context/UserContext';
 import TrialExpiredScreen from '@/components/ui/TrialExpiredScreen';
+import { ProtectedProviders } from '@/components/providers/ProtectedProviders';
 
 export default function ProtectedRoute() {
     const { user, loading } = useAuth();
@@ -19,5 +20,9 @@ export default function ProtectedRoute() {
         return <TrialExpiredScreen />;
     }
 
-    return <Outlet />;
+    return (
+        <ProtectedProviders>
+            <Outlet />
+        </ProtectedProviders>
+    );
 }

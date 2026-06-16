@@ -1,4 +1,4 @@
-import { Users, LayoutDashboard, Menu, Search, Building2, Trello, LogOut, FileText, Settings, Calendar as CalendarIcon, Package, Receipt, ShoppingCart, LifeBuoy } from 'lucide-react';
+import { Users, LayoutDashboard, Menu, Search, Building2, Trello, LogOut, FileText, Settings, Calendar as CalendarIcon, Package, Receipt, ShoppingCart, LifeBuoy, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -16,7 +16,7 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut } = useAuth();
-  const { currentUser, enabledModules, trialDaysRemaining, companyProfile } = useUsers();
+  const { currentUser, enabledModules, trialDaysRemaining, companyProfile, isLoadingProfile } = useUsers();
 
   const menuItems = [
     { id: 'dashboard', label: 'Panel de Control', icon: LayoutDashboard, alwaysVisible: true },
@@ -64,7 +64,11 @@ export default function Layout() {
         </div>
 
         <nav className="flex-1 px-3 py-2 space-y-0.5">
-          {visibleMenuItems.map((item) => {
+          {isLoadingProfile ? (
+            <div className="flex justify-center p-6 text-gray-400">
+              <Loader2 className="animate-spin" size={24} />
+            </div>
+          ) : visibleMenuItems.map((item) => {
             const Icon = item.icon;
             const isClientesTab = item.id === 'prospectos?tab=clientes';
             const isProspectosBase = item.id === 'prospectos';

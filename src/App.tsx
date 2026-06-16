@@ -1,184 +1,186 @@
+import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { FEATURES } from '@/config/features';
+import { AppProviders } from './components/providers/AppProviders';
+
+// Static Imports (Critical Path)
 import LandingPage from './components/landing/LandingPage';
-import RetailPage from './components/landing/industries/RetailPage';
-import ServicesPage from './components/landing/industries/ServicesPage';
-import ManufacturePage from './components/landing/industries/ManufacturePage';
-import LogisticsPage from './components/landing/industries/LogisticsPage';
-import HealthPage from './components/landing/industries/HealthPage';
-import EducationPage from './components/landing/industries/EducationPage';
-import FAQPage from './components/landing/FAQPage';
-import SoportePage from './components/landing/SoportePage';
-import PreciosPage from './components/landing/PreciosPage';
-import CorePage from './components/landing/platform/CorePage';
-import TrakPage from './components/landing/platform/TrakPage';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import LandingPage from './components/landing/LandingPage';
-import RetailPage from './components/landing/industries/RetailPage';
-import ServicesPage from './components/landing/industries/ServicesPage';
-import ManufacturePage from './components/landing/industries/ManufacturePage';
-import LogisticsPage from './components/landing/industries/LogisticsPage';
-import HealthPage from './components/landing/industries/HealthPage';
-import EducationPage from './components/landing/industries/EducationPage';
-import FAQPage from './components/landing/FAQPage';
-import SoportePage from './components/landing/SoportePage';
-import PreciosPage from './components/landing/PreciosPage';
-import CorePage from './components/landing/platform/CorePage';
-import TrakPage from './components/landing/platform/TrakPage';
-import ChatbotsPage from './components/landing/platform/ChatbotsPage';
-import MensajeriaPage from './components/landing/platform/MensajeriaPage';
 import FreeTrialModal from './components/ui/FreeTrialModal';
 import DemoRequestModal from './components/ui/DemoRequestModal';
-import TrakLayout from '@/modules/trak/TrakLayout';
-import TrakDashboard from '@/modules/trak/TrakDashboard';
-import ClientList from '@/modules/trak/components/clients/ClientList';
-import ClientProfile from '@/modules/trak/components/clients/ClientProfile';
-import ProjectList from '@/modules/trak/components/projects/ProjectList';
-import ProjectForm from '@/modules/trak/components/projects/ProjectForm';
-import ProjectDetail from '@/modules/trak/components/projects/ProjectDetail';
-import GlobalTaskList from '@/modules/trak/components/tasks/GlobalTaskList';
-import TrakQuoteList from '@/modules/trak/components/quotes/QuoteList';
-import TrakQuoteForm from '@/modules/trak/components/quotes/QuoteForm';
-import TrakFinanceDashboard from '@/modules/trak/components/finance/TrakFinanceDashboard';
-import ReportsDashboard from '@/modules/trak/components/reports/ReportsDashboard';
-import EmployeeList from '@/modules/trak/components/hr/EmployeeList';
-import EmployeeForm from '@/modules/trak/components/hr/EmployeeForm';
-import TrakCalendar from '@/modules/trak/components/calendar/TrakCalendar';
-import InventoryList from '@/modules/trak/components/inventory/InventoryList';
-import TrakSettings from '@/modules/trak/components/settings/TrakSettings';
-import Layout from '@/modules/crm/components/Layout';
-import Dashboard from '@/modules/crm/components/Dashboard';
-import Embudo from '@/modules/crm/components/Embudo';
-import KanbanBoard from '@/modules/crm/components/prospects/KanbanBoard';
-import ProspectTable from '@/modules/crm/components/prospects/ProspectTable';
-import ProspectDetail from '@/modules/crm/components/prospects/ProspectDetail';
-import QuoteList from '@/modules/crm/components/quotes/QuoteList';
-import QuoteFormWrapper from '@/modules/crm/components/quotes/QuoteFormWrapper';
-import QuoteDetailWrapper from '@/modules/crm/components/quotes/QuoteDetailWrapper';
-import QuoteDetailView from '@/modules/crm/components/quotes/QuoteDetailView';
-
-import QuoteTemplates from '@/modules/crm/components/quotes/QuoteTemplates';
-import TemplateDetail from '@/modules/crm/components/quotes/TemplateDetail';
-import CompanySettings from '@/modules/crm/components/CompanySettings';
-import CalendarWorkspaceHub from '@/modules/crm/components/calendar/CalendarWorkspaceHub';
-import InventoryLayout from '@/modules/inventory/InventoryLayout';
-import ProductMasterList from '@/modules/inventory/components/ProductMasterList';
-import StockControl from '@/modules/inventory/components/StockControl';
-import InventoryMovements from '@/modules/inventory/components/InventoryMovements';
-import FinanceLayout from '@/modules/finance/FinanceLayout';
-import ProcurementLayout from '@/modules/procurement/ProcurementLayout';
 import Login from './components/auth/Login';
 import ResetPassword from './components/auth/ResetPassword';
 import ProtectedRoute from './components/auth/ProtectedRoute';
-import { FEATURES } from '@/config/features';
-import SupportLayout from '@/modules/support/SupportLayout';
-import UserTicketList from '@/modules/support/components/UserTicketList';
-import NewTicketForm from '@/modules/support/components/NewTicketForm';
-import TicketDetail from '@/modules/support/components/TicketDetail';
 
-import { AppProviders } from './components/providers/AppProviders';
+// Lazy Imports - Landing Pages
+const RetailPage = React.lazy(() => import('./components/landing/industries/RetailPage'));
+const ServicesPage = React.lazy(() => import('./components/landing/industries/ServicesPage'));
+const ManufacturePage = React.lazy(() => import('./components/landing/industries/ManufacturePage'));
+const LogisticsPage = React.lazy(() => import('./components/landing/industries/LogisticsPage'));
+const HealthPage = React.lazy(() => import('./components/landing/industries/HealthPage'));
+const EducationPage = React.lazy(() => import('./components/landing/industries/EducationPage'));
+const FAQPage = React.lazy(() => import('./components/landing/FAQPage'));
+const SoportePage = React.lazy(() => import('./components/landing/SoportePage'));
+const PreciosPage = React.lazy(() => import('./components/landing/PreciosPage'));
+const CorePage = React.lazy(() => import('./components/landing/platform/CorePage'));
+const TrakPage = React.lazy(() => import('./components/landing/platform/TrakPage'));
+const ChatbotsPage = React.lazy(() => import('./components/landing/platform/ChatbotsPage'));
+const MensajeriaPage = React.lazy(() => import('./components/landing/platform/MensajeriaPage'));
+
+// Lazy Imports - Trak
+const TrakLayout = React.lazy(() => import('@/modules/trak/TrakLayout'));
+const TrakDashboard = React.lazy(() => import('@/modules/trak/TrakDashboard'));
+const ClientList = React.lazy(() => import('@/modules/trak/components/clients/ClientList'));
+const ClientProfile = React.lazy(() => import('@/modules/trak/components/clients/ClientProfile'));
+const ProjectList = React.lazy(() => import('@/modules/trak/components/projects/ProjectList'));
+const ProjectForm = React.lazy(() => import('@/modules/trak/components/projects/ProjectForm'));
+const ProjectDetail = React.lazy(() => import('@/modules/trak/components/projects/ProjectDetail'));
+const GlobalTaskList = React.lazy(() => import('@/modules/trak/components/tasks/GlobalTaskList'));
+const TrakQuoteList = React.lazy(() => import('@/modules/trak/components/quotes/QuoteList'));
+const TrakQuoteForm = React.lazy(() => import('@/modules/trak/components/quotes/QuoteForm'));
+const TrakFinanceDashboard = React.lazy(() => import('@/modules/trak/components/finance/TrakFinanceDashboard'));
+const ReportsDashboard = React.lazy(() => import('@/modules/trak/components/reports/ReportsDashboard'));
+const EmployeeList = React.lazy(() => import('@/modules/trak/components/hr/EmployeeList'));
+const EmployeeForm = React.lazy(() => import('@/modules/trak/components/hr/EmployeeForm'));
+const TrakCalendar = React.lazy(() => import('@/modules/trak/components/calendar/TrakCalendar'));
+const InventoryList = React.lazy(() => import('@/modules/trak/components/inventory/InventoryList'));
+const TrakSettings = React.lazy(() => import('@/modules/trak/components/settings/TrakSettings'));
+
+// Lazy Imports - CRM
+const Layout = React.lazy(() => import('@/modules/crm/components/Layout'));
+const Dashboard = React.lazy(() => import('@/modules/crm/components/Dashboard'));
+const Embudo = React.lazy(() => import('@/modules/crm/components/Embudo'));
+const KanbanBoard = React.lazy(() => import('@/modules/crm/components/prospects/KanbanBoard'));
+const ProspectTable = React.lazy(() => import('@/modules/crm/components/prospects/ProspectTable'));
+const ProspectDetail = React.lazy(() => import('@/modules/crm/components/prospects/ProspectDetail'));
+const QuoteList = React.lazy(() => import('@/modules/crm/components/quotes/QuoteList'));
+const QuoteFormWrapper = React.lazy(() => import('@/modules/crm/components/quotes/QuoteFormWrapper'));
+const QuoteDetailWrapper = React.lazy(() => import('@/modules/crm/components/quotes/QuoteDetailWrapper'));
+const QuoteDetailView = React.lazy(() => import('@/modules/crm/components/quotes/QuoteDetailView'));
+const QuoteTemplates = React.lazy(() => import('@/modules/crm/components/quotes/QuoteTemplates'));
+const TemplateDetail = React.lazy(() => import('@/modules/crm/components/quotes/TemplateDetail'));
+const CompanySettings = React.lazy(() => import('@/modules/crm/components/CompanySettings'));
+const CalendarWorkspaceHub = React.lazy(() => import('@/modules/crm/components/calendar/CalendarWorkspaceHub'));
+
+// Lazy Imports - Others
+const InventoryLayout = React.lazy(() => import('@/modules/inventory/InventoryLayout'));
+const ProductMasterList = React.lazy(() => import('@/modules/inventory/components/ProductMasterList'));
+const StockControl = React.lazy(() => import('@/modules/inventory/components/StockControl'));
+const InventoryMovements = React.lazy(() => import('@/modules/inventory/components/InventoryMovements'));
+const FinanceLayout = React.lazy(() => import('@/modules/finance/FinanceLayout'));
+const ProcurementLayout = React.lazy(() => import('@/modules/procurement/ProcurementLayout'));
+const SupportLayout = React.lazy(() => import('@/modules/support/SupportLayout'));
+const UserTicketList = React.lazy(() => import('@/modules/support/components/UserTicketList'));
+const NewTicketForm = React.lazy(() => import('@/modules/support/components/NewTicketForm'));
+const TicketDetail = React.lazy(() => import('@/modules/support/components/TicketDetail'));
 
 function App() {
   return (
     <AppProviders>
       <FreeTrialModal />
       <DemoRequestModal />
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/industrias/retail" element={<RetailPage />} />
-        <Route path="/industrias/servicios" element={<ServicesPage />} />
-        <Route path="/industrias/manufactura" element={<ManufacturePage />} />
-        <Route path="/industrias/logistica" element={<LogisticsPage />} />
-        <Route path="/industrias/salud" element={<HealthPage />} />
-        <Route path="/industrias/educacion" element={<EducationPage />} />
-        <Route path="/faq" element={<FAQPage />} />
-        <Route path="/soporte" element={<SoportePage />} />
-        <Route path="/precios" element={<PreciosPage />} />
-        
-        {/* Rutas de Plataforma SaaS */}
-        <Route path="/plataforma/core" element={<CorePage />} />
-        <Route path="/plataforma/trak" element={<TrakPage />} />
-        <Route path="/plataforma/chatbots" element={<ChatbotsPage />} />
-        <Route path="/plataforma/mensajeria" element={<MensajeriaPage />} />
+      <Suspense fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="w-8 h-8 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin"></div>
+        </div>
+      }>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/industrias/retail" element={<RetailPage />} />
+          <Route path="/industrias/servicios" element={<ServicesPage />} />
+          <Route path="/industrias/manufactura" element={<ManufacturePage />} />
+          <Route path="/industrias/logistica" element={<LogisticsPage />} />
+          <Route path="/industrias/salud" element={<HealthPage />} />
+          <Route path="/industrias/educacion" element={<EducationPage />} />
+          <Route path="/faq" element={<FAQPage />} />
+          <Route path="/soporte" element={<SoportePage />} />
+          <Route path="/precios" element={<PreciosPage />} />
+          
+          {/* Rutas de Plataforma SaaS */}
+          <Route path="/plataforma/core" element={<CorePage />} />
+          <Route path="/plataforma/trak" element={<TrakPage />} />
+          <Route path="/plataforma/chatbots" element={<ChatbotsPage />} />
+          <Route path="/plataforma/mensajeria" element={<MensajeriaPage />} />
 
-        {/* Rutas del CRM */}
-        <Route path="/crm/login" element={<Login />} />
-        <Route path="/crm/reset-password" element={<ResetPassword />} />
+          {/* Rutas del CRM */}
+          <Route path="/crm/login" element={<Login />} />
+          <Route path="/crm/reset-password" element={<ResetPassword />} />
 
-        <Route element={<ProtectedRoute />}>
-          {/* Rutas de Trak (Project Tracker - SaaS independiente) */}
-          <Route path="/trak" element={<TrakLayout />}>
-            <Route index element={<TrakDashboard />} />
-            <Route path="clients" element={<ClientList />} />
-            <Route path="clients/:id" element={<ClientProfile />} />
-            <Route path="projects" element={<ProjectList />} />
-            <Route path="projects/new" element={<ProjectForm />} />
-            <Route path="projects/:id" element={<ProjectDetail />} />
-            <Route path="projects/:id/edit" element={<ProjectForm />} />
-            <Route path="tasks" element={<GlobalTaskList />} />
-            <Route path="quotes" element={<TrakQuoteList />} />
-            <Route path="quotes/:id" element={<TrakQuoteForm />} />
-            <Route path="finance" element={<TrakFinanceDashboard />} />
-            <Route path="reports" element={<ReportsDashboard />} />
-            <Route path="hr" element={<EmployeeList />} />
-            <Route path="hr/:id" element={<EmployeeForm />} />
-            <Route path="calendar" element={<TrakCalendar />} />
-            <Route path="inventory" element={<InventoryList />} />
-            <Route path="settings" element={<TrakSettings />} />
+          <Route element={<ProtectedRoute />}>
+            {/* Rutas de Trak (Project Tracker - SaaS independiente) */}
+            <Route path="/trak" element={<TrakLayout />}>
+              <Route index element={<TrakDashboard />} />
+              <Route path="clients" element={<ClientList />} />
+              <Route path="clients/:id" element={<ClientProfile />} />
+              <Route path="projects" element={<ProjectList />} />
+              <Route path="projects/new" element={<ProjectForm />} />
+              <Route path="projects/:id" element={<ProjectDetail />} />
+              <Route path="projects/:id/edit" element={<ProjectForm />} />
+              <Route path="tasks" element={<GlobalTaskList />} />
+              <Route path="quotes" element={<TrakQuoteList />} />
+              <Route path="quotes/:id" element={<TrakQuoteForm />} />
+              <Route path="finance" element={<TrakFinanceDashboard />} />
+              <Route path="reports" element={<ReportsDashboard />} />
+              <Route path="hr" element={<EmployeeList />} />
+              <Route path="hr/:id" element={<EmployeeForm />} />
+              <Route path="calendar" element={<TrakCalendar />} />
+              <Route path="inventory" element={<InventoryList />} />
+              <Route path="settings" element={<TrakSettings />} />
 
-            {/* Rutas de Soporte Trak */}
-            <Route path="support" element={<SupportLayout />}>
-              <Route index element={<UserTicketList />} />
-              <Route path="new" element={<NewTicketForm />} />
-              <Route path=":ticketId" element={<TicketDetail />} />
+              {/* Rutas de Soporte Trak */}
+              <Route path="support" element={<SupportLayout />}>
+                <Route index element={<UserTicketList />} />
+                <Route path="new" element={<NewTicketForm />} />
+                <Route path=":ticketId" element={<TicketDetail />} />
+              </Route>
+            </Route>
+
+            <Route path="/crm" element={<Layout />}>
+              <Route index element={<Navigate to="/crm/dashboard" replace />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="embudo" element={<Embudo />} />
+              <Route path="prospectos" element={<ProspectTable />} />
+              <Route path="prospectos/kanban" element={<KanbanBoard />} />
+              <Route path="prospectos/detalle" element={<ProspectDetail />} />
+              <Route path="calendar/*" element={<CalendarWorkspaceHub />} />
+              <Route path="settings" element={<CompanySettings />} />
+
+              {/* Rutas de Soporte */}
+              <Route path="support" element={<SupportLayout />}>
+                <Route index element={<UserTicketList />} />
+                <Route path="new" element={<NewTicketForm />} />
+                <Route path=":ticketId" element={<TicketDetail />} />
+              </Route>
+
+              {/* Rutas de Cotizaciones */}
+              <Route path="quotes" element={<QuoteDetailWrapper />}>
+                <Route index element={<QuoteList />} />
+                <Route path="plantillas" element={<QuoteTemplates />} />
+                <Route path="new" element={<QuoteFormWrapper />} />
+                <Route path="templates/:id" element={<TemplateDetail />} />
+                <Route path=":id" element={<QuoteDetailView />} />
+              </Route>
+
+              {/* Rutas del Inventario Maestro */}
+              <Route path="inventory" element={<InventoryLayout />}>
+                <Route index element={<ProductMasterList />} />
+                <Route path="stock" element={<StockControl />} />
+                <Route path="movements" element={<InventoryMovements />} />
+              </Route>
+
+              {/* Rutas de Finanzas y Tesorería */}
+              <Route path="finance/*" element={<FinanceLayout />} />
+
+              {/* Nodo ahora vive dentro de Calendario */}
+              <Route path="workspace/*" element={<Navigate to={FEATURES.enableNodo ? "/crm/calendar/tasks" : "/crm/calendar"} replace />} />
+            </Route>
+
+            {/* Módulo de Compras (Ruta Raíz /compras) */}
+            <Route path="/compras/*" element={FEATURES.enableCompras ? <Layout /> : <Navigate to="/crm/dashboard" replace />}>
+              <Route path="*" element={<ProcurementLayout />} />
             </Route>
           </Route>
-
-          <Route path="/crm" element={<Layout />}>
-            <Route index element={<Navigate to="/crm/dashboard" replace />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="embudo" element={<Embudo />} />
-            <Route path="prospectos" element={<ProspectTable />} />
-            <Route path="prospectos/kanban" element={<KanbanBoard />} />
-            <Route path="prospectos/detalle" element={<ProspectDetail />} />
-            <Route path="calendar/*" element={<CalendarWorkspaceHub />} />
-            <Route path="settings" element={<CompanySettings />} />
-
-            {/* Rutas de Soporte */}
-            <Route path="support" element={<SupportLayout />}>
-              <Route index element={<UserTicketList />} />
-              <Route path="new" element={<NewTicketForm />} />
-              <Route path=":ticketId" element={<TicketDetail />} />
-            </Route>
-
-            {/* Rutas de Cotizaciones */}
-            <Route path="quotes" element={<QuoteDetailWrapper />}>
-              <Route index element={<QuoteList />} />
-              <Route path="plantillas" element={<QuoteTemplates />} />
-              <Route path="new" element={<QuoteFormWrapper />} />
-              <Route path="templates/:id" element={<TemplateDetail />} />
-              <Route path=":id" element={<QuoteDetailView />} />
-            </Route>
-
-            {/* Rutas del Inventario Maestro */}
-            <Route path="inventory" element={<InventoryLayout />}>
-              <Route index element={<ProductMasterList />} />
-              <Route path="stock" element={<StockControl />} />
-              <Route path="movements" element={<InventoryMovements />} />
-            </Route>
-
-            {/* Rutas de Finanzas y Tesorería */}
-            <Route path="finance/*" element={<FinanceLayout />} />
-
-            {/* Nodo ahora vive dentro de Calendario */}
-            <Route path="workspace/*" element={<Navigate to={FEATURES.enableNodo ? "/crm/calendar/tasks" : "/crm/calendar"} replace />} />
-          </Route>
-
-          {/* Módulo de Compras (Ruta Raíz /compras) */}
-          <Route path="/compras/*" element={FEATURES.enableCompras ? <Layout /> : <Navigate to="/crm/dashboard" replace />}>
-            <Route path="*" element={<ProcurementLayout />} />
-          </Route>
-        </Route>
-      </Routes>
+        </Routes>
+      </Suspense>
     </AppProviders>
   );
 }
