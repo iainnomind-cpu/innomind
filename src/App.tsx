@@ -2,6 +2,7 @@ import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { FEATURES } from '@/config/features';
 import { AppProviders } from './components/providers/AppProviders';
+import ScrollToTop from './components/routing/ScrollToTop';
 
 // Static Imports (Critical Path)
 import LandingPage from './components/landing/LandingPage';
@@ -76,6 +77,7 @@ const TicketDetail = React.lazy(() => import('@/modules/support/components/Ticke
 function App() {
   return (
     <AppProviders>
+      <ScrollToTop />
       <FreeTrialModal />
       <DemoRequestModal />
       <Suspense fallback={
