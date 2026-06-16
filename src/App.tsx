@@ -26,6 +26,8 @@ const CorePage = React.lazy(() => import('./components/landing/platform/CorePage
 const TrakPage = React.lazy(() => import('./components/landing/platform/TrakPage'));
 const ChatbotsPage = React.lazy(() => import('./components/landing/platform/ChatbotsPage'));
 const MensajeriaPage = React.lazy(() => import('./components/landing/platform/MensajeriaPage'));
+const PrivacidadPage = React.lazy(() => import('./components/landing/legal/PrivacidadPage'));
+const TerminosPage = React.lazy(() => import('./components/landing/legal/TerminosPage'));
 
 // Lazy Imports - Trak
 const TrakLayout = React.lazy(() => import('@/modules/trak/TrakLayout'));
@@ -103,7 +105,11 @@ function App() {
           <Route path="/plataforma/chatbots" element={<ChatbotsPage />} />
           <Route path="/plataforma/mensajeria" element={<MensajeriaPage />} />
 
-          {/* Rutas del CRM */}
+          {/* Legal Routes */}
+          <Route path="/privacidad" element={<PrivacidadPage />} />
+          <Route path="/terminos" element={<TerminosPage />} />
+
+          {/* Modules Routes */}
           <Route path="/crm/login" element={<Login />} />
           <Route path="/crm/reset-password" element={<ResetPassword />} />
 

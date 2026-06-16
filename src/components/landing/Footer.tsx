@@ -60,8 +60,8 @@ export default function Footer() {
                             Legal
                         </h3>
                         <ul className="space-y-3 text-sm text-slate-600 dark:text-slate-400">
-                            <li><a className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" href="#">Privacidad</a></li>
-                            <li><a className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" href="#">Términos</a></li>
+                            <li><Link className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" to="/privacidad">Privacidad</Link></li>
+                            <li><Link className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" to="/terminos">Términos</Link></li>
                             <li><a className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" href="#">Seguridad</a></li>
                         </ul>
                     </div>
