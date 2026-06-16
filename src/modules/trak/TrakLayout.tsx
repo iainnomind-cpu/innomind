@@ -49,7 +49,7 @@ export default function TrakLayout() {
   };
 
   return (
-    <div className="flex h-screen bg-[#0B1120] relative overflow-hidden">
+    <div className="flex h-[100dvh] bg-[#0B1120] relative overflow-hidden">
       {/* Decorative background elements for glassmorphism */}
       <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-purple-600/30 rounded-full blur-[120px] pointer-events-none z-0 mix-blend-screen" />
       <div className="absolute bottom-0 left-[-100px] w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[120px] pointer-events-none z-0 mix-blend-screen" />

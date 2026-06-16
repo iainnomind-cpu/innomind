@@ -42,7 +42,7 @@ export default function Layout() {
   });
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-[100dvh] bg-gray-50">
       <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transition-transform duration-300 flex flex-col`}>
         <div className="px-4 py-3 border-b border-gray-100 flex flex-col gap-2">
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut" }}>
