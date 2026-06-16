@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Linkedin, Twitter } from 'lucide-react';
 
 export default function Footer() {
@@ -34,10 +35,11 @@ export default function Footer() {
                             Producto
                         </h3>
                         <ul className="space-y-3 text-sm text-slate-600 dark:text-slate-400">
-                            <li><a className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" href="#">Características</a></li>
-                            <li><a className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" href="#">Integraciones</a></li>
-                            <li><a className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" href="#">Precios</a></li>
-                            <li><a className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" href="#">Actualizaciones</a></li>
+                            <li><Link className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" to="/plataforma/core">Corē (CRM & ERP)</Link></li>
+                            <li><Link className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" to="/plataforma/trak">Trak (Project Tracker)</Link></li>
+                            <li><Link className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" to="/plataforma/chatbots">Chatbots IA</Link></li>
+                            <li><Link className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" to="/plataforma/mensajeria">Mensajería Masiva</Link></li>
+                            <li><Link className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" to="/precios">Precios y Planes</Link></li>
                         </ul>
                     </div>
 
@@ -46,10 +48,10 @@ export default function Footer() {
                             Compañía
                         </h3>
                         <ul className="space-y-3 text-sm text-slate-600 dark:text-slate-400">
-                            <li><a className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" href="#">Sobre Nosotros</a></li>
-                            <li><a className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" href="#">Carreras</a></li>
-                            <li><a className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" href="#">Blog</a></li>
-                            <li><a className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" href="#">Contacto</a></li>
+                            <li><Link className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" to="/">Sobre Nosotros</Link></li>
+                            <li><Link className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" to="/faq">Preguntas Frecuentes</Link></li>
+                            <li><Link className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" to="/soporte">Centro de Soporte</Link></li>
+                            <li><a className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" href="mailto:contacto@innomind.com">Contacto</a></li>
                         </ul>
                     </div>
 
