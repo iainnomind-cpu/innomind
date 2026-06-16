@@ -5,14 +5,14 @@ import { SmartTriggerToast } from './SmartTriggerToast';
 import { AIRecommendationWizard } from './AIRecommendationWizard';
 import { supabase } from '@/lib/supabase';
 import { useNavigate } from 'react-router-dom';
-import { useCRM } from '@/context/CRMContext';
+
 import { FEATURES } from '@/config/features';
 import { Prospect } from '@/types';
 
 export default function FreeTrialModal() {
     const { isFreeTrialOpen, inviteEmail, closeFreeTrial } = useModal();
     const navigate = useNavigate();
-    const { addProspect } = useCRM();
+
     const [step, setStep] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [apiError, setApiError] = useState<string | null>(null);
