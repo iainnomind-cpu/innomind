@@ -28,6 +28,7 @@ const ChatbotsPage = React.lazy(() => import('./components/landing/platform/Chat
 const MensajeriaPage = React.lazy(() => import('./components/landing/platform/MensajeriaPage'));
 const PrivacidadPage = React.lazy(() => import('./components/landing/legal/PrivacidadPage'));
 const TerminosPage = React.lazy(() => import('./components/landing/legal/TerminosPage'));
+const SobreNosotrosPage = React.lazy(() => import('./components/landing/SobreNosotrosPage'));
 
 // Lazy Imports - Trak
 const TrakLayout = React.lazy(() => import('@/modules/trak/TrakLayout'));
@@ -97,6 +98,7 @@ function App() {
           <Route path="/industrias/educacion" element={<EducationPage />} />
           <Route path="/faq" element={<FAQPage />} />
           <Route path="/soporte" element={<SoportePage />} />
+          <Route path="/sobre-nosotros" element={<SobreNosotrosPage />} />
           <Route path="/precios" element={<PreciosPage />} />
           
           {/* Rutas de Plataforma SaaS */}

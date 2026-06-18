@@ -48,7 +48,7 @@ export default function Footer() {
                             Compañía
                         </h3>
                         <ul className="space-y-3 text-sm text-slate-600 dark:text-slate-400">
-                            <li><Link className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" to="/">Sobre Nosotros</Link></li>
+                            <li><Link className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" to="/sobre-nosotros">Sobre Nosotros</Link></li>
                             <li><Link className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" to="/faq">Preguntas Frecuentes</Link></li>
                             <li><Link className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" to="/soporte">Centro de Soporte</Link></li>
                             <li><a className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" href="mailto:contacto@innomind.com">Contacto</a></li>
