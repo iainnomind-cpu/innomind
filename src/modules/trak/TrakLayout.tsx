@@ -14,6 +14,8 @@ import InnoAIChat from '@/components/ai/InnoAIChat';
 
 import { TrakLogo } from '@/components/brand/TrakLogo';
 import { motion } from 'framer-motion';
+import { TrakOnboardingProvider, useTrakOnboarding } from '@/context/TrakOnboardingContext';
+import TrakOnboardingAssistant from '@/components/ai/TrakOnboardingAssistant';
 
 const baseMenuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/trak' },
@@ -29,9 +31,18 @@ const baseMenuItems = [
 ];
 
 export default function TrakLayout() {
+  return (
+    <TrakOnboardingProvider>
+      <TrakLayoutInner />
+    </TrakOnboardingProvider>
+  );
+}
+
+function TrakLayoutInner() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { moduleSettings } = useTrak();
   const navigate = useNavigate();
+  const { isActive: isOnboardingActive, currentStep: onboardingStep } = useTrakOnboarding();
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { trialDaysRemaining, companyProfile, isLoadingProfile } = useUsers();
@@ -85,6 +96,7 @@ export default function TrakLayout() {
           ) : menuItems.map(item => {
             const Icon = item.icon;
             const active = isActive(item.path);
+            const isOnboardingTarget = isOnboardingActive && onboardingStep?.targetMenuId === item.id;
             return (
               <button
                 key={item.id}
@@ -93,7 +105,7 @@ export default function TrakLayout() {
                   active
                     ? 'bg-purple-500/20 text-purple-300 shadow-[inset_0_0_0_1px_rgba(168,85,247,0.2)]'
                     : 'text-slate-200 hover:bg-white/10 hover:text-white'
-                }`}
+                } ${isOnboardingTarget ? 'ring-2 ring-purple-400 shadow-[0_0_18px_2px_rgba(167,139,250,0.35)] animate-pulse' : ''}`}
               >
                 <Icon size={20} />
                 <span>{item.label}</span>
@@ -170,6 +182,7 @@ export default function TrakLayout() {
 
       {/* AI Assistant Chat */}
       <InnoAIChat />
+      <TrakOnboardingAssistant />
     </div>
   );
 }
