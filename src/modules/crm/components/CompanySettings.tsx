@@ -1,13 +1,14 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useUsers } from '@/context/UserContext';
-import { Building, Upload, AtSign, Phone, MapPin, Hash, Palette, CheckCircle, Users, UserPlus, Shield, X, Send, Blocks, Check } from 'lucide-react';
+import { Building, Upload, AtSign, Phone, MapPin, Hash, Palette, CheckCircle, Users, UserPlus, Shield, X, Send, Blocks, Check, BookOpen } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { FEATURES } from '@/config/features';
+import ManualTab from './ManualTab';
 
 const CompanySettings: React.FC = () => {
     const { companyProfile, updateCompanyProfile, users, currentUser, isLoadingProfile, enabledModules, updateEnabledModules } = useUsers();
     const [saved, setSaved] = useState(false);
-    const [activeTab, setActiveTab] = useState<'profile' | 'team' | 'modules'>('profile');
+    const [activeTab, setActiveTab] = useState<'profile' | 'team' | 'modules' | 'manual'>('profile');
 
     const [profile, setProfile] = useState(companyProfile);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -113,6 +114,9 @@ const CompanySettings: React.FC = () => {
                 </button>
                 <button onClick={() => setActiveTab('modules')} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'modules' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
                     <Blocks size={16} /> Módulos
+                </button>
+                <button onClick={() => setActiveTab('manual')} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'manual' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-blue-500'}`}>
+                    <BookOpen size={16} /> Manual de Usuario
                 </button>
             </div>
 
@@ -267,37 +271,6 @@ const CompanySettings: React.FC = () => {
                                                 });
                                         } else if (isActive) {
                                             newModules = enabledModules.filter(m => m !== mod.id && !(mod.id === 'calendar' && m === 'workspace'));
-                                        } else {
-                                            newModules = [...enabledModules, mod.id];
-                                        }
-                                        updateEnabledModules(newModules);
-                                    }}
-                                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${isActive ? 'border-blue-400 bg-blue-50/50 shadow-sm' : 'border-gray-200 bg-gray-50 opacity-60 hover:opacity-80'}`}
-                                >
-                                    <div className="flex items-center justify-between mb-2">
-                                        <h4 className="font-bold text-sm text-gray-900">{mod.label}</h4>
-                                        <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${isActive ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-300'}`}>
-                                            {isActive && <Check size={12} strokeWidth={4} />}
-                                        </div>
-                                    </div>
-                                    <p className="text-xs text-gray-500">{mod.desc}</p>
-                                </div>
-                            );
-                        })}
-                    </div>
-
-                    <div className="pt-4 border-t border-gray-100">
-                        <p className="text-xs text-gray-400">Los cambios se aplican inmediatamente al menú lateral para todos los miembros de este workspace.</p>
-                    </div>
-                </div>
-            )}
-
-            {isInviteModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden relative">
-                        <div className="flex justify-between items-center p-6 border-b border-gray-100">
-                            <div><h2 className="text-xl font-bold text-gray-900">Añadir al Equipo</h2></div>
-                            <button onClick={() => setIsInviteModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-full text-gray-500"><X size={20} /></button>
                         </div>
                         <div className="p-6 space-y-5">
                             {inviteError && <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-100">{inviteError}</div>}
