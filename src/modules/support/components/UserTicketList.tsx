@@ -5,8 +5,9 @@ import { fetchUserTickets, SupportTicket } from '../supportApi';
 import {
   Plus, Search, AlertCircle, Clock, CheckCircle2,
   ChevronRight, Bug, HelpCircle, Lightbulb, MoreHorizontal,
-  Loader2
+  Loader2, BookOpen
 } from 'lucide-react';
+import ManualTab from '@/modules/crm/components/ManualTab';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: any }> = {
   abierto: { label: 'Abierto', color: 'bg-blue-100 text-blue-700', icon: AlertCircle },
@@ -35,6 +36,7 @@ export default function UserTicketList() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('todos');
   const [search, setSearch] = useState('');
+  const [activeTab, setActiveTab] = useState<'tickets' | 'manual'>('tickets');
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -77,7 +79,21 @@ export default function UserTicketList() {
         </button>
       </div>
 
-      {/* Stats */}
+      {/* Tabs */}
+      <div className="flex space-x-1 bg-gray-100 p-1 rounded-xl w-fit">
+        <button onClick={() => setActiveTab('tickets')} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'tickets' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+            <AlertCircle size={16} /> Mis Tickets
+        </button>
+        <button onClick={() => setActiveTab('manual')} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'manual' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-blue-500'}`}>
+            <BookOpen size={16} /> Manual de Usuario
+        </button>
+      </div>
+
+      {activeTab === 'manual' ? (
+        <ManualTab />
+      ) : (
+        <>
+          {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <div className="text-2xl font-bold text-gray-900">{tickets.length}</div>
@@ -184,6 +200,8 @@ export default function UserTicketList() {
             );
           })}
         </div>
+      )}
+        </>
       )}
     </div>
   );

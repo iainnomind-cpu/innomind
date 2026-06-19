@@ -3,12 +3,11 @@ import { useUsers } from '@/context/UserContext';
 import { Building, Upload, AtSign, Phone, MapPin, Hash, Palette, CheckCircle, Users, UserPlus, Shield, X, Send, Blocks, Check, BookOpen } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { FEATURES } from '@/config/features';
-import ManualTab from './ManualTab';
 
 const CompanySettings: React.FC = () => {
     const { companyProfile, updateCompanyProfile, users, currentUser, isLoadingProfile, enabledModules, updateEnabledModules } = useUsers();
     const [saved, setSaved] = useState(false);
-    const [activeTab, setActiveTab] = useState<'profile' | 'team' | 'modules' | 'manual'>('profile');
+    const [activeTab, setActiveTab] = useState<'profile' | 'team' | 'modules'>('profile');
 
     const [profile, setProfile] = useState(companyProfile);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -114,9 +113,6 @@ const CompanySettings: React.FC = () => {
                 </button>
                 <button onClick={() => setActiveTab('modules')} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'modules' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
                     <Blocks size={16} /> Módulos
-                </button>
-                <button onClick={() => setActiveTab('manual')} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'manual' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-blue-500'}`}>
-                    <BookOpen size={16} /> Manual de Usuario
                 </button>
             </div>
 
@@ -295,8 +291,6 @@ const CompanySettings: React.FC = () => {
                     </div>
                 </div>
             )}
-
-            {activeTab === 'manual' && <ManualTab />}
 
             {isInviteModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in">
