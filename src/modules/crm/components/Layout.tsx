@@ -5,7 +5,9 @@ import { useAuth } from '@/context/AuthContext';
 import { useUsers } from '@/context/UserContext';
 import { FEATURES } from '@/config/features';
 import InnoAIChat from '@/components/ai/InnoAIChat';
+import OnboardingAssistant from '@/components/ai/OnboardingAssistant';
 import CoreNotifications from './notifications/CoreNotifications';
+import { useOnboarding } from '@/context/OnboardingContext';
 
 import { CoreLogo } from '@/components/brand/CoreLogo';
 import { motion } from 'framer-motion';
@@ -17,6 +19,7 @@ export default function Layout() {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { currentUser, enabledModules, trialDaysRemaining, companyProfile, isLoadingProfile } = useUsers();
+  const { isActive: isOnboardingActive, currentStep } = useOnboarding();
 
   const menuItems = [
     { id: 'dashboard', label: 'Panel de Control', icon: LayoutDashboard, alwaysVisible: true },
@@ -82,6 +85,8 @@ export default function Layout() {
                   ? location.pathname.includes('/compras')
                   : location.pathname.includes(item.id);
 
+            const isOnboardingTarget = isOnboardingActive && currentStep?.targetMenuId === item.id;
+
             return (
               <button
                 key={item.id}
@@ -90,10 +95,10 @@ export default function Layout() {
                   navigate(path);
                   setSidebarOpen(false);
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${isActive
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${isActive
                   ? 'bg-blue-50 text-blue-600'
                   : 'text-gray-600 hover:bg-gray-50'
-                  }`}
+                  } ${isOnboardingTarget ? 'ring-2 ring-blue-500 shadow-md bg-blue-50/50 animate-pulse' : ''}`}
               >
                 <Icon size={20} />
                 <span>{item.label}</span>
@@ -176,6 +181,7 @@ export default function Layout() {
           <Outlet />
         </main>
         <InnoAIChat />
+        <OnboardingAssistant />
       </div>
     </div>
   );
