@@ -45,13 +45,9 @@ export default function Layout() {
   });
 
   return (
-    <div className="flex h-[100dvh] bg-slate-50 relative overflow-hidden">
-      {/* Background blobs for glassmorphism visibility */}
-      <div className="absolute top-0 left-1/4 w-[40rem] h-[40rem] bg-blue-200/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-[40rem] h-[40rem] bg-indigo-200/20 rounded-full blur-3xl pointer-events-none" />
-      
-      <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white/60 backdrop-blur-2xl border-r border-white/50 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.5)] transition-transform duration-300 flex flex-col`}>
-        <div className="px-4 py-3 border-b border-gray-100 flex flex-col gap-2">
+    <div className="flex h-[100dvh] bg-gradient-to-br from-blue-100/50 via-slate-50 to-indigo-100/40">
+      <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white/40 backdrop-blur-2xl border-r border-white/60 shadow-[8px_0_30px_-10px_rgba(0,0,0,0.1)] transition-transform duration-300 flex flex-col`}>
+        <div className="px-4 py-3 border-b border-gray-200/50 flex flex-col gap-2">
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut" }}>
             <CoreLogo variant="light" size="sm" showBy={false} />
           </motion.div>
@@ -99,10 +95,10 @@ export default function Layout() {
                   navigate(path);
                   setSidebarOpen(false);
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${isActive
-                  ? 'bg-blue-600/10 text-blue-700 shadow-[inset_0_0_0_1px_rgba(37,99,235,0.15)] backdrop-blur-sm'
-                  : 'text-slate-600 hover:bg-white/40 hover:shadow-sm'
-                  } ${isOnboardingTarget ? 'ring-2 ring-blue-500 shadow-md bg-blue-50/50 animate-pulse' : ''}`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${isActive
+                  ? 'bg-blue-500/10 text-blue-700 shadow-[inset_0_0_0_1px_rgba(59,130,246,0.2)]'
+                  : 'text-gray-600 hover:bg-black/5 hover:text-gray-900'
+                  } ${isOnboardingTarget ? 'ring-2 ring-blue-400 shadow-[0_0_18px_2px_rgba(59,130,246,0.35)] animate-pulse' : ''}`}
               >
                 <Icon size={20} />
                 <span>{item.label}</span>
@@ -111,8 +107,8 @@ export default function Layout() {
           })}
         </nav>
 
-        <div className="p-4 border-t border-gray-100">
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-white/40 border border-white/60 shadow-sm backdrop-blur-sm">
+        <div className="p-3 border-t border-gray-200/50">
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-white/40 border border-white/50 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.8)]">
             <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
               {user?.email?.charAt(0).toUpperCase() || 'U'}
             </div>
@@ -138,8 +134,8 @@ export default function Layout() {
         />
       )}
 
-      <div className="flex-1 flex flex-col overflow-hidden relative z-10 border-l border-white/20">
-        <header className="bg-white/60 backdrop-blur-2xl border-b border-white/50 px-6 py-4 shrink-0 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50 relative z-10 border-l border-white/40">
+        <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-8 shrink-0">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center flex-1 max-w-2xl gap-4">
               <button
@@ -154,7 +150,7 @@ export default function Layout() {
                 <input
                   type="text"
                   placeholder="Buscar..."
-                  className="w-full pl-10 pr-4 py-2 bg-white/50 border border-white/60 shadow-sm backdrop-blur-sm rounded-xl focus:ring-2 focus:ring-blue-500/50 text-sm transition-all"
+                  className="w-full pl-10 pr-4 py-2 bg-gray-50 border-none rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                 />
               </div>
             </div>
