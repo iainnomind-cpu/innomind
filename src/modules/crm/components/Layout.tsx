@@ -106,25 +106,6 @@ export default function Layout() {
             );
           })}
         </nav>
-
-        <div className="p-3 border-t border-gray-200/50">
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-white/40 border border-white/50 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.8)]">
-            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
-              {user?.email?.charAt(0).toUpperCase() || 'U'}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900">Usuario</p>
-              <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-            </div>
-            <button
-              onClick={() => signOut()}
-              className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
-              title="Cerrar Sessión"
-            >
-              <LogOut size={18} />
-            </button>
-          </div>
-        </div>
       </aside>
 
       {sidebarOpen && (
@@ -148,6 +129,21 @@ export default function Layout() {
             </div>
             <div className="flex items-center gap-4 shrink-0">
               <CoreNotifications />
+              <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
+                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm shrink-0">
+                  {user?.email?.charAt(0).toUpperCase() || 'U'}
+                </div>
+                <div className="hidden sm:block">
+                  <p className="text-xs font-medium text-gray-600 truncate max-w-[150px]">{user?.email}</p>
+                </div>
+                <button
+                  onClick={() => signOut()}
+                  className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors ml-1"
+                  title="Cerrar Sesión"
+                >
+                  <LogOut size={18} />
+                </button>
+              </div>
             </div>
           </div>
         </header>
