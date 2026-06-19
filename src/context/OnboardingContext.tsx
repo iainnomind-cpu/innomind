@@ -3,54 +3,143 @@ import { useAuth } from './AuthContext';
 
 export interface OnboardingStep {
     id: string;
+    module: string; // Grouping label
     title: string;
     description: string;
+    actionHint: string; // Specific action the user should take
     targetMenuId: string;
+    icon: string; // emoji for the step
 }
 
 export const ONBOARDING_STEPS: OnboardingStep[] = [
+    // ─── Welcome ───────────────────────────────────────────────────────
     {
         id: 'welcome',
-        title: '¡Bienvenido a Innomind Corē!',
-        description: 'Soy tu asistente de Inteligencia Artificial. Te guiaré brevemente para configurar tu espacio de trabajo y que puedas empezar a generar valor hoy mismo.',
-        targetMenuId: 'dashboard'
+        module: 'Bienvenida',
+        title: '¡Bienvenido a Innomind Corē! 🎉',
+        description: 'Soy tu Asistente IA. Te voy a guiar módulo por módulo para que en minutos tengas todo configurado y listo para trabajar. ¡Comencemos!',
+        actionHint: 'Presiona "Siguiente" cuando estés listo para empezar.',
+        targetMenuId: 'dashboard',
+        icon: '👋',
+    },
+
+    // ─── Mi Empresa ────────────────────────────────────────────────────
+    {
+        id: 'empresa-logo',
+        module: 'Mi Empresa',
+        title: 'Sube el logo de tu empresa',
+        description: 'En "Mi Empresa" puedes personalizar toda la identidad de tu workspace. Comienza subiendo tu logo, que aparecerá en tus cotizaciones en PDF y en el sistema.',
+        actionHint: '① Haz clic en "Mi Empresa" en el menú lateral → ② Sube tu logo haciendo clic en la imagen circular.',
+        targetMenuId: 'settings',
+        icon: '🏢',
     },
     {
-        id: 'team',
-        title: 'Paso 1: Tu Empresa y Equipo',
-        description: 'Ve a la sección "Mi Empresa". Aquí puedes actualizar el logo de tu negocio, colores corporativos y, lo más importante, invitar a otros miembros de tu equipo a colaborar contigo.',
-        targetMenuId: 'settings'
+        id: 'empresa-invitar',
+        module: 'Mi Empresa',
+        title: 'Invita a tu equipo',
+        description: 'Puedes invitar a compañeros de trabajo a tu workspace para que colaboren contigo. Cada usuario tendrá su propio acceso.',
+        actionHint: '① Ve a la pestaña "Equipo" → ② Haz clic en "Invitar Miembro" → ③ Escribe el correo de tu colega.',
+        targetMenuId: 'settings',
+        icon: '👥',
+    },
+
+    // ─── CRM: Prospectos ───────────────────────────────────────────────
+    {
+        id: 'crm-prospecto',
+        module: 'CRM · Prospectos',
+        title: 'Registra tu primer prospecto',
+        description: 'El CRM es el corazón del negocio. Aquí guardas a todas las personas o empresas con las que quieres hacer negocios, antes de que sean clientes.',
+        actionHint: '① Ve a "Prospectos" en el menú → ② Haz clic en "Nuevo Prospecto" (esquina superior derecha) → ③ Llena el nombre, empresa y teléfono.',
+        targetMenuId: 'prospectos',
+        icon: '🧑‍💼',
     },
     {
-        id: 'inventory',
-        title: 'Paso 2: Agrega tus Productos',
-        description: 'Para poder vender, necesitas qué vender. Dirígete a "Inventario" y registra tu primer producto o servicio con su precio base.',
-        targetMenuId: 'inventory'
+        id: 'crm-timeline',
+        module: 'CRM · Seguimiento',
+        title: 'Registra un seguimiento',
+        description: 'Al dar clic sobre un prospecto, verás su perfil con una Línea de Tiempo. Aquí registras cada interacción: llamadas, correos, reuniones. Así nunca pierdes el hilo de la conversación.',
+        actionHint: '① Haz clic sobre el prospecto que acabas de crear → ② En su perfil, escribe una nota en el campo de seguimiento (ej: "Llamé, interesado") → ③ Guarda.',
+        targetMenuId: 'prospectos',
+        icon: '📞',
     },
     {
-        id: 'quotes',
-        title: 'Paso 3: Crea una Cotización',
-        description: 'Ahora que tienes un producto, ve a "Cotizaciones". Podrás generar un presupuesto profesional en PDF en segundos para enviárselo a un prospecto.',
-        targetMenuId: 'quotes'
+        id: 'crm-embudo',
+        module: 'CRM · Embudo de Ventas',
+        title: 'El Embudo de Ventas (Pipeline)',
+        description: 'El Embudo es un tablero visual tipo Kanban donde ves todas tus oportunidades en columnas: Nuevo, Contactado, Propuesta Enviada, Ganado / Perdido.',
+        actionHint: '① Ve a "Embudo" en el menú lateral → ② Arrastra tu prospecto de la columna "Nuevo" a "Contactado" para cambiar su etapa.',
+        targetMenuId: 'embudo',
+        icon: '🔀',
+    },
+
+    // ─── Inventario ────────────────────────────────────────────────────
+    {
+        id: 'inventario-producto',
+        module: 'Inventario',
+        title: 'Agrega tu primer producto o servicio',
+        description: 'Para poder cotizar, necesitas productos registrados. Ve al módulo de Inventario y da de alta lo que vendes: puede ser un producto físico o un servicio.',
+        actionHint: '① Ve a "Inventario" en el menú → ② Haz clic en "Nuevo Producto" → ③ Escribe el nombre, precio y unidad de medida → ④ Guarda.',
+        targetMenuId: 'inventory',
+        icon: '📦',
+    },
+
+    // ─── Cotizaciones ──────────────────────────────────────────────────
+    {
+        id: 'cotizacion-crear',
+        module: 'Cotizaciones',
+        title: 'Crea tu primera cotización',
+        description: 'Con al menos un producto y un prospecto, ya puedes generar cotizaciones profesionales. El sistema las genera en PDF con el logo y colores de tu empresa.',
+        actionHint: '① Ve a "Cotizaciones" → ② Clic en "Nueva Cotización" → ③ Selecciona el cliente, agrega los productos y guarda.',
+        targetMenuId: 'quotes',
+        icon: '📄',
     },
     {
-        id: 'finance',
-        title: 'Paso 4: Registra una Cuenta',
-        description: 'Finalmente, ve a "Finanzas" y añade una cuenta bancaria o caja chica. Esto te permitirá registrar cobros cuando tus cotizaciones se conviertan en ventas.',
-        targetMenuId: 'finance'
+        id: 'cotizacion-enviar',
+        module: 'Cotizaciones',
+        title: 'Envía la cotización por WhatsApp',
+        description: 'Una vez creada la cotización, puedes compartirla directamente por WhatsApp o correo electrónico con un solo clic. El sistema genera un link único para el cliente.',
+        actionHint: '① Abre la cotización que creaste → ② Usa el botón de WhatsApp o Correo en la parte superior para enviársela a tu cliente.',
+        targetMenuId: 'quotes',
+        icon: '📲',
     },
+
+    // ─── Finanzas ──────────────────────────────────────────────────────
+    {
+        id: 'finanzas-cuenta',
+        module: 'Finanzas',
+        title: 'Registra una cuenta bancaria',
+        description: 'En Finanzas controlas tu flujo de efectivo. Comienza registrando tus cuentas bancarias o caja chica para poder llevar el registro de ingresos y gastos.',
+        actionHint: '① Ve a "Finanzas" en el menú → ② En la sección de Cuentas, haz clic en "Nueva Cuenta" → ③ Escribe el nombre del banco y el saldo inicial.',
+        targetMenuId: 'finance',
+        icon: '🏦',
+    },
+    {
+        id: 'finanzas-ingreso',
+        module: 'Finanzas',
+        title: 'Registra un ingreso o gasto',
+        description: 'Una vez que tienes una cuenta, puedes registrar movimientos: ingresos por ventas, pagos de clientes o gastos operativos. Todo queda categorizado y con fecha.',
+        actionHint: '① En Finanzas, selecciona tu cuenta → ② Haz clic en "Nuevo Movimiento" → ③ Elige Ingreso o Gasto, el monto y la categoría.',
+        targetMenuId: 'finance',
+        icon: '💰',
+    },
+
+    // ─── ¡Listo! ───────────────────────────────────────────────────────
     {
         id: 'done',
-        title: '¡Todo listo!',
-        description: 'Has completado los pasos básicos. Ahora estás listo para explorar la plataforma por tu cuenta. ¡Mucho éxito!',
-        targetMenuId: 'dashboard'
-    }
+        module: 'Finalizado',
+        title: '¡Estás listo para trabajar! 🚀',
+        description: 'Has completado la configuración básica de Innomind Corē. Ahora tienes: empresa configurada, prospectos, inventario, cotizaciones y finanzas listos. ¡Mucho éxito!',
+        actionHint: 'Recuerda: puedes consultar el Manual de Usuario completo en el módulo de "Soporte" del menú lateral.',
+        targetMenuId: 'dashboard',
+        icon: '🎯',
+    },
 ];
 
 interface OnboardingContextType {
     isActive: boolean;
     currentStepIndex: number;
     currentStep: OnboardingStep;
+    totalSteps: number;
     nextStep: () => void;
     prevStep: () => void;
     dismiss: () => void;
@@ -69,12 +158,8 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         if (user && !isInitialized) {
             const storageKey = `inno_onboarding_completed_${user.id}`;
             const isCompleted = localStorage.getItem(storageKey) === 'true';
-            
             if (!isCompleted) {
-                // Short delay so the UI loads first before showing the pop-up
-                setTimeout(() => {
-                    setIsActive(true);
-                }, 1500);
+                setTimeout(() => setIsActive(true), 1500);
             }
             setIsInitialized(true);
         }
@@ -96,16 +181,14 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     const dismiss = () => {
         if (user) {
-            const storageKey = `inno_onboarding_completed_${user.id}`;
-            localStorage.setItem(storageKey, 'true');
+            localStorage.setItem(`inno_onboarding_completed_${user.id}`, 'true');
         }
         setIsActive(false);
     };
 
     const reset = () => {
         if (user) {
-            const storageKey = `inno_onboarding_completed_${user.id}`;
-            localStorage.removeItem(storageKey);
+            localStorage.removeItem(`inno_onboarding_completed_${user.id}`);
         }
         setCurrentStepIndex(0);
         setIsActive(true);
@@ -116,10 +199,11 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             isActive,
             currentStepIndex,
             currentStep: ONBOARDING_STEPS[currentStepIndex],
+            totalSteps: ONBOARDING_STEPS.length,
             nextStep,
             prevStep,
             dismiss,
-            reset
+            reset,
         }}>
             {children}
         </OnboardingContext.Provider>
