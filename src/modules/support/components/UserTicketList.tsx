@@ -8,6 +8,7 @@ import {
   Loader2, BookOpen
 } from 'lucide-react';
 import ManualTab from '@/modules/crm/components/ManualTab';
+import TrakManualTab from '@/modules/trak/components/ui/TrakManualTab';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: any }> = {
   abierto: { label: 'Abierto', color: 'bg-blue-100 text-blue-700', icon: AlertCircle },
@@ -39,6 +40,8 @@ export default function UserTicketList() {
   const [activeTab, setActiveTab] = useState<'tickets' | 'manual'>('tickets');
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isTrak = location.pathname.includes('/trak');
 
   useEffect(() => {
     if (user?.email) {
@@ -71,7 +74,7 @@ export default function UserTicketList() {
           <p className="text-sm text-gray-500 mt-1">Reporta problemas, solicita ayuda o sugiere mejoras</p>
         </div>
         <button
-          onClick={() => navigate('/crm/support/new')}
+          onClick={() => navigate(isTrak ? '/trak/support/new' : '/crm/support/new')}
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors shadow-sm"
         >
           <Plus size={18} />
@@ -90,7 +93,7 @@ export default function UserTicketList() {
       </div>
 
       {activeTab === 'manual' ? (
-        <ManualTab />
+        isTrak ? <TrakManualTab /> : <ManualTab />
       ) : (
         <>
           {/* Stats */}
