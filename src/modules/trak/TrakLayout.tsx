@@ -113,25 +113,7 @@ function TrakLayoutInner() {
             );
           })}
         </nav>
-
-        {/* Footer */}
-        <div className="p-3 border-t border-white/5">
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5">
-            <div className="w-9 h-9 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-300 font-bold text-sm">
-              {user?.email?.charAt(0).toUpperCase() || 'U'}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs text-slate-300 truncate">{user?.email}</p>
-            </div>
-            <button
-              onClick={() => signOut()}
-              className="p-1.5 text-slate-400 hover:text-red-400 transition-colors"
-              title="Cerrar sesión"
-            >
-              <LogOut size={16} />
-            </button>
-          </div>
-        </div>
+        </nav>
       </aside>
 
       {/* Mobile overlay */}
@@ -154,6 +136,21 @@ function TrakLayoutInner() {
           </div>
           <div className="flex items-center gap-4 ml-auto">
             <TrakNotifications />
+            <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
+              <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-sm shrink-0">
+                {user?.email?.charAt(0).toUpperCase() || 'U'}
+              </div>
+              <div className="hidden sm:block">
+                <p className="text-xs font-medium text-gray-600 truncate max-w-[150px]">{user?.email}</p>
+              </div>
+              <button
+                onClick={() => signOut()}
+                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors ml-1"
+                title="Cerrar Sesión"
+              >
+                <LogOut size={18} />
+              </button>
+            </div>
           </div>
         </header>
 
