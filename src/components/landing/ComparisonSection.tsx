@@ -8,7 +8,7 @@ import { useModal } from '../../context/ModalContext';
 export default function ComparisonSection() {
     const { openFreeTrial, openDemoModal } = useModal();
     return (
-        <section className="py-24 bg-white dark:bg-transparent border-b border-slate-100 dark:border-slate-800/50">
+        <section className="py-12 bg-white dark:bg-transparent border-b border-slate-100 dark:border-slate-800/50">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16 max-w-3xl mx-auto">
                     <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl mb-4">

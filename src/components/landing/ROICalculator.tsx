@@ -46,7 +46,7 @@ export default function ROICalculator() {
     };
 
     return (
-        <section className="py-24 bg-slate-50 dark:bg-transparent">
+        <section className="py-12 bg-slate-50 dark:bg-transparent">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16">
                     <div className="inline-flex items-center justify-center p-2 bg-green-50 dark:bg-green-900/20 rounded-lg text-green-600 dark:text-green-400 mb-4">
