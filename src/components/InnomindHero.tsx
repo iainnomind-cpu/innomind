@@ -38,16 +38,10 @@ function InnomindHero() {
         <div className="absolute bottom-[-10%] right-[-5%] w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none"></div>
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_100%)] pointer-events-none"></div>
 
-        <div className="relative w-full max-w-7xl mx-auto px-4 md:px-8 py-16 md:py-24">
+        <div className="relative w-full max-w-7xl mx-auto px-4 md:px-8 pt-8 pb-16 md:pt-12 md:pb-24">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             <div className="flex flex-col gap-6 md:gap-8 max-w-2xl mx-auto lg:mx-0 text-center lg:text-left z-10">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-panel self-center lg:self-start border-primary/30">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                </span>
-                <span className="text-xs font-semibold text-white tracking-wide uppercase">Nueva Integración GPT-4o Disponible</span>
-              </div>
+
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white leading-[1.1] tracking-tight">
                 Automatice su Empresa y Reduzca Costos Operativos en un <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">40%</span> con Innomind
               </h1>
