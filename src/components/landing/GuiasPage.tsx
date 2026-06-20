@@ -9,32 +9,24 @@ const CORE_TUTORIALS = [
         title: "Primeros pasos con Corē CRM",
         description: "Aprende a configurar tu embudo de ventas, agregar prospectos y realizar tu primer seguimiento.",
         duration: "8 min",
-        type: "video",
-        content: "En este video introductorio, te guiaremos a través de la interfaz principal de Corē CRM. Aprenderás a personalizar las etapas de tu embudo de ventas para que coincidan con tu proceso comercial real. Luego, veremos cómo importar tu lista de contactos existente y crear tu primer prospecto manualmente. Finalmente, configuraremos un recordatorio de seguimiento para asegurar que ninguna oportunidad de venta se pierda."
-    },
-    {
-        id: 2,
-        title: "Configuración de Facturación Electrónica",
-        description: "Guía paso a paso para vincular tus sellos digitales y emitir tu primera factura con un clic.",
-        duration: "12 min",
-        type: "video",
-        content: "La facturación electrónica no tiene por qué ser complicada. En este tutorial, te mostraremos cómo subir tus archivos .cer y .key, ingresar tu contraseña y configurar tus datos fiscales. Una vez configurado, emitiremos una factura de prueba a partir de una cotización aprobada, demostrando cómo Corē automatiza el cálculo de impuestos y el envío del PDF/XML al cliente."
+        type: "article",
+        content: "Bienvenido a Corē CRM. Esta guía te ayudará a dar tus primeros pasos.\n\n**1. Configuración de tu Embudo de Ventas:**\nDirígete a la sección 'Embudo' en el menú principal. Verás las etapas predeterminadas (Contacto, Negociación, Cierre). Haz clic en 'Configurar Embudo' para agregar o renombrar etapas según el proceso de ventas real de tu empresa.\n\n**2. Agregar tu primer prospecto:**\nEn el tablero Kanban de prospectos, haz clic en el botón '+ Nuevo Prospecto' en la esquina superior derecha. Completa los datos básicos: Nombre, Empresa, Correo y Teléfono. También puedes asignar el valor estimado de la posible venta.\n\n**3. Seguimiento y Notas:**\nUna vez creado el prospecto, haz clic sobre su tarjeta para abrir los detalles. Aquí podrás registrar todas las llamadas, enviar correos, y dejar notas internas para que tu equipo comercial tenga todo el contexto centralizado."
     },
     {
         id: 3,
-        title: "Gestión avanzada de Inventario Multialmacén",
-        description: "Cómo transferir stock entre sucursales, establecer puntos de reorden y alertas de bajo stock.",
-        duration: "15 min",
+        title: "Gestión de Inventario y Almacenes",
+        description: "Cómo registrar productos, controlar el stock y gestionar las entradas y salidas.",
+        duration: "10 min",
         type: "article",
-        content: "Paso 1: Configuración de Almacenes. Dirígete a la sección 'Ajustes de Inventario' y haz clic en 'Nuevo Almacén'.\n\nPaso 2: Transferencias. Usa el módulo 'Movimientos' para crear una orden de traspaso. Selecciona el almacén de origen y el de destino, y escanea o busca los productos.\n\nPaso 3: Puntos de Reorden. En la ficha de cada producto, establece el 'Stock Mínimo'. Corē te notificará automáticamente cuando las existencias bajen de este límite."
+        content: "**Paso 1: Catálogo de Productos**\nDirígete al módulo de Inventario y entra a 'Catálogo'. Haz clic en 'Nuevo Producto'. Aquí debes ingresar el SKU, nombre, descripción, precio de venta y costo unitario.\n\n**Paso 2: Registro de Entradas (Compras)**\nCuando recibas nueva mercancía, no modifiques el stock manualmente. Ve a 'Movimientos' > 'Registrar Entrada'. Selecciona los productos que entraron, la cantidad y opcionalmente asocia el número de orden de compra o nota del proveedor.\n\n**Paso 3: Salidas y Alertas**\nCada que una cotización se marca como 'Ganada', el sistema puede descontar automáticamente el inventario si así lo configuras. Además, en la ficha de cada producto, puedes establecer un 'Stock Mínimo'. Corē te notificará automáticamente cuando las existencias bajen de este límite."
     },
     {
         id: 4,
         title: "Integrar WhatsApp Masivo a tu Embudo",
-        description: "Automatiza mensajes de bienvenida y recordatorios de pago conectando WhatsApp Business API.",
-        duration: "10 min",
-        type: "video",
-        content: "Aprende a conectar tu número de WhatsApp Business a Corē. Te enseñaremos a crear plantillas de mensajes (templates) preaprobadas por Meta. Posteriormente, configuraremos un 'Gatillo' (Trigger) para que, cuando un prospecto cambie a la etapa 'Ganado', se le envíe automáticamente un mensaje de bienvenida y agradecimiento a su WhatsApp."
+        description: "Automatiza mensajes de bienvenida y seguimientos conectando WhatsApp API.",
+        duration: "12 min",
+        type: "article",
+        content: "Automatizar la comunicación con WhatsApp te ahorrará horas de trabajo manual.\n\n**1. Conectar tu número de WhatsApp:**\nVe a 'Configuración' > 'Integraciones' > 'WhatsApp API'. Sigue las instrucciones para vincular tu número a través del portal de Meta. Asegúrate de tener una cuenta de Facebook Business verificada.\n\n**2. Crear Plantillas (Templates):**\nEn el menú de WhatsApp, ve a 'Plantillas'. Aquí puedes redactar mensajes estandarizados (ej. '¡Hola {{nombre}}! Gracias por contactar a Innomind.'). Meta revisará y aprobará estas plantillas usualmente en pocos minutos.\n\n**3. Configurar Disparadores (Triggers):**\nRegresa a la configuración de tu Embudo. Haz clic en el ícono de engranaje de la etapa 'Nuevo Prospecto'. Selecciona 'Acción Automática: Enviar WhatsApp' y elige la plantilla de bienvenida. Ahora, cada nuevo lead recibirá un mensaje instantáneo de forma automática."
     }
 ];
 
@@ -44,16 +36,16 @@ const TRAK_TUTORIALS = [
         title: "Creación de Proyectos y Asignación de Equipo",
         description: "Descubre cómo estructurar proyectos complejos, definir hitos y asignar roles a tu equipo.",
         duration: "6 min",
-        type: "video",
-        content: "Comenzamos en el panel principal de Trak. Haremos clic en 'Nuevo Proyecto', definiremos su alcance, presupuesto y fechas límite. Luego, invitaremos a los miembros del equipo y les asignaremos roles específicos (Líder, Desarrollador, Diseñador). Verás cómo establecer hitos (Milestones) para dividir el proyecto en fases manejables."
+        type: "article",
+        content: "Trak te permite organizar el trabajo de tu equipo de manera clara y eficiente.\n\n**1. Crear un Proyecto Nuevo:**\nEn el panel principal de Trak, haz clic en 'Nuevo Proyecto'. Asigna un nombre claro, selecciona el cliente asociado (si aplica) y establece las fechas de inicio y entrega estimada.\n\n**2. Invitar al Equipo:**\nVe a la pestaña 'Equipo' dentro del proyecto. Aquí podrás buscar a los usuarios de tu organización y agregarlos. Asígnales un rol específico (como Líder de Proyecto, Ejecutor, Visualizador) para controlar los permisos de acceso y edición.\n\n**3. Establecer Hitos (Milestones):**\nPara proyectos largos, es recomendable usar hitos. Ve a la pestaña 'Hitos' y crea fases clave (ej. 'Fase 1: Diseño', 'Fase 2: Desarrollo'). Posteriormente, podrás agrupar las tareas bajo cada uno de estos hitos."
     },
     {
         id: 2,
         title: "Flujos de Trabajo con Tableros Kanban",
         description: "Optimiza la productividad visualizando cuellos de botella y moviendo tareas por etapas.",
         duration: "9 min",
-        type: "video",
-        content: "El corazón de Trak es su tablero ágil. En este video, crearemos un flujo de trabajo personalizado (To Do, In Progress, Review, Done). Te mostraremos cómo arrastrar y soltar tareas, agregar checklists internos a una tarea, y utilizar las etiquetas de colores para priorizar urgencias. También veremos cómo filtrar el tablero por usuario."
+        type: "article",
+        content: "El corazón de Trak es su tablero ágil (Kanban), ideal para ver el estado de todo el proyecto de un vistazo.\n\n**1. Personalizar Columnas:**\nPor defecto, el tablero tiene las columnas 'Por Hacer', 'En Progreso' y 'Completado'. Puedes hacer clic en 'Añadir Columna' para incluir etapas de revisión, como 'En Espera del Cliente' o 'QA / Pruebas'.\n\n**2. Gestión de Tareas:**\nPara crear una tarea, haz clic en el '+' debajo de cualquier columna. Dale un título. Si haces clic en la tarea, se abrirá el panel de detalles donde puedes agregar una descripción detallada, adjuntar archivos, crear sub-listas de verificación (checklists) internas y etiquetar a un responsable.\n\n**3. Priorización Visual:**\nUsa las etiquetas (labels) de colores para marcar la prioridad de cada tarea (Baja, Media, Alta, Urgente). Esto ayuda al equipo a saber exactamente qué atacar primero."
     },
     {
         id: 3,
@@ -61,15 +53,15 @@ const TRAK_TUTORIALS = [
         description: "Cómo convertir automáticamente una cotización aprobada en un proyecto accionable en Trak.",
         duration: "7 min",
         type: "article",
-        content: "Esta es una de las funcionalidades más poderosas de nuestro ecosistema. Cuando un cliente acepta una cotización en Corē, puedes hacer clic en 'Generar Proyecto en Trak'.\n\nEl sistema copiará automáticamente las partidas cotizadas y las transformará en tareas iniciales en el tablero de Trak, vinculando al cliente y asignando el presupuesto estimado. Esto elimina la doble captura de datos."
+        content: "Si tu empresa utiliza tanto Corē como Trak, esta integración es fundamental para evitar el doble trabajo.\n\n**El Flujo Automatizado:**\nCuando un cliente acepta formalmente una cotización en Corē, dirígete al detalle de esa cotización. En el menú de acciones superiores, encontrarás un botón llamado 'Generar Proyecto en Trak'.\n\n**¿Qué sucede al hacer clic?**\nEl sistema creará un proyecto nuevo en Trak con el nombre de la cotización. Además, copiará automáticamente cada una de las partidas cotizadas y las transformará en tareas iniciales en la columna 'Por Hacer'. El proyecto quedará automáticamente vinculado al cliente correspondiente, manteniendo el historial limpio y conectado desde la venta hasta la ejecución."
     },
     {
         id: 4,
-        title: "Reportes de Tiempos y Rendimiento (Timesheets)",
+        title: "Reportes de Tiempos y Rendimiento",
         description: "Aprende a registrar horas facturables y evaluar la rentabilidad por cliente o proyecto.",
         duration: "11 min",
-        type: "video",
-        content: "El control del tiempo es vital para la rentabilidad. Te mostraremos cómo tu equipo puede usar el 'Timer' integrado de Trak o ingresar sus horas manualmente al final del día. Luego, generaremos un reporte de rentabilidad que compara las horas estimadas vs. las horas reales invertidas, destacando qué proyectos están consumiendo más recursos."
+        type: "article",
+        content: "El control del tiempo invertido es vital para asegurar que tus proyectos sean rentables.\n\n**1. Registro de Tiempo (Timesheets):**\nCada miembro del equipo puede registrar su tiempo de dos formas: usando el 'Temporizador' integrado que inicia al hacer clic en 'Comenzar a trabajar' dentro de una tarea, o ingresando manualmente las horas invertidas al final del día en la pestaña 'Mis Tiempos'.\n\n**2. Reportes de Proyecto:**\nLos gerentes pueden ir a la sección 'Reportes' > 'Rendimiento por Proyecto'. Aquí, Trak compara automáticamente las horas estimadas totales del proyecto contra las horas reales registradas por el equipo. Verás gráficos que te alertarán si te estás acercando al límite de tiempo presupuestado.\n\n**3. Rentabilidad por Cliente:**\nTambién puedes filtrar estos reportes por cliente para ver, a nivel macro, con qué cuentas estás invirtiendo demasiadas horas no facturables y tomar decisiones informadas sobre tus precios futuros."
     }
 ];
 
