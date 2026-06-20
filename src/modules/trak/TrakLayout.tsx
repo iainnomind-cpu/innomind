@@ -113,7 +113,6 @@ function TrakLayoutInner() {
             );
           })}
         </nav>
-        </nav>
       </aside>
 
       {/* Mobile overlay */}
