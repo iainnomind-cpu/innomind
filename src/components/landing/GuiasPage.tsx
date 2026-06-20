@@ -148,32 +148,20 @@ export default function GuiasPage() {
                                         <div className={`w-full sm:w-48 aspect-video sm:aspect-square rounded-xl flex items-center justify-center shrink-0 relative overflow-hidden ${
                                             activeTab === 'core' ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-purple-50 dark:bg-purple-900/20'
                                         }`}>
-                                            {tutorial.type === 'video' ? (
-                                                <PlayCircle size={48} className={`opacity-80 group-hover:scale-110 transition-transform duration-300 ${
-                                                    activeTab === 'core' ? 'text-blue-500' : 'text-purple-500'
-                                                }`} />
-                                            ) : (
-                                                <FileText size={48} className={`opacity-80 group-hover:scale-110 transition-transform duration-300 ${
-                                                    activeTab === 'core' ? 'text-blue-500' : 'text-purple-500'
-                                                }`} />
-                                            )}
+                                            <BookOpen size={48} className={`opacity-80 group-hover:scale-110 transition-transform duration-300 ${
+                                                activeTab === 'core' ? 'text-blue-500' : 'text-purple-500'
+                                            }`} />
                                             <div className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded">
-                                                {tutorial.duration}
+                                                {tutorial.duration} de lectura
                                             </div>
                                         </div>
 
                                         {/* Info */}
                                         <div className="flex flex-col flex-1 justify-center">
                                             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider mb-2">
-                                                {tutorial.type === 'video' ? (
-                                                    <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                                                        <PlayCircle size={14} /> Video
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-blue-600 dark:text-blue-400 flex items-center gap-1">
-                                                        <BookOpen size={14} /> Artículo
-                                                    </span>
-                                                )}
+                                                <span className="text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                                                    <BookOpen size={14} /> Guía Paso a Paso
+                                                </span>
                                             </div>
                                             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                                                 {tutorial.title}
@@ -198,48 +186,26 @@ export default function GuiasPage() {
                                 className="mb-8 flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
                             >
                                 <ArrowLeft size={16} />
-                                Volver a todos los tutoriales
+                                Volver a la lista de guías
                             </button>
 
-                            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xl">
-                                {selectedTutorial.type === 'video' ? (
-                                    <div className="aspect-video bg-slate-900 flex items-center justify-center relative">
-                                        <div className="absolute inset-0 opacity-20 bg-[url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1600&q=80')] bg-cover bg-center mix-blend-overlay"></div>
-                                        <button className="relative z-10 w-20 h-20 bg-blue-600 text-white rounded-full flex items-center justify-center hover:scale-110 hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/30">
-                                            <PlayCircle size={40} className="ml-1" />
-                                        </button>
-                                        <div className="absolute bottom-4 left-4 text-white text-sm font-medium bg-black/50 px-3 py-1 rounded-full backdrop-blur-md">
-                                            Video de Demostración • {selectedTutorial.duration}
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="h-64 bg-slate-100 dark:bg-slate-800 flex items-center justify-center border-b border-slate-200 dark:border-slate-700">
-                                        <BookOpen size={64} className="text-slate-300 dark:text-slate-600" />
-                                    </div>
-                                )}
-                                
-                                <div className="p-8 md:p-12">
-                                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider mb-4">
-                                        {selectedTutorial.type === 'video' ? (
-                                            <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                                                <PlayCircle size={14} /> Video Tutorial
-                                            </span>
-                                        ) : (
-                                            <span className="text-blue-600 dark:text-blue-400 flex items-center gap-1">
-                                                <BookOpen size={14} /> Artículo de Ayuda
-                                            </span>
-                                        )}
-                                        <span className="text-slate-300 dark:text-slate-600">•</span>
-                                        <span className="text-slate-500">{activeTab === 'core' ? 'Corē ERP' : 'Trak'}</span>
-                                    </div>
-                                    <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-6">
-                                        {selectedTutorial.title}
-                                    </h2>
-                                    <div className="prose dark:prose-invert prose-lg max-w-none prose-p:leading-relaxed text-slate-600 dark:text-slate-300">
-                                        {selectedTutorial.content.split('\n\n').map((paragraph: string, i: number) => (
-                                            <p key={i}>{paragraph}</p>
-                                        ))}
-                                    </div>
+                            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xl p-8 md:p-12">
+                                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider mb-4">
+                                    <span className="text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                                        <BookOpen size={14} /> Guía Paso a Paso
+                                    </span>
+                                    <span className="text-slate-300 dark:text-slate-600">•</span>
+                                    <span className="text-slate-500">{activeTab === 'core' ? 'Corē ERP' : 'Trak'}</span>
+                                    <span className="text-slate-300 dark:text-slate-600">•</span>
+                                    <span className="text-slate-500">{selectedTutorial.duration} de lectura</span>
+                                </div>
+                                <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-8 pb-8 border-b border-slate-100 dark:border-slate-800/50">
+                                    {selectedTutorial.title}
+                                </h2>
+                                <div className="prose dark:prose-invert prose-lg max-w-none prose-p:leading-relaxed text-slate-600 dark:text-slate-300">
+                                    {selectedTutorial.content.split('\n\n').map((paragraph: string, i: number) => (
+                                        <p key={i}>{paragraph}</p>
+                                    ))}
                                 </div>
                             </div>
                         </div>
