@@ -236,7 +236,6 @@ export default function Navbar() {
                     <div className="space-y-3">
                       <SimpleLink icon={<Star size={16} />} title="Testimonios" href="/testimonios" />
                       <SimpleLink icon={<TrendingUp size={16} />} title="Casos de Estudio" href="/casos-exito" />
-                      <SimpleLink icon={<Calculator size={16} />} title="Calculadora ROI" href="/calculadora-roi" />
                     </div>
                   </div>
                   <div>
