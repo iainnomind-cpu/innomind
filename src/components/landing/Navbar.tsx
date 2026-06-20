@@ -229,7 +229,6 @@ export default function Navbar() {
                     <div className="space-y-3">
                       <SimpleLink icon={<FileText size={16} />} title="Blog" href="/blog" />
                       <SimpleLink icon={<BookOpen size={16} />} title="Guías y Tutoriales" href="/guias" />
-                      <SimpleLink icon={<Files size={16} />} title="Documentación" href="/docs" />
                     </div>
                   </div>
                   <div>
