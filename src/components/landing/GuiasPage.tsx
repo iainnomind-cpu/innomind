@@ -195,9 +195,20 @@ export default function GuiasPage() {
                                     {selectedTutorial.title}
                                 </h2>
                                 <div className="prose dark:prose-invert prose-lg max-w-none prose-p:leading-relaxed text-slate-600 dark:text-slate-300">
-                                    {selectedTutorial.content.split('\n\n').map((paragraph: string, i: number) => (
-                                        <p key={i}>{paragraph}</p>
-                                    ))}
+                                    {selectedTutorial.content.split('\n\n').map((paragraph: string, i: number) => {
+                                        // Simple parser for **bold** text
+                                        const parts = paragraph.split(/(\*\*.*?\*\*)/g);
+                                        return (
+                                            <p key={i}>
+                                                {parts.map((part, index) => {
+                                                    if (part.startsWith('**') && part.endsWith('**')) {
+                                                        return <strong key={index} className="text-slate-900 dark:text-white font-bold">{part.slice(2, -2)}</strong>;
+                                                    }
+                                                    return part;
+                                                })}
+                                            </p>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>
