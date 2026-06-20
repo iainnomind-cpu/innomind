@@ -8,31 +8,18 @@ import { TrakIcon } from '@/components/brand/TrakIcon';
 export default function Hero() {
     const { openFreeTrial, openDemoModal } = useModal();
     return (
-        <div className="relative w-full min-h-[calc(100vh-80px)] flex items-center overflow-hidden mesh-gradient-bg pt-20">
+        <div className="relative w-full min-h-[calc(100vh-80px)] flex items-center overflow-hidden mesh-gradient-bg pt-4">
             {/* Background Effects */}
             <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] pointer-events-none"></div>
             <div className="absolute bottom-[-10%] right-[-5%] w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none"></div>
             <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_100%)] pointer-events-none"></div>
 
-            <div className="relative w-full max-w-7xl mx-auto px-4 md:px-8 py-16 md:py-24">
+            <div className="relative w-full max-w-7xl mx-auto px-4 md:px-8 pt-4 pb-16 md:pt-8 md:pb-24">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
 
                     {/* Text Content */}
                     <div className="flex flex-col gap-6 md:gap-8 max-w-2xl mx-auto lg:mx-0 text-center lg:text-left z-10">
-                        {/* Badge */}
-                        <a
-                            href="/gpt-4o-integration"
-                            className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-panel self-center lg:self-start border-primary/30 cursor-pointer hover:bg-white/10 transition-colors group"
-                        >
-                            <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                            </span>
-                            <span className="text-xs font-semibold text-white tracking-wide uppercase group-hover:text-primary transition-colors">
-                                Nueva Integración GPT-4o Disponible
-                            </span>
-                            <ArrowRight size={12} className="text-white group-hover:translate-x-1 transition-transform" />
-                        </a>
+
 
                         {/* Title */}
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white leading-[1.1] tracking-tight">
