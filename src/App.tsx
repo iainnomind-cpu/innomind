@@ -21,6 +21,7 @@ const HealthPage = React.lazy(() => import('./components/landing/industries/Heal
 const EducationPage = React.lazy(() => import('./components/landing/industries/EducationPage'));
 const FAQPage = React.lazy(() => import('./components/landing/FAQPage'));
 const BlogPage = React.lazy(() => import('./components/landing/BlogPage'));
+const CasosExitoPage = React.lazy(() => import('./components/landing/CasosExitoPage'));
 const GuiasPage = React.lazy(() => import('./components/landing/GuiasPage'));
 const SoportePage = React.lazy(() => import('./components/landing/SoportePage'));
 const PreciosPage = React.lazy(() => import('./components/landing/PreciosPage'));
@@ -100,6 +101,7 @@ function App() {
           <Route path="/industrias/educacion" element={<EducationPage />} />
           <Route path="/faq" element={<FAQPage />} />
           <Route path="/blog" element={<BlogPage />} />
+          <Route path="/casos-exito" element={<CasosExitoPage />} />
           <Route path="/guias" element={<GuiasPage />} />
           <Route path="/soporte" element={<SoportePage />} />
           <Route path="/sobre-nosotros" element={<SobreNosotrosPage />} />
