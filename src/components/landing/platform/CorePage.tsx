@@ -51,7 +51,7 @@ export default function CorePage() {
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                   <button
-                    onClick={openFreeTrial}
+                    onClick={() => openFreeTrial(undefined, 'crm-erp')}
                     className="px-8 py-4 bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-700 hover:to-sky-600 text-white font-bold rounded-xl shadow-lg shadow-blue-500/25 transition-all transform hover:-translate-y-0.5"
                   >
                     Comenzar Prueba Gratuita
@@ -199,7 +199,7 @@ export default function CorePage() {
         <section className="py-20 text-center px-4">
             <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-6">Prueba Corē hoy mismo</h2>
             <button
-                onClick={openFreeTrial}
+                onClick={() => openFreeTrial(undefined, 'crm-erp')}
                 className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg transition-all"
             >
                 Comienza tus 30 Días de Prueba

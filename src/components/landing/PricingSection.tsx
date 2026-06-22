@@ -54,7 +54,17 @@ export default function PricingSection({ standalone = false }: { standalone?: bo
     const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly');
     const { openFreeTrial, openDemoModal } = useModal();
 
-    const price = billing === 'monthly' ? MONTHLY_PRICE : ANNUAL_MONTHLY_EQUIV;
+    const handleCta = (systemId: string) => {
+        if (systemId === 'custom') {
+            openDemoModal('Desarrollo a Medida');
+        } else if (systemId === 'core') {
+            openFreeTrial(undefined, 'crm-erp');
+        } else if (systemId === 'trak') {
+            openFreeTrial(undefined, 'project-tracker');
+        } else {
+            openFreeTrial();
+        }
+    };
 
     return (
         <section id="pricing" className="relative py-28 overflow-hidden bg-slate-950">
@@ -193,7 +203,7 @@ export default function PricingSection({ standalone = false }: { standalone?: bo
                                 {/* CTA */}
                                 <div className="mt-auto space-y-3">
                                     <button
-                                        onClick={openFreeTrial}
+                                        onClick={() => handleCta(sys.id)}
                                         className={`w-full py-3.5 px-6 font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-sm ${sys.ctaClass}`}
                                     >
                                         <Zap size={16} /> Comenzar Prueba Gratuita

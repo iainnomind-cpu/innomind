@@ -1,10 +1,13 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 
+type SystemPreselect = 'crm-erp' | 'project-tracker' | null;
+
 interface ModalContextType {
     isFreeTrialOpen: boolean;
     inviteEmail: string | null;
-    openFreeTrial: (email?: any) => void;
+    preSelectedSystem: SystemPreselect;
+    openFreeTrial: (email?: any, system?: SystemPreselect) => void;
     closeFreeTrial: () => void;
     isDemoModalOpen: boolean;
     serviceOfInterest: string | null;
@@ -19,19 +22,22 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
     const [serviceOfInterest, setServiceOfInterest] = useState<string | null>(null);
     const [inviteEmail, setInviteEmail] = useState<string | null>(null);
+    const [preSelectedSystem, setPreSelectedSystem] = useState<SystemPreselect>(null);
 
-    const openFreeTrial = (email?: any) => {
+    const openFreeTrial = (email?: any, system?: SystemPreselect) => {
         if (typeof email === 'string') {
             setInviteEmail(email);
         } else {
             setInviteEmail(null);
         }
+        setPreSelectedSystem(system ?? null);
         setIsFreeTrialOpen(true);
     };
 
     const closeFreeTrial = () => {
         setIsFreeTrialOpen(false);
         setInviteEmail(null);
+        setPreSelectedSystem(null);
     };
 
     const openDemoModal = (service?: string | any) => {
@@ -61,7 +67,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
 
     return (
         <ModalContext.Provider value={{ 
-            isFreeTrialOpen, inviteEmail, openFreeTrial, closeFreeTrial,
+            isFreeTrialOpen, inviteEmail, preSelectedSystem, openFreeTrial, closeFreeTrial,
             isDemoModalOpen, serviceOfInterest, openDemoModal, closeDemoModal 
         }}>
             {children}

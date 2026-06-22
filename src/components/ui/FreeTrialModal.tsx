@@ -10,7 +10,7 @@ import { FEATURES } from '@/config/features';
 import { Prospect } from '@/types';
 
 export default function FreeTrialModal() {
-    const { isFreeTrialOpen, inviteEmail, closeFreeTrial } = useModal();
+    const { isFreeTrialOpen, inviteEmail, preSelectedSystem, closeFreeTrial } = useModal();
     const navigate = useNavigate();
 
     const [step, setStep] = useState(1);
@@ -39,6 +39,18 @@ export default function FreeTrialModal() {
     // Step 1 Validation Logic
     const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+    // When modal opens: apply pre-selected system and reset step to 1
+    useEffect(() => {
+        if (isFreeTrialOpen) {
+            setStep(1);
+            if (preSelectedSystem) {
+                setSelectedMainModule(preSelectedSystem);
+            } else {
+                setSelectedMainModule(null);
+            }
+        }
+    }, [isFreeTrialOpen, preSelectedSystem]);
 
     // Pre-fill email when arriving via invitation link
     useEffect(() => {
@@ -654,7 +666,11 @@ export default function FreeTrialModal() {
                             {!isInvitedUser && step > 1 && (
                                 <button
                                     className="px-6 py-3.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                                    onClick={() => setStep(step - 1)}
+                                    onClick={() => {
+                                        // If system was pre-selected, going back from step 3 should go to step 1 (skip 2)
+                                        if (step === 3 && preSelectedSystem) setStep(1);
+                                        else setStep(step - 1);
+                                    }}
                                 >
                                     Atrás
                                 </button>
@@ -692,8 +708,13 @@ export default function FreeTrialModal() {
                                     }
 
                                     if (step === 1) {
-                                        if (isStep1Valid) setStep(2);
-                                        else setTouched({ fullName: true, email: true, companyName: true });
+                                        if (isStep1Valid) {
+                                            // Skip step 2 if system was pre-selected from outside
+                                            if (preSelectedSystem) setStep(3);
+                                            else setStep(2);
+                                        } else {
+                                            setTouched({ fullName: true, email: true, companyName: true });
+                                        }
                                     }
                                     else if (step < 3) setStep(step + 1);
                                     else if (isStep3Valid) {

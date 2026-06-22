@@ -50,7 +50,7 @@ export default function TrakPage() {
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                   <button
-                    onClick={openFreeTrial}
+                    onClick={() => openFreeTrial(undefined, 'project-tracker')}
                     className="px-8 py-4 bg-gradient-to-r from-purple-600 to-fuchsia-500 hover:from-purple-700 hover:to-fuchsia-600 text-white font-bold rounded-xl shadow-lg shadow-purple-500/25 transition-all transform hover:-translate-y-0.5"
                   >
                     Comenzar Prueba Gratuita
@@ -196,7 +196,7 @@ export default function TrakPage() {
         <section className="py-20 text-center px-4">
             <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-6">Comienza a organizar tu equipo</h2>
             <button
-                onClick={openFreeTrial}
+                onClick={() => openFreeTrial(undefined, 'project-tracker')}
                 className="px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-lg transition-all"
             >
                 Comienza tus 30 Días de Prueba
