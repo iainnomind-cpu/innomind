@@ -54,6 +54,8 @@ export default function PricingSection({ standalone = false }: { standalone?: bo
     const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly');
     const { openFreeTrial, openDemoModal } = useModal();
 
+    const price = billing === 'monthly' ? MONTHLY_PRICE : ANNUAL_MONTHLY_EQUIV;
+
     const handleCta = (systemId: string) => {
         if (systemId === 'custom') {
             openDemoModal('Desarrollo a Medida');
