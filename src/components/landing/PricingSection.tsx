@@ -51,7 +51,7 @@ const SYSTEMS = [
 ];
 
 export default function PricingSection({ standalone = false }: { standalone?: boolean }) {
-    const [billing, setBilling] = useState<'monthly' | 'annual'>('annual');
+    const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly');
     const { openFreeTrial, openDemoModal } = useModal();
 
     const price = billing === 'monthly' ? MONTHLY_PRICE : ANNUAL_MONTHLY_EQUIV;
@@ -82,11 +82,12 @@ export default function PricingSection({ standalone = false }: { standalone?: bo
                 </div>
 
                 {/* Billing toggle */}
-                <div className="flex items-center justify-center mb-14">
+                <div className="flex flex-col items-center gap-3 mb-14">
+                    <p className="text-slate-400 text-sm font-medium">Selecciona tu periodo de facturación:</p>
                     <div className="flex items-center bg-white/5 rounded-full p-1.5 border border-white/10 backdrop-blur-sm gap-1">
                         <button
                             onClick={() => setBilling('monthly')}
-                            className={`px-6 py-2 rounded-full font-bold text-sm transition-all duration-300 ${
+                            className={`px-8 py-3 rounded-full font-bold text-sm transition-all duration-300 ${
                                 billing === 'monthly'
                                     ? 'bg-white text-slate-900 shadow-md'
                                     : 'text-slate-400 hover:text-slate-200'
@@ -96,18 +97,23 @@ export default function PricingSection({ standalone = false }: { standalone?: bo
                         </button>
                         <button
                             onClick={() => setBilling('annual')}
-                            className={`px-6 py-2 rounded-full font-bold text-sm transition-all duration-300 flex items-center gap-2 ${
+                            className={`px-8 py-3 rounded-full font-bold text-sm transition-all duration-300 flex items-center gap-2 ${
                                 billing === 'annual'
                                     ? 'bg-white text-slate-900 shadow-md'
                                     : 'text-slate-400 hover:text-slate-200'
                             }`}
                         >
                             Anual
-                            <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full">
+                            <span className="px-2.5 py-1 bg-emerald-500 text-white text-[10px] font-black rounded-full">
                                 2 MESES GRATIS
                             </span>
                         </button>
                     </div>
+                    {billing === 'annual' && (
+                        <p className="text-emerald-400 text-xs font-semibold animate-in fade-in slide-in-from-top-2 duration-300">
+                            ✓ Estás ahorrando MXN ${ANNUAL_SAVINGS.toLocaleString()} por sistema al contratar anual
+                        </p>
+                    )}
                 </div>
 
                 {/* 3 Cards grid */}
