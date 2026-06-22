@@ -1,7 +1,8 @@
 import React from 'react';
-import { ArrowRight, Code, Settings, Zap, ShieldCheck, CheckCircle2, Cpu, Database, LayoutTemplate, Smartphone, Blocks } from 'lucide-react';
+import { ArrowRight, Code, Settings, Zap, ShieldCheck, CheckCircle2, Cpu, Database, LayoutTemplate, Smartphone, Blocks, Terminal } from 'lucide-react';
 import Navbar from '../Navbar';
 import Footer from '../Footer';
+import { useModal } from '../../context/ModalContext';
 
 const FEATURES = [
     {
@@ -66,6 +67,8 @@ const PROCESS_STEPS = [
 ];
 
 export default function ERPPersonalizadoPage() {
+    const { openDemoModal } = useModal();
+
     return (
         <div className="font-display bg-white dark:bg-slate-900 text-slate-900 dark:text-white antialiased min-h-screen flex flex-col relative overflow-hidden">
             <Navbar />
@@ -93,42 +96,56 @@ export default function ERPPersonalizadoPage() {
                         Olvídate de adaptar tus procesos a un software genérico rígido. Construimos el núcleo operativo perfecto para tu negocio, desde cero, escalable y sin funciones que no necesitas.
                     </p>
                     <div className="flex flex-col sm:flex-row justify-center gap-4">
-                        <button className="px-8 py-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-500/25 flex items-center justify-center gap-2">
+                        <button 
+                            onClick={() => openDemoModal('ERP Personalizado')}
+                            className="px-8 py-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-500/25 flex items-center justify-center gap-2"
+                        >
                             Agendar Consultoría Técnica <ArrowRight size={18} />
                         </button>
                     </div>
                 </div>
             </div>
 
-            {/* UI Mockup / Abstract Visual */}
+            {/* IDE Mockup / Code Visual */}
             <div className="py-12 relative z-10">
-                <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-                    <div className="relative rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden aspect-[16/9] md:aspect-[21/9]">
-                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10"></div>
-                        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=2000&q=80')] bg-cover bg-center opacity-30 mix-blend-luminosity"></div>
-                        
-                        {/* Fake UI Overlays to look like software development */}
-                        <div className="absolute top-8 left-8 right-8 bottom-8 flex gap-6">
-                            <div className="w-64 bg-slate-800/80 backdrop-blur-md border border-slate-700 rounded-2xl p-6 hidden md:flex flex-col gap-4">
-                                <div className="h-8 bg-slate-700/50 rounded-lg w-full mb-4"></div>
-                                <div className="h-4 bg-blue-500/50 rounded w-3/4"></div>
-                                <div className="h-4 bg-slate-700/50 rounded w-1/2"></div>
-                                <div className="h-4 bg-slate-700/50 rounded w-5/6"></div>
-                                <div className="mt-auto h-12 bg-purple-500/50 rounded-lg w-full"></div>
+                <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+                    <div className="relative rounded-2xl bg-[#0d1117] border border-slate-800 shadow-2xl overflow-hidden font-mono text-sm md:text-base">
+                        {/* Fake IDE Header */}
+                        <div className="flex items-center justify-between px-4 py-3 bg-[#161b22] border-b border-slate-800">
+                            <div className="flex gap-2">
+                                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                                <div className="w-3 h-3 rounded-full bg-green-500"></div>
                             </div>
-                            <div className="flex-1 bg-slate-800/60 backdrop-blur-md border border-slate-700 rounded-2xl p-8 flex flex-col relative overflow-hidden">
-                                <div className="absolute top-0 right-0 p-4 text-slate-500">
-                                    <Code size={48} className="opacity-20" />
-                                </div>
-                                <div className="h-10 bg-slate-700/50 rounded-xl w-1/3 mb-8"></div>
-                                <div className="flex-1 grid grid-cols-3 gap-6">
-                                    {[...Array(6)].map((_, i) => (
-                                        <div key={i} className="bg-slate-700/30 rounded-xl border border-slate-700/50 flex items-center justify-center">
-                                            <div className="w-12 h-12 rounded-full bg-slate-600/30"></div>
-                                        </div>
-                                    ))}
-                                </div>
+                            <div className="text-slate-400 text-xs font-semibold flex items-center gap-2">
+                                <Terminal size={14} /> src/modules/custom-erp/CoreEngine.ts
                             </div>
+                            <div></div>
+                        </div>
+                        {/* Fake Code Content */}
+                        <div className="p-6 md:p-8 overflow-x-auto text-left leading-relaxed">
+                            <pre className="text-slate-300">
+<span className="text-purple-400">import</span> {'{'} CoreEngine, DataMapper {'}'} <span className="text-purple-400">from</span> <span className="text-green-300">'@innomind/core'</span>;<br/>
+<span className="text-purple-400">import</span> {'{'} BillingSystem {'}'} <span className="text-purple-400">from</span> <span className="text-green-300">'./integrations'</span>;<br/>
+<br/>
+<span className="text-slate-500">{'// Initializing Custom ERP specific to your business logic'}</span><br/>
+<span className="text-purple-400">const</span> customErp = <span className="text-blue-400">new</span> CoreEngine({'{'}<br/>
+{'    '}clientId: <span className="text-green-300">'CUST-00921'</span>,<br/>
+{'    '}industry: <span className="text-green-300">'Manufacturing'</span>,<br/>
+{'    '}modules: [<span className="text-green-300">'Inventory'</span>, <span className="text-green-300">'HR'</span>, <span className="text-green-300">'CustomBilling'</span>],<br/>
+{'    '}scale: <span className="text-purple-400">true</span><br/>
+{'}'});<br/>
+<br/>
+<span className="text-purple-400">export async function</span> <span className="text-blue-400">deployCustomSystem</span>() {'{'}<br/>
+{'    '}<span className="text-purple-400">try</span> {'{'}<br/>
+{'        '}<span className="text-purple-400">await</span> customErp.<span className="text-blue-400">syncLegacyData</span>();<br/>
+{'        '}<span className="text-purple-400">await</span> BillingSystem.<span className="text-blue-400">connect</span>();<br/>
+{'        '}console.<span className="text-blue-400">log</span>(<span className="text-green-300">'[SUCCESS] Tu ERP a medida está 100% operativo.'</span>);<br/>
+{'    '}{'}'} <span className="text-purple-400">catch</span> (error) {'{'}<br/>
+{'        '}<span className="text-slate-500">{'// No worries, our 24/7 support has you covered.'}</span><br/>
+{'    '}{'}'}<br/>
+{'}'}
+                            </pre>
                         </div>
                     </div>
                 </div>
@@ -261,7 +278,10 @@ export default function ERPPersonalizadoPage() {
                     <p className="text-xl text-slate-600 dark:text-slate-400 mb-10">
                         Cuéntanos sobre tu operación y descubre cómo un sistema a medida puede ser la mejor inversión para el futuro de tu empresa.
                     </p>
-                    <button className="px-10 py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-lg rounded-2xl hover:scale-105 transition-transform shadow-2xl">
+                    <button 
+                        onClick={() => openDemoModal('Consultoría ERP a Medida')}
+                        className="px-10 py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-lg rounded-2xl hover:scale-105 transition-transform shadow-2xl"
+                    >
                         Solicitar Presupuesto sin Compromiso
                     </button>
                 </div>
