@@ -3,6 +3,7 @@ import React from 'react';
 import Navbar from './Navbar';
 import Hero from './Hero';
 import ComparisonSection from './ComparisonSection';
+import PricingSection from './PricingSection';
 import ChatbotSection from './ChatbotSection';
 import SuccessStories from './SuccessStories';
 import FAQ from './FAQ';
@@ -23,6 +24,7 @@ export default function LandingPage() {
                 <Navbar />
                 <Hero />
                 <ComparisonSection />
+                <PricingSection />
                 <ChatbotSection />
                 <SuccessStories />
                 <FAQ />

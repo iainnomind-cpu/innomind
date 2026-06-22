@@ -35,7 +35,7 @@ export default function ComparisonSection() {
 
                         <ul className="space-y-4 mb-8 flex-grow relative z-10">
                             <ListItem text="Acceso inmediato" />
-                            <ListItem text="Suscripción mensual de $299 MXN" />
+                            <ListItem text="Suscripción mensual desde $299 MXN" />
                             <ListItem text="Actualizaciones automáticas incluidas" />
                             <ListItem text="Soporte técnico 24/7" />
                             <ListItem text="Sin costos de infraestructura" />
@@ -46,8 +46,8 @@ export default function ComparisonSection() {
                             <button onClick={openFreeTrial} className="w-full mb-3 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-lg shadow-blue-600/20">
                                 Comenzar Prueba Gratuita
                             </button>
-                            <a href="/planes" className="block text-center text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center justify-center gap-1">
-                                Ver Planes <ArrowRight size={14} />
+                            <a href="/precios" className="block text-center text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center justify-center gap-1">
+                                Ver Planes y Precios <ArrowRight size={14} />
                             </a>
                         </div>
                     </div>
