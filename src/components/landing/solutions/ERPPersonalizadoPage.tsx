@@ -2,7 +2,7 @@ import React from 'react';
 import { ArrowRight, Code, Settings, Zap, ShieldCheck, CheckCircle2, Cpu, Database, LayoutTemplate, Smartphone, Blocks, Terminal } from 'lucide-react';
 import Navbar from '../Navbar';
 import Footer from '../Footer';
-import { useModal } from '../../context/ModalContext';
+import { useModal } from '../../../context/ModalContext';
 
 const FEATURES = [
     {
