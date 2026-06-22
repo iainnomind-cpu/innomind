@@ -22,6 +22,7 @@ const EducationPage = React.lazy(() => import('./components/landing/industries/E
 const FAQPage = React.lazy(() => import('./components/landing/FAQPage'));
 const BlogPage = React.lazy(() => import('./components/landing/BlogPage'));
 const CasosExitoPage = React.lazy(() => import('./components/landing/CasosExitoPage'));
+const ERPPersonalizadoPage = React.lazy(() => import('./components/landing/solutions/ERPPersonalizadoPage'));
 const GuiasPage = React.lazy(() => import('./components/landing/GuiasPage'));
 const SoportePage = React.lazy(() => import('./components/landing/SoportePage'));
 const PreciosPage = React.lazy(() => import('./components/landing/PreciosPage'));
@@ -112,6 +113,9 @@ function App() {
           <Route path="/plataforma/trak" element={<TrakPage />} />
           <Route path="/plataforma/chatbots" element={<ChatbotsPage />} />
           <Route path="/plataforma/mensajeria" element={<MensajeriaPage />} />
+          
+          {/* Rutas de Soluciones */}
+          <Route path="/soluciones/erp-personalizado" element={<ERPPersonalizadoPage />} />
 
           {/* Legal Routes */}
           <Route path="/privacidad" element={<PrivacidadPage />} />
