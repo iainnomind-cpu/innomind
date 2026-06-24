@@ -789,9 +789,44 @@ export default function FreeTrialModal() {
 
                                                 }
 
-                                                closeFreeTrial();
+                                                // After registration → redirect to Stripe checkout (14-day trial)
+                                                const planKey = selectedMainModule === 'project-tracker' ? 'trak' : 'core';
+                                                // Try to redirect to Stripe, but fallback to app if Stripe not configured
+                                                try {
+                                                    const FINAPP_URL = import.meta.env.VITE_FINAPP_URL || 'https://sistema-de-finanzas-innomind.vercel.app';
+                                                    const PRICE_MAP: Record<string, string> = {
+                                                        core_monthly: import.meta.env.VITE_STRIPE_PRICE_CORE_MONTHLY || '',
+                                                        core_annual: import.meta.env.VITE_STRIPE_PRICE_CORE_ANNUAL || '',
+                                                        trak_monthly: import.meta.env.VITE_STRIPE_PRICE_TRAK_MONTHLY || '',
+                                                        trak_annual: import.meta.env.VITE_STRIPE_PRICE_TRAK_ANNUAL || '',
+                                                    };
+                                                    const priceId = PRICE_MAP[`${planKey}_monthly`]; // default monthly
 
-                                                // Redirección inteligente
+                                                    if (priceId) {
+                                                        const res = await fetch(`${FINAPP_URL}/api/checkout`, {
+                                                            method: 'POST',
+                                                            headers: { 'Content-Type': 'application/json' },
+                                                            body: JSON.stringify({
+                                                                priceId,
+                                                                email,
+                                                                name: fullName,
+                                                                company: companyName,
+                                                                plan: `${planKey}_monthly`,
+                                                            }),
+                                                        });
+                                                        const { url } = await res.json();
+                                                        if (url) {
+                                                            closeFreeTrial();
+                                                            window.location.href = url; // go to Stripe
+                                                            return;
+                                                        }
+                                                    }
+                                                } catch (stripeErr) {
+                                                    console.warn('Stripe checkout not available, redirecting to app:', stripeErr);
+                                                }
+
+                                                // Fallback: go to app directly (when Stripe not yet configured)
+                                                closeFreeTrial();
                                                 if (authData.session) {
                                                     if (selectedMainModule === 'project-tracker') {
                                                         navigate('/trak');
@@ -799,11 +834,10 @@ export default function FreeTrialModal() {
                                                         navigate('/crm/dashboard');
                                                     }
                                                 } else {
-                                                    // Caso: Confirmación de correo requerida
                                                     navigate('/crm/login', {
                                                         state: {
                                                             username: email,
-                                                            message: "Por favor confirma tu correo electrónico."
+                                                            message: "Por favor confirma tu correo electrónico y activa tu suscripción."
                                                         }
                                                     });
                                                 }
