@@ -58,8 +58,28 @@ export default function PricingSection({ standalone = false }: { standalone?: bo
 
     const price = billing === 'monthly' ? MONTHLY_PRICE : ANNUAL_MONTHLY_EQUIV;
 
+    const [isRedirecting, setIsRedirecting] = useState(false);
     const { user } = useAuth();
     const { trialDaysRemaining, isTrialExpired } = useUsers();
+
+    const handleCheckout = async (systemId: string) => {
+        setIsRedirecting(true);
+        try {
+            const res = await fetch('https://finapp-innomind.vercel.app/api/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ planKey: systemId, email: user?.email }),
+            });
+            const data = await res.json();
+            if (data?.url) {
+                window.location.href = data.url;
+            } else {
+                setIsRedirecting(false);
+            }
+        } catch {
+            setIsRedirecting(false);
+        }
+    };
 
     // Smart CTA: 3 states based on auth + trial status
     const getCtaState = (systemId: string) => {
@@ -75,18 +95,18 @@ export default function PricingSection({ standalone = false }: { standalone?: bo
         if (!isTrialExpired && trialDaysRemaining !== null && trialDaysRemaining > 0) {
             // Active trial → upgrade to paid
             return {
-                label: 'Activar Suscripción',
+                label: isRedirecting ? 'Redirigiendo...' : 'Activar Suscripción',
                 icon: <Lock size={16} />,
                 subtext: `Te quedan ${trialDaysRemaining} días de prueba · Activa ahora sin interrupción`,
-                action: () => handleCta(systemId),
+                action: () => handleCheckout(systemId),
             };
         }
         // Trial expired → renew
         return {
-            label: 'Renovar mi Plan',
+            label: isRedirecting ? 'Redirigiendo...' : 'Renovar mi Plan',
             icon: <RefreshCcw size={16} />,
             subtext: 'Tu periodo de prueba terminó · Activa tu plan para continuar',
-            action: () => handleCta(systemId),
+            action: () => handleCheckout(systemId),
         };
     };
 
