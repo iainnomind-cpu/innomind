@@ -199,7 +199,7 @@ export default function TrakPage() {
                 onClick={() => openFreeTrial(undefined, 'project-tracker')}
                 className="px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-lg transition-all"
             >
-                Comienza tus 30 Días de Prueba
+                Comienza tus 15 Días de Prueba
             </button>
         </section>
 

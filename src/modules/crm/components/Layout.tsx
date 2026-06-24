@@ -21,6 +21,24 @@ export default function Layout() {
   const { currentUser, enabledModules, trialDaysRemaining, companyProfile, isLoadingProfile } = useUsers();
   const { isActive: isOnboardingActive, currentStep } = useOnboarding();
 
+  const handleCheckout = async () => {
+    try {
+      const res = await fetch('https://finapp-innomind.vercel.app/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planKey: 'core', email: user?.email }),
+      });
+      const data = await res.json();
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        navigate('/precios');
+      }
+    } catch {
+      navigate('/precios');
+    }
+  };
+
   const menuItems = [
     { id: 'dashboard', label: 'Panel de Control', icon: LayoutDashboard, alwaysVisible: true },
     { id: 'embudo', label: 'Embudo de Ventas', icon: Trello },
@@ -159,10 +177,10 @@ export default function Layout() {
                 <p className="text-sm opacity-90 mt-0.5">Disfruta de todas las funciones premium. Actualiza tu plan antes de que termine.</p>
               </div>
               <button 
-                onClick={() => navigate('/precios')}
+                onClick={handleCheckout}
                 className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${trialDaysRemaining <= 7 ? 'bg-amber-600 hover:bg-amber-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
               >
-                Contratar Plan
+                Activar Suscripción
               </button>
             </div>
           )}

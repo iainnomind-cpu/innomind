@@ -3,19 +3,40 @@ import { Lock, Sparkles, CreditCard, LogOut, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useUsers } from '@/context/UserContext';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 
 export default function TrialExpiredScreen() {
-    const { signOut } = useAuth();
-    const { companyProfile } = useUsers();
+    const { user, signOut } = useAuth();
+    const { companyProfile, enabledModules } = useUsers();
     const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleLogout = async () => {
         await signOut();
     };
 
-    const handleUpgrade = () => {
-        // En un futuro esto llamará a Stripe. Por ahora redirige a precios o abre modal.
-        navigate('/precios');
+    const handleUpgrade = async () => {
+        setIsLoading(true);
+        try {
+            // Determine the plan based on enabled modules
+            const planKey = enabledModules?.includes('trak') && enabledModules.length === 1 ? 'trak' : 'core';
+            
+            const res = await fetch('https://finapp-innomind.vercel.app/api/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ planKey, email: user?.email }),
+            });
+            const data = await res.json();
+            if (data?.url) {
+                window.location.href = data.url;
+            } else {
+                navigate('/precios');
+            }
+        } catch {
+            navigate('/precios');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -33,7 +54,7 @@ export default function TrialExpiredScreen() {
                     <div>
                         <h1 className="text-2xl font-bold text-slate-900">Tu periodo de prueba ha terminado</h1>
                         <p className="text-slate-500 mt-2 text-sm leading-relaxed">
-                            Esperamos que hayas disfrutado tus 30 días con Innomind. Para seguir usando tu workspace <span className="font-semibold text-slate-700">{companyProfile?.nombreEmpresa}</span> y no perder acceso a tu información, actualiza a un plan premium.
+                            Esperamos que hayas disfrutado tus 15 días con Innomind. Para seguir usando tu workspace <span className="font-semibold text-slate-700">{companyProfile?.nombreEmpresa}</span> y no perder acceso a tu información, actualiza a un plan premium.
                         </p>
                     </div>
 
@@ -61,10 +82,11 @@ export default function TrialExpiredScreen() {
                     <div className="pt-2 space-y-3">
                         <button
                             onClick={handleUpgrade}
-                            className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 px-4 rounded-xl transition-colors"
+                            disabled={isLoading}
+                            className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 px-4 rounded-xl transition-colors disabled:opacity-50"
                         >
                             <CreditCard className="w-5 h-5" />
-                            Contratar Plan
+                            {isLoading ? 'Redirigiendo...' : 'Activar Suscripción'}
                             <ArrowRight className="w-4 h-4 ml-1" />
                         </button>
                         

@@ -46,10 +46,28 @@ function TrakLayoutInner() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { moduleSettings } = useTrak();
   const navigate = useNavigate();
-  const { isActive: isOnboardingActive, currentStep: onboardingStep } = useTrakOnboarding();
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { trialDaysRemaining, companyProfile, isLoadingProfile } = useUsers();
+  const { isActive: isOnboardingActive, currentStep: onboardingStep } = useTrakOnboarding();
+
+  const handleCheckout = async () => {
+    try {
+      const res = await fetch('https://finapp-innomind.vercel.app/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planKey: 'trak', email: user?.email }),
+      });
+      const data = await res.json();
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        navigate('/trak/settings');
+      }
+    } catch {
+      navigate('/trak/settings');
+    }
+  };
 
   const menuItems = [
     ...baseMenuItems.slice(0, 6), // before reports
@@ -169,10 +187,10 @@ function TrakLayoutInner() {
                 <p className="text-sm opacity-90 mt-0.5">Disfruta de todas las funciones premium de Trak. Actualiza tu plan antes de que termine.</p>
               </div>
               <button 
-                onClick={() => navigate('/precios')}
+                onClick={handleCheckout}
                 className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${trialDaysRemaining <= 7 ? 'bg-amber-600 hover:bg-amber-700 text-white' : 'bg-purple-600 hover:bg-purple-700 text-white'}`}
               >
-                Contratar Plan
+                Activar Suscripción
               </button>
             </div>
           )}

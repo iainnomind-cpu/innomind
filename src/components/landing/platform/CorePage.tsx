@@ -202,7 +202,7 @@ export default function CorePage() {
                 onClick={() => openFreeTrial(undefined, 'crm-erp')}
                 className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg transition-all"
             >
-                Comienza tus 30 Días de Prueba
+                Comienza tus 15 Días de Prueba
             </button>
         </section>
 
