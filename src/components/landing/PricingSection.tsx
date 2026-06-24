@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Check, Zap, Shield, HeartHandshake, BadgePercent, Sparkles, ArrowRight, Code2, CalendarDays, CreditCard } from 'lucide-react';
+import { Check, Zap, Shield, HeartHandshake, BadgePercent, Sparkles, ArrowRight, Code2, CalendarDays, CreditCard, RefreshCcw, Lock } from 'lucide-react';
 import { CoreLogo } from '@/components/brand/CoreLogo';
 import { TrakLogo } from '@/components/brand/TrakLogo';
 import { useModal } from '../../context/ModalContext';
+import { useAuth } from '@/context/AuthContext';
+import { useUsers } from '@/context/UserContext';
 
 const MONTHLY_PRICE = 299;
 const ANNUAL_PRICE = MONTHLY_PRICE * 10; // 2 months free
@@ -55,6 +57,38 @@ export default function PricingSection({ standalone = false }: { standalone?: bo
     const { openFreeTrial, openDemoModal } = useModal();
 
     const price = billing === 'monthly' ? MONTHLY_PRICE : ANNUAL_MONTHLY_EQUIV;
+
+    const { user } = useAuth();
+    const { trialDaysRemaining, isTrialExpired } = useUsers();
+
+    // Smart CTA: 3 states based on auth + trial status
+    const getCtaState = (systemId: string) => {
+        if (!user) {
+            // Not logged in → start free trial
+            return {
+                label: 'Comenzar Prueba Gratuita',
+                icon: <Zap size={16} />,
+                subtext: '15 días gratis · Sin tarjeta de crédito',
+                action: () => handleCta(systemId),
+            };
+        }
+        if (!isTrialExpired && trialDaysRemaining !== null && trialDaysRemaining > 0) {
+            // Active trial → upgrade to paid
+            return {
+                label: 'Activar Suscripción',
+                icon: <Lock size={16} />,
+                subtext: `Te quedan ${trialDaysRemaining} días de prueba · Activa ahora sin interrupción`,
+                action: () => handleCta(systemId),
+            };
+        }
+        // Trial expired → renew
+        return {
+            label: 'Renovar mi Plan',
+            icon: <RefreshCcw size={16} />,
+            subtext: 'Tu periodo de prueba terminó · Activa tu plan para continuar',
+            action: () => handleCta(systemId),
+        };
+    };
 
     const handleCta = (systemId: string) => {
         if (systemId === 'custom') {
@@ -204,13 +238,20 @@ export default function PricingSection({ standalone = false }: { standalone?: bo
 
                                 {/* CTA */}
                                 <div className="mt-auto space-y-3">
-                                    <button
-                                        onClick={() => handleCta(sys.id)}
-                                        className={`w-full py-3.5 px-6 font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-sm ${sys.ctaClass}`}
-                                    >
-                                        <Zap size={16} /> Comenzar Prueba Gratuita
-                                    </button>
-                                    <p className="text-center text-xs text-slate-500">14 días gratis · Sin tarjeta de crédito</p>
+                                    {(() => {
+                                        const cta = getCtaState(sys.id);
+                                        return (
+                                            <>
+                                                <button
+                                                    onClick={cta.action}
+                                                    className={`w-full py-3.5 px-6 font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-sm ${sys.ctaClass}`}
+                                                >
+                                                    {cta.icon} {cta.label}
+                                                </button>
+                                                <p className="text-center text-xs text-slate-500">{cta.subtext}</p>
+                                            </>
+                                        );
+                                    })()}
                                 </div>
                             </div>
                         </div>

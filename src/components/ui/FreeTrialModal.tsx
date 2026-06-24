@@ -313,7 +313,7 @@ export default function FreeTrialModal() {
                                     <div className="text-center mb-6">
                                         <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Comienza tu Prueba Gratuita</h2>
                                         <p className="text-slate-400 text-sm mt-1">
-                                            Accede a todas las funciones premium por 30 días.
+                                            Accede a todas las funciones premium por 15 días sin costo.
                                         </p>
                                     </div>
 
@@ -789,7 +789,7 @@ export default function FreeTrialModal() {
 
                                                 }
 
-                                                // After registration → redirect to Stripe checkout (14-day trial)
+                                                // After registration → redirect to Stripe checkout (15-day trial)
                                                 const planKey = selectedMainModule === 'project-tracker' ? 'trak' : 'core';
                                                 // Try to redirect to Stripe, but fallback to app if Stripe not configured
                                                 try {

@@ -95,7 +95,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                             expireDate = new Date(data.trial_expires_at);
                         } else {
                             expireDate = new Date(data.created_at);
-                            expireDate.setDate(expireDate.getDate() + 30);
+                            expireDate.setDate(expireDate.getDate() + 15); // 15-day trial
                         }
                         const now = new Date();
                         const diffTime = expireDate.getTime() - now.getTime();
@@ -103,7 +103,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         setTrialDaysRemaining(diffDays > 0 ? diffDays : 0);
                         setIsTrialExpired(diffDays <= 0);
                     } else {
-                        setTrialDaysRemaining(30);
+                        setTrialDaysRemaining(15); // 15-day trial default
                         setIsTrialExpired(false);
                     }
                 }
