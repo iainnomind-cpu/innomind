@@ -136,7 +136,7 @@ const defaultStats: TrakStats = {
   completedThisMonth: 0,
 };
 
-const TrakContext = createContext<TrakContextType | undefined>(undefined);
+export const TrakContext = createContext<TrakContextType | undefined>(undefined);
 
 export const TrakProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();

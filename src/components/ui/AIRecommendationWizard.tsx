@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { Sparkles, ArrowRight, Check, Bot, Loader2, ChevronRight, X } from 'lucide-react';
 import { FEATURES } from '@/config/features';
 import { supabase } from '@/lib/supabase';
-import { useTrak } from '@/modules/trak/context/TrakContext';
+import { TrakContext } from '@/modules/trak/context/TrakContext';
 
 interface AIRecommendationWizardProps {
     onApplyRecommendation: (modules: string[]) => void;
@@ -20,7 +20,9 @@ export function AIRecommendationWizard({ onApplyRecommendation, onCancel }: AIRe
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [answers, setAnswers] = useState<Record<number, string>>({});
     const [result, setResult] = useState<RecommendationResult | null>(null);
-    const { workspaceId } = useTrak();
+    // Safe: AIRecommendationWizard can be rendered outside TrakProvider (e.g. landing page)
+    const trakCtx = useContext(TrakContext);
+    const workspaceId = trakCtx?.workspaceId ?? null;
 
     const questions = [
         {
