@@ -30,11 +30,15 @@ const baseMenuItems = [
   { id: 'settings', label: 'Configuración', icon: Settings, path: '/trak/settings' },
 ];
 
+import { TrakProvider } from './context/TrakContext';
+
 export default function TrakLayout() {
   return (
-    <TrakOnboardingProvider>
-      <TrakLayoutInner />
-    </TrakOnboardingProvider>
+    <TrakProvider>
+      <TrakOnboardingProvider>
+        <TrakLayoutInner />
+      </TrakOnboardingProvider>
+    </TrakProvider>
   );
 }
 
