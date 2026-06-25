@@ -3,7 +3,8 @@ import { useTrak } from '../../context/TrakContext';
 import { useAuth } from '@/context/AuthContext';
 import { useAI } from '../../context/AIContext';
 import { supabase } from '@/lib/supabase';
-import { Settings, Boxes, ToggleLeft, ToggleRight, Building2, Zap, Save, Plus, X, Bell, Upload, ImageIcon, Sparkles } from 'lucide-react';
+import { Settings, Boxes, ToggleLeft, ToggleRight, Building2, Zap, Save, Plus, X, Bell, Upload, ImageIcon, Sparkles, CreditCard } from 'lucide-react';
+import BillingSettings from '../../../crm/components/BillingSettings';
 
 const availableModules = [
   { key: 'inventory', label: 'Inventario', description: 'Gestiona productos, stock, entradas/salidas y asigna materiales a proyectos.', icon: Boxes },
@@ -14,7 +15,7 @@ export default function TrakSettings() {
   const { workspaceId, moduleSettings, toggleModule } = useTrak();
   const { tokensUsed, tokensLimit } = useAI();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'general' | 'modules' | 'automation' | 'notifications' | 'ai'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'modules' | 'automation' | 'notifications' | 'ai' | 'billing'>('general');
   const [workspaceSettings, setWorkspaceSettings] = useState<any>({
     default_currency: 'MXN',
     default_tax_rate: 16,
@@ -151,6 +152,12 @@ export default function TrakSettings() {
             className={`pb-3 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'ai' ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
           >
             <Sparkles size={16}/> IA Assistant
+          </button>
+          <button
+            onClick={() => setActiveTab('billing')}
+            className={`pb-3 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'billing' ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+          >
+            <CreditCard size={16}/> Facturación
           </button>
         </div>
 
@@ -452,6 +459,12 @@ export default function TrakSettings() {
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'billing' && (
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden p-6 space-y-8">
+            <BillingSettings />
           </div>
         )}
 

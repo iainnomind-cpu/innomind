@@ -48,7 +48,7 @@ function TrakLayoutInner() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut } = useAuth();
-  const { trialDaysRemaining, companyProfile, isLoadingProfile } = useUsers();
+  const { trialDaysRemaining, companyProfile, isLoadingProfile, isSubscriptionActive } = useUsers();
   const { isActive: isOnboardingActive, currentStep: onboardingStep } = useTrakOnboarding();
 
   const handleCheckout = async () => {
@@ -177,7 +177,7 @@ function TrakLayoutInner() {
 
         {/* Content */}
         <main className="flex-1 overflow-y-auto p-4 lg:p-8 bg-transparent relative">
-          {trialDaysRemaining !== null && (
+          {trialDaysRemaining !== null && !isSubscriptionActive && (
             <div className={`mb-6 rounded-xl p-4 flex items-center justify-between border ${trialDaysRemaining <= 7 ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-purple-50 border-purple-200 text-purple-800'}`}>
               <div>
                 <p className="font-semibold flex items-center gap-2">

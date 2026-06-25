@@ -18,7 +18,7 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut } = useAuth();
-  const { currentUser, enabledModules, trialDaysRemaining, companyProfile, isLoadingProfile } = useUsers();
+  const { currentUser, enabledModules, trialDaysRemaining, companyProfile, isLoadingProfile, isSubscriptionActive } = useUsers();
   const { isActive: isOnboardingActive, currentStep } = useOnboarding();
 
   const handleCheckout = async () => {
@@ -167,7 +167,7 @@ export default function Layout() {
         </header>
 
         <main className="flex-1 overflow-y-auto p-6">
-          {trialDaysRemaining !== null && (
+          {trialDaysRemaining !== null && !isSubscriptionActive && (
             <div className={`mb-6 rounded-xl p-4 flex items-center justify-between border ${trialDaysRemaining <= 7 ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-blue-50 border-blue-200 text-blue-800'}`}>
               <div>
                 <p className="font-semibold flex items-center gap-2">

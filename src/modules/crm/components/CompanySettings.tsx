@@ -3,13 +3,12 @@ import { useUsers } from '@/context/UserContext';
 import { Building, Upload, AtSign, Phone, MapPin, Hash, Palette, CheckCircle, Users, UserPlus, Shield, X, Send, Blocks, Check, BookOpen } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { FEATURES } from '@/config/features';
+import BillingSettings from './BillingSettings';
+import { CreditCard } from 'lucide-react';
 
 const CompanySettings: React.FC = () => {
     const { companyProfile, updateCompanyProfile, users, currentUser, isLoadingProfile, enabledModules, updateEnabledModules } = useUsers();
-    const [saved, setSaved] = useState(false);
-    const [activeTab, setActiveTab] = useState<'profile' | 'team' | 'modules'>('profile');
-
-    const [profile, setProfile] = useState(companyProfile);
+    const [activeTab, setActiveTab] = useState<'profile' | 'team' | 'modules' | 'billing'>('profile');    const [profile, setProfile] = useState(companyProfile);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Keep local state in sync with context (crucial for when async fetch completes)
@@ -113,6 +112,9 @@ const CompanySettings: React.FC = () => {
                 </button>
                 <button onClick={() => setActiveTab('modules')} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'modules' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
                     <Blocks size={16} /> Módulos
+                </button>
+                <button onClick={() => setActiveTab('billing')} className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'billing' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                    <CreditCard size={16} /> Facturación
                 </button>
             </div>
 
@@ -229,6 +231,10 @@ const CompanySettings: React.FC = () => {
                         </table>
                     </div>
                 </div>
+            )}
+
+            {activeTab === 'billing' && (
+                <BillingSettings />
             )}
 
             {activeTab === 'modules' && (
