@@ -8,7 +8,9 @@ import { CreditCard } from 'lucide-react';
 
 const CompanySettings: React.FC = () => {
     const { companyProfile, updateCompanyProfile, users, currentUser, isLoadingProfile, enabledModules, updateEnabledModules } = useUsers();
-    const [activeTab, setActiveTab] = useState<'profile' | 'team' | 'modules' | 'billing'>('profile');    const [profile, setProfile] = useState(companyProfile);
+    const [activeTab, setActiveTab] = useState<'profile' | 'team' | 'modules' | 'billing'>('profile');    
+    const [profile, setProfile] = useState(companyProfile);
+    const [saved, setSaved] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Keep local state in sync with context (crucial for when async fetch completes)
