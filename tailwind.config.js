@@ -22,9 +22,10 @@ export default {
         'trak-void': '#0F0B1A',
       },
       fontFamily: {
-        display: ['Manrope', 'sans-serif'],
-        brand: ['Space Grotesk', 'sans-serif'],
-        sans: ['DM Sans', 'sans-serif'],
+        display: ['Outfit', 'sans-serif'],
+        brand: ['Outfit', 'sans-serif'],
+        sans: ['Inter', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
       },
       borderRadius: {
         DEFAULT: '0.25rem',
