@@ -28,11 +28,21 @@ export default {
         mono: ['JetBrains Mono', 'monospace'],
       },
       borderRadius: {
-        DEFAULT: '0.25rem',
-        lg: '0.5rem',
-        xl: '0.75rem',
-        '2xl': '1rem',
-        full: '9999px',
+        // ponytail: global radius reduction — industrial B2B feel, not consumer-app bubbles
+        DEFAULT: '0.125rem',  /* 2px — barely there */
+        sm:      '0.125rem',
+        md:      '0.25rem',
+        lg:      '0.25rem',   /* 4px — previously 8px */
+        xl:      '0.375rem',  /* 6px — previously 12px */
+        '2xl':   '0.5rem',    /* 8px — previously 16px */
+        '3xl':   '0.75rem',
+        full:    '9999px',    /* keep for pills / avatars */
+      },
+      boxShadow: {
+        // Hard offset shadow — neobrutalista controlado, only where intentional
+        hard:    '3px 3px 0px 0px currentColor',
+        'hard-blue':   '3px 3px 0px 0px #2563EB',
+        'hard-purple': '3px 3px 0px 0px #9333EA',
       },
     },
   },
