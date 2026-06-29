@@ -179,70 +179,76 @@ export default function BillingSettings() {
     return (
         <div className="space-y-6">
 
-            {/* Status Card */}
-            <div className={`rounded-2xl border-2 ${statusCfg.border} ${statusCfg.bg} p-6`}>
-                <div className="flex items-start justify-between flex-wrap gap-4">
-                    <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-xl ${statusCfg.bg}`}>
-                            <StatusIcon className={`w-6 h-6 ${statusCfg.color}`} />
+            {/* ── Status Hero Card ── */}
+            <div className="bg-zinc-950 border border-zinc-800 p-6 relative overflow-hidden">
+                {/* Background accent bleed */}
+                <div className={`absolute inset-0 opacity-10 pointer-events-none ${
+                    effectiveStatus === 'active' ? 'bg-gradient-to-br from-emerald-500 to-transparent' :
+                    effectiveStatus === 'trialing' ? 'bg-gradient-to-br from-amber-500 to-transparent' :
+                    'bg-gradient-to-br from-red-700 to-transparent'
+                }`} />
+
+                <div className="relative flex items-start justify-between gap-4">
+                    {/* Left: label + status */}
+                    <div>
+                        <p className="text-[9px] font-semibold uppercase tracking-widest text-zinc-500 mb-2">
+                            Estado de Suscripción
+                        </p>
+                        <div className="flex items-center gap-2 mb-3">
+                            <StatusIcon className={`w-4 h-4 shrink-0 ${
+                                effectiveStatus === 'active' ? 'text-emerald-400' :
+                                effectiveStatus === 'trialing' ? 'text-amber-400' : 'text-red-400'
+                            }`} />
+                            <p className={`text-lg font-display font-bold ${
+                                effectiveStatus === 'active' ? 'text-emerald-400' :
+                                effectiveStatus === 'trialing' ? 'text-amber-400' : 'text-red-400'
+                            }`}>{statusCfg.label}</p>
                         </div>
-                        <div>
-                            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Estado de Suscripción</p>
-                            <p className={`text-xl font-bold ${statusCfg.color}`}>{statusCfg.label}</p>
-                            {effectivePlan && (
-                                <p className="text-sm text-slate-600 mt-0.5">
-                                    Plan: <span className="font-semibold">{PLAN_NAMES[effectivePlan] || effectivePlan}</span>
-                                </p>
-                            )}
-                        </div>
+                        {effectivePlan && (
+                            <p className="text-xs text-zinc-500 font-mono uppercase tracking-widest">
+                                {PLAN_NAMES[effectivePlan] || effectivePlan}
+                            </p>
+                        )}
                     </div>
-                    <button
-                        onClick={handleRefresh}
-                        disabled={isLoadingLive}
-                        className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 transition-colors disabled:opacity-50"
-                    >
-                        <RefreshCw className={`w-4 h-4 ${isLoadingLive ? 'animate-spin' : ''}`} />
-                        Actualizar
-                    </button>
+
+                    {/* Right: big monospace metric */}
+                    <div className="text-right shrink-0">
+                        {effectiveStatus === 'trialing' && (
+                            <>
+                                <p className="font-mono font-bold text-4xl text-white leading-none" data-metric>
+                                    {effectiveDaysRemaining}
+                                </p>
+                                <p className="text-[10px] text-zinc-500 uppercase tracking-widest mt-1">días restantes</p>
+                            </>
+                        )}
+                        {effectiveStatus === 'active' && (
+                            <>
+                                <p className="font-mono text-xs text-zinc-500 uppercase tracking-widest mb-1">
+                                    {effectiveCancelAtEnd ? 'Acceso hasta' : 'Renueva'}
+                                </p>
+                                <p className="font-mono font-semibold text-sm text-emerald-400 leading-snug" data-metric>
+                                    {formatDate(effectivePeriodEnd)}
+                                </p>
+                                {effectiveCancelAtEnd && (
+                                    <p className="text-[10px] text-amber-400 mt-1">↓ No se renovará</p>
+                                )}
+                            </>
+                        )}
+                        {(effectiveStatus === 'past_due' || effectiveStatus === 'canceled') && (
+                            <p className="font-mono text-xs text-red-400 uppercase tracking-widest">Acción requerida</p>
+                        )}
+                    </div>
                 </div>
 
-                {/* Trial / Period info */}
-                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {effectiveStatus === 'trialing' && (
-                        <div className="bg-white/70 rounded-xl p-3">
-                            <p className="text-xs text-slate-500">Prueba gratuita termina</p>
-                            <p className="font-semibold text-slate-800">{formatDate(liveData?.trialEnd || effectivePeriodEnd)}</p>
-                            <p className={`text-sm font-medium mt-0.5 ${effectiveDaysRemaining <= 3 ? 'text-red-600' : 'text-amber-600'}`}>
-                                {effectiveDaysRemaining} día{effectiveDaysRemaining !== 1 ? 's' : ''} restante{effectiveDaysRemaining !== 1 ? 's' : ''}
-                            </p>
-                        </div>
-                    )}
-                    {effectiveStatus === 'active' && (
-                        <div className="bg-white/70 rounded-xl p-3">
-                            <p className="text-xs text-slate-500">
-                                {effectiveCancelAtEnd ? 'Acceso hasta' : 'Próxima renovación'}
-                            </p>
-                            <p className="font-semibold text-slate-800">{formatDate(effectivePeriodEnd)}</p>
-                            {effectiveCancelAtEnd && (
-                                <p className="text-xs text-amber-600 mt-0.5 font-medium">
-                                    ⚠️ Se cancelará al final del período
-                                </p>
-                            )}
-                        </div>
-                    )}
-                    {effectiveStatus === 'past_due' && (
-                        <div className="bg-white/70 rounded-xl p-3">
-                            <p className="text-xs text-slate-500">Acción requerida</p>
-                            <p className="font-semibold text-red-700">Actualiza tu método de pago</p>
-                        </div>
-                    )}
-                    {effectiveStatus === 'canceled' && (
-                        <div className="bg-white/70 rounded-xl p-3">
-                            <p className="text-xs text-slate-500">Suscripción cancelada</p>
-                            <p className="font-semibold text-slate-700">Acceso expirado</p>
-                        </div>
-                    )}
-                </div>
+                {/* Refresh button — bottom right, muted */}
+                <button
+                    onClick={handleRefresh}
+                    disabled={isLoadingLive}
+                    className="absolute bottom-4 right-4 flex items-center gap-1.5 text-[10px] text-zinc-600 hover:text-zinc-300 transition-colors disabled:opacity-40 uppercase tracking-widest font-mono"
+                >
+                    <RefreshCw className={`w-3 h-3 ${isLoadingLive ? 'animate-spin' : ''}`} />
+                    Sync
+                </button>
             </div>
 
             {/* Action Buttons */}
