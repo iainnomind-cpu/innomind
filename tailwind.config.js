@@ -6,20 +6,25 @@ export default {
     extend: {
       colors: {
         primary: '#0d7ff2',
-        'background-light': '#f5f7f8',
-        'background-dark': '#101922',
+        // ponytail: true zinc dark — no blueish tint, more industrial authority
+        'background-light': '#F4F4F5',   /* zinc-100 */
+        'background-dark': '#09090B',    /* zinc-950 — was #101922 blueish */
+        'surface-dark':    '#18181B',    /* zinc-900 — elevated surface */
+        'border-dark':     '#27272A',    /* zinc-800 — visible but not loud */
         'brand-orange': '#FF6B00',
         // Corē Brand Palette
-        'core-blue': '#2563EB',
-        'core-signal': '#38AAFF',
-        'core-ice': '#72C8FF',
-        'core-arctic': '#F5F8FF',
-        'core-void': '#05080F',
+        'core-blue':     '#2563EB',
+        'core-electric': '#38BDF8',      /* sky-400 — high contrast on dark */
+        'core-signal':   '#38AAFF',
+        'core-ice':      '#E0F2FE',      /* sky-100 — light bg tint */
+        'core-arctic':   '#F5F8FF',
+        'core-void':     '#05080F',
         // Trak Brand Palette
-        'trak-primary': '#9333EA',
-        'trak-signal': '#C084FC',
-        'trak-ice': '#F3E8FF',
-        'trak-void': '#0F0B1A',
+        'trak-primary':  '#9333EA',
+        'trak-electric': '#C084FC',      /* purple-400 — dominant accent on dark */
+        'trak-signal':   '#D8B4FE',      /* purple-300 */
+        'trak-ice':      '#F3E8FF',
+        'trak-void':     '#0B0914',
       },
       fontFamily: {
         display: ['Outfit', 'sans-serif'],
@@ -40,7 +45,7 @@ export default {
       },
       boxShadow: {
         // Hard offset shadow — neobrutalista controlado, only where intentional
-        hard:    '3px 3px 0px 0px currentColor',
+        hard:          '3px 3px 0px 0px currentColor',
         'hard-blue':   '3px 3px 0px 0px #2563EB',
         'hard-purple': '3px 3px 0px 0px #9333EA',
       },
