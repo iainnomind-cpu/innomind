@@ -2,58 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  /* ponytail: single place to override the default body font */
-  html {
-    font-family: 'Inter', sans-serif;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-  }
-
-  /* Display headings automatically get Outfit */
-  h1, h2, h3 {
-    font-family: 'Outfit', sans-serif;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-  }
-
-  /* Numbers, amounts, dates → monospace for precision */
-  .metric, [data-metric] {
-    font-family: 'JetBrains Mono', monospace;
-    font-variant-numeric: tabular-nums;
-  }
-}
-
-
 .glass-panel {
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  border-radius: 0.25rem; /* ponytail: was rounded-xl, now sharp */
-}
-
-/* Opt-in hard card — use on pricing, billing status, empty states */
-.hard-card {
-  border: 1px solid;
-  border-radius: 0.25rem;
-  box-shadow: 3px 3px 0px 0px currentColor;
-  transition: box-shadow 150ms ease, transform 150ms ease;
-}
-.hard-card:hover {
-  box-shadow: 5px 5px 0px 0px currentColor;
-  transform: translate(-1px, -1px);
 }
 
 .mesh-gradient-bg {
-  /* ponytail: zinc base + stronger color bleeds — intentional, not decorative */
-  background-color: #09090B;
+  background-color: #101922;
   background-image:
-    radial-gradient(at 5% 5%,    rgba(37,  99, 235, 0.22) 0px, transparent 45%),
-    radial-gradient(at 95% 5%,   rgba(147, 51, 234, 0.22) 0px, transparent 45%),
-    radial-gradient(at 50% 100%, rgba(56, 189, 248, 0.08) 0px, transparent 55%);
+    radial-gradient(at 0% 0%, rgba(13, 127, 242, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(118, 45, 226, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(13, 127, 242, 0.1) 0px, transparent 50%);
 }
 
 @keyframes brand-breathe {

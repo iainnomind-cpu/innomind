@@ -135,25 +135,6 @@ function TrakLayoutInner() {
             );
           })}
         </nav>
-
-        {/* ponytail: persistent subscription pulse — always visible, never intrusive */}
-        {!isSubscriptionActive && trialDaysRemaining !== null && (
-          <div
-            onClick={() => navigate('/trak/settings?tab=billing')}
-            className="mx-3 mb-3 px-3 py-2 border border-trak-electric/30 bg-trak-electric/5 cursor-pointer hover:bg-trak-electric/10 transition-colors"
-          >
-            <p className="text-[9px] font-semibold uppercase tracking-widest text-trak-electric/60 mb-0.5">Período de prueba</p>
-            <p className="font-mono text-trak-electric font-semibold text-sm leading-none">
-              {trialDaysRemaining}d restantes
-            </p>
-          </div>
-        )}
-        {isSubscriptionActive && (
-          <div className="mx-3 mb-3 px-3 py-2 border border-emerald-500/20 bg-emerald-500/5">
-            <p className="text-[9px] font-semibold uppercase tracking-widest text-emerald-400/60">Plan activo</p>
-            <p className="font-mono text-emerald-400 text-xs leading-none mt-0.5">✓ Trak Projects</p>
-          </div>
-        )}
       </aside>
 
       {/* Mobile overlay */}
